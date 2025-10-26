@@ -38,17 +38,18 @@ Resources:
   AuthFeature:
     Type: AWS::Serverless::Application
     Properties:
-      Location: features/auth/template.yaml
-
-  DataFeature:
+      Location: auth/template.yaml
+      Parameters:
+        ParentApiId: !Ref CammiApi
+        StageName: cammi-mvp
+  
+  FeedbackFeature:
     Type: AWS::Serverless::Application
     Properties:
-      Location: features/data/template.yaml
-
-  NotificationsFeature:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: features/notifications/template.yaml
+      Location: feedback/template.yaml
+      Parameters:
+        ParentApiId: !Ref CammiApi
+        StageName: cammi-mvp
 
 # ============================================================
 # OUTPUTS

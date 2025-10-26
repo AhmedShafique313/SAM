@@ -1,0 +1,17 @@
+Resources:
+  FeedbackSubmitFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: cammi-feedback-submit
+      Handler: app.lambda_handler
+      CodeUri: src/
+      Description: Handles feedback submission
+      Role: arn:aws:iam::468943998235:role/cammi-lambda-role
+      Events:
+        FeedbackApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ParentApiId
+            Path: /feedback/submit
+            Method: post
+            StageName: !Ref StageName

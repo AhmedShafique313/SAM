@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Auth feature for CAMMI - handles Google OAuth login and callback
+
+Parameters:
+  ParentApiId:
+    Type: String
+    Description: The ID of the parent API Gateway defined in the root template
+  StageName:
+    Type: String
+    Description: The deployment stage name for the API (e.g., cammi-mvp)
+
+Resources:
+  AuthLoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: continue-with-google
+      Handler: continue-with-google.lambda_handler
+      CodeUri: src/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Description: Handles user login via Google OAuth
+      Role: arn:aws:iam::468943998235:role/cammi-lambda-role
+      Layers:
+        - !ImportValue GoogleLibrariesLayerArn
+      Environment:
+        Variables:
+          CLIENT_ID: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:CLIENT_ID}}"
+          CLIENT_SECRET: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:CLIENT_SECRET}}"
+          ZOHO_APP_PASSWORD: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:ZOHO_APP_PASSWORD}}"
+
+      Events:
+        GoogleLoginApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ParentApiId
+            Path: /auth/google-login
+            Method: post
+            StageName: !Ref StageName
+        GoogleCallbackApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ParentApiId
+            Path: /auth/google-callback
+            Method: post
+            StageName: !Ref StageName

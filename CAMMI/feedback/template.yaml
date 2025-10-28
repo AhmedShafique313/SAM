@@ -14,34 +14,6 @@ Parameters:
 Resources:
 
   ###################################################
-  # DynamoDB Tables
-  ###################################################
-
-  UsersTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: users-table
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: email
-          AttributeType: S
-      KeySchema:
-        - AttributeName: email
-          KeyType: HASH
-  
-  UsersFeedbackTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: users-feedback-table
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: user_id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: user_id
-          KeyType: HASH
-  
-  ###################################################
   # Lambda Functions
   ###################################################
 
@@ -54,8 +26,12 @@ Resources:
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
-      Description: Customer feedback
+      Description: Handles customer feedback submission
       Role: arn:aws:iam::468943998235:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UsersFeedbackTableName
       Events:
         CustomerFeedbackApi:
           Type: Api
@@ -74,8 +50,12 @@ Resources:
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
-      Description: Checking customer feedback
+      Description: Fetches and checks existing customer feedback
       Role: arn:aws:iam::468943998235:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UsersFeedbackTableName
       Events:
         CheckCustomerFeedbackApi:
           Type: Api

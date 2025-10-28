@@ -11,7 +11,7 @@ Globals:
   Function:
     Runtime: python3.13
     Timeout: 900
-    MemorySize: 512
+    MemorySize: 128
     Architectures:
       - x86_64
     Tracing: Active
@@ -31,6 +31,14 @@ Resources:
       StageName: cammi-mvp
       TracingEnabled: true
       EndpointConfiguration: REGIONAL
+
+  # ---------------------------------------------------
+  # DynamoDB stack (new nested application)
+  # ---------------------------------------------------
+  DynamoDBStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: dynamodb/template.yaml
 
   # ---------------------------------------------------
   # Feature-based Modules (examples)

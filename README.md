@@ -1,26 +1,31 @@
-CAMMI/
+SAM/
 │
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml               # GitHub Actions workflow for CI/CD
+│       └── deploy.yml               # CI/CD automation for SAM build & deploy
 │
 └── CAMMI/
-    ├── template.yaml                # Root SAM template (main orchestrator)
-    ├── samconfig.toml               # SAM build/deploy configuration
+    ├── template.yaml                # 🧩 Root SAM orchestrator
+    ├── samconfig.toml               # Build/deploy configuration
     │
     ├── Layers/
-    │   ├── template.yaml            # SAM layer definition
-    │   └── layer_google.zip         # Zipped Python dependencies for Google login
+    │   ├── template.yaml            # Google libraries layer definition
+    │   └── layer_google.zip         # Packaged dependencies
+    │
+    ├── dynamodb/
+    │   └── template.yaml            # ✅ Contains users & feedback DynamoDB tables
     │
     ├── auth/
-    │   ├── template.yaml            # SAM template for Auth (Google login Lambda)
+    │   ├── template.yaml            # Google OAuth Lambda definition
     │   └── src/
     │       └── continue-with-google.py
     │
     └── feedback/
-        ├── template.yaml            # SAM template for Feedback Lambda
+        ├── template.yaml            # Customer feedback Lambdas (2 functions)
         └── src/
-            └── submit-feedback.py
+            ├── customer-feedback.py
+            └── check-customer-feedback.py
+
 
 
 # google auth

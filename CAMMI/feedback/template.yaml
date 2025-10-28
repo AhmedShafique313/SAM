@@ -1,17 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Feedback feature for CAMMI
+
+Parameters:
+  ParentApiId:
+    Type: String
+    Description: The ID of the parent API Gateway defined in the root template
+
+  StageName:
+    Type: String
+    Description: The deployment stage name for the API (e.g., cammi-mvp)
+
 Resources:
-  FeedbackSubmitFunction:
+
+  ###################################################
+  # DynamoDB Tables
+  ###################################################
+
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: users-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+  
+  UsersFeedbackTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: users-feedback-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+  
+  ###################################################
+  # Lambda Functions
+  ###################################################
+
+  CustomerFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: cammi-feedback-submit
-      Handler: app.lambda_handler
+      FunctionName: customer-feedback
+      Handler: customer-feedback.lambda_handler
       CodeUri: src/
-      Description: Handles feedback submission
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Description: Customer feedback
       Role: arn:aws:iam::468943998235:role/cammi-lambda-role
       Events:
-        FeedbackApi:
+        CustomerFeedbackApi:
           Type: Api
           Properties:
             RestApiId: !Ref ParentApiId
-            Path: /feedback/submit
+            Path: /feedback/customer-feedback
+            Method: post
+            StageName: !Ref StageName
+
+  CheckCustomerFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: check-customer-feedback
+      Handler: check-customer-feedback.lambda_handler
+      CodeUri: src/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Description: Checking customer feedback
+      Role: arn:aws:iam::468943998235:role/cammi-lambda-role
+      Events:
+        CheckCustomerFeedbackApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ParentApiId
+            Path: /feedback/check-customer-feedback
             Method: post
             StageName: !Ref StageName

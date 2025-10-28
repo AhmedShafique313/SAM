@@ -38,7 +38,7 @@ Resources:
   DynamoDBStack:
     Type: AWS::Serverless::Application
     Properties:
-      Location: dynamodb/template.yaml
+      Location: db/template.yaml
 
   # ---------------------------------------------------
   # Feature-based Modules (examples)

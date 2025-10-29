@@ -5,6 +5,7 @@ Description: Feedback feature for CAMMI
 Parameters:
   StageName:
     Type: String
+    Default: cammi-mvp
     Description: The deployment stage name for the API (e.g., cammi-mvp)
 
 Resources:

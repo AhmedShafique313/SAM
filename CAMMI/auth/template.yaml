@@ -39,11 +39,17 @@ Resources:
             RestApiId: !Ref ParentApiId
             Path: /auth/google-login
             Method: post
-            StageName: !Ref StageName
         GoogleCallbackApi:
           Type: Api
           Properties:
             RestApiId: !Ref ParentApiId
             Path: /auth/google-callback
             Method: post
-            StageName: !Ref StageName
+
+Outputs:
+  AuthLoginFunctionName:
+    Description: "Google OAuth Login Function"
+    Value: !Ref AuthLoginFunction
+  AuthLoginApiPath:
+    Description: "Google OAuth Login API Endpoint"
+    Value: !Sub "/auth/google-login"

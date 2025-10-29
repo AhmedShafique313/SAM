@@ -26,6 +26,7 @@ Resources:
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
+      Tracing: Active
       Description: Handles customer feedback submission
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
@@ -39,7 +40,6 @@ Resources:
             RestApiId: !Ref ParentApiId
             Path: /feedback/customer-feedback
             Method: post
-            StageName: !Ref StageName
 
   CheckCustomerFeedbackFunction:
     Type: AWS::Serverless::Function
@@ -50,6 +50,7 @@ Resources:
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
+      Tracing: Active
       Description: Fetches and checks existing customer feedback
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
@@ -63,4 +64,16 @@ Resources:
             RestApiId: !Ref ParentApiId
             Path: /feedback/check-customer-feedback
             Method: post
-            StageName: !Ref StageName
+
+Outputs:
+  CustomerFeedbackFunctionName:
+    Description: "Lambda handling customer feedback submission"
+    Value: !Ref CustomerFeedbackFunction
+
+  CheckCustomerFeedbackFunctionName:
+    Description: "Lambda checking existing customer feedback"
+    Value: !Ref CheckCustomerFeedbackFunction
+
+  FeedbackApiBasePath:
+    Description: "Base path for feedback APIs"
+    Value: !Sub "/feedback"

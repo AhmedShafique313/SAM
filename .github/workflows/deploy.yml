@@ -33,7 +33,9 @@ jobs:
           aws-region: us-east-1
 
       - name: Build SAM application
+        working-directory: ./CAMMI
         run: sam build --template-file template.yaml
 
       - name: Deploy SAM application
+        working-directory: ./CAMMI
         run: sam deploy --template-file template.yaml --no-confirm-changeset --no-fail-on-empty-changeset

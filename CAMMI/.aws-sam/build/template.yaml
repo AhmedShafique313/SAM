@@ -25,12 +25,6 @@ Resources:
       Location: GoogleLibrariesLayerStack\template.yaml
     Metadata:
       SamResourceId: GoogleLibrariesLayerStack
-  FeedbackFeature:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: FeedbackFeature\template.yaml
-    Metadata:
-      SamResourceId: FeedbackFeature
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack

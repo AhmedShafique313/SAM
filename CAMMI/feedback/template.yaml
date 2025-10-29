@@ -25,7 +25,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles customer feedback submission
-      Role: arn:aws:iam::468943998235:role/cammi-lambda-role
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -42,7 +42,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches and checks existing customer feedback
-      Role: arn:aws:iam::468943998235:role/cammi-lambda-role
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName

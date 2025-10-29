@@ -10,7 +10,7 @@ parallel = true
 cached = true
 
 [default.deploy.parameters]
-s3_bucket = "cammi-prod"
+s3_bucket = "cammi-dev"
 s3_prefix = "sam-artifacts"
 capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
 confirm_changeset = true

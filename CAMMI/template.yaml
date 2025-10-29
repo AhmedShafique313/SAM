@@ -1,12 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  CAMMI - Serverless Application replicated from AWS Console resources.
+  CAMMI - Serverless Application orchestrator
   Python 3.13 runtime, 15-minute Lambda timeout, feature-based structure.
 
-# ============================================================
-# GLOBAL SETTINGS
-# ============================================================
 Globals:
   Function:
     Runtime: python3.13
@@ -16,52 +13,50 @@ Globals:
       - x86_64
     Tracing: Active
 
-# ============================================================
-# RESOURCES
-# ============================================================
 Resources:
 
-  # ---------------------------------------------------
-  # DynamoDB stack (nested application)
-  # ---------------------------------------------------
+  # Nested DynamoDB stack
   DynamoDBStack:
     Type: AWS::Serverless::Application
     Properties:
       Location: db/template.yaml
 
-  # ---------------------------------------------------
-  # Google Libraries Layer stack
-  # ---------------------------------------------------
+  # Nested Google Libraries Layer stack
   GoogleLibrariesLayerStack:
     Type: AWS::Serverless::Application
     Properties:
-      Location: layers/template.yaml
+      Location: Layers/template.yaml
 
-  # ---------------------------------------------------
-  # Feature-based Modules (example)
-  # ---------------------------------------------------
-  # AuthFeature:
-  #   Type: AWS::Serverless::Application
-  #   Properties:
-  #     Location: auth/template.yaml
+  # Feedback Lambdas
+  FeedbackFeature:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: feedback/template.yaml
+      Parameters:
+        StageName: cammi-mvp
 
-  # FeedbackFeature:
-  #   Type: AWS::Serverless::Application
-  #   Properties:
-  #     Location: feedback/template.yaml
+  # API Gateway stack
+  APIFeature:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: API/template.yaml
+      Parameters:
+        CustomerFeedbackFunctionArn: !GetAtt FeedbackFeature.CustomerFeedbackFunctionArn
+        StageName: cammi-mvp
 
-# ============================================================
-# OUTPUTS
-# ============================================================
 Outputs:
   DynamoDBStackOutput:
-    Description: "Outputs from nested DynamoDB stack"
+    Description: Outputs from nested DynamoDB stack
     Value: !Ref DynamoDBStack
 
   GoogleLibrariesLayerStackOutput:
-    Description: "Outputs from Google libraries layer stack"
+    Description: Outputs from Google libraries layer stack
     Value: !Ref GoogleLibrariesLayerStack
 
   FeedbackFeatureOutput:
-    Description: "Outputs from Feedback feature stack"
+    Description: Outputs from Feedback feature stack
     Value: !Ref FeedbackFeature
+
+  APIFeatureOutput:
+    Description: Outputs from API Gateway feature stack
+    Value: !Ref APIFeature

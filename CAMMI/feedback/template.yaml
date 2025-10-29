@@ -6,13 +6,9 @@ Parameters:
   StageName:
     Type: String
     Default: cammi-mvp
-    Description: The deployment stage name for the API
+    Description: Deployment stage name for the API
 
 Resources:
-
-  ###################################################
-  # Lambda Functions
-  ###################################################
 
   CustomerFeedbackFunction:
     Type: AWS::Serverless::Function
@@ -48,41 +44,11 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UsersFeedbackTableName
 
-  ###################################################
-  # API Gateway (all paths defined inline)
-  ###################################################
-  FeedbackApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: CammiApi-Feedback
-      StageName: !Ref StageName
-      TracingEnabled: true
-      EndpointConfiguration: REGIONAL
-      Description: Feedback routes for shared CAMMI API
-      DefinitionBody:
-        swagger: "2.0"
-        info:
-          title: "CAMMI Feedback API"
-          version: "1.0"
-        paths:
-          /feedback/customer-feedback:
-            post:
-              x-amazon-apigateway-integration:
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerFeedbackFunction.Arn}/invocations
-                httpMethod: POST
-                type: aws_proxy
-              responses: {}
-          /feedback/check-customer-feedback:
-            post:
-              x-amazon-apigateway-integration:
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckCustomerFeedbackFunction.Arn}/invocations
-                httpMethod: POST
-                type: aws_proxy
-              responses: {}
-
 Outputs:
-  FeedbackApiUrl:
-    Description: URL for Feedback API Gateway
-    Value: !Sub "https://${FeedbackApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
-    Export:
-      Name: CAMMI-FeedbackApiUrl
+  CustomerFeedbackFunctionArn:
+    Description: ARN of CustomerFeedback Lambda
+    Value: !GetAtt CustomerFeedbackFunction.Arn
+
+  CheckCustomerFeedbackFunctionArn:
+    Description: ARN of CheckCustomerFeedback Lambda
+    Value: !GetAtt CheckCustomerFeedbackFunction.Arn

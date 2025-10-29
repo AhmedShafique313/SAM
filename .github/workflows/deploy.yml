@@ -34,7 +34,7 @@ jobs:
 
       - name: Build SAM application
         working-directory: ./CAMMI
-        run: sam build --template-file CAMMI/template.yaml --parallel --use-container
+        run: sam build --template-file template.yaml --parallel --use-container
 
       - name: Deploy SAM application
         working-directory: ./CAMMI

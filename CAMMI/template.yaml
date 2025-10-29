@@ -45,10 +45,10 @@ Resources:
   #   Properties:
   #     Location: auth/template.yaml
 
-  FeedbackFeature:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: feedback/template.yaml
+  # FeedbackFeature:
+  #   Type: AWS::Serverless::Application
+  #   Properties:
+  #     Location: feedback/template.yaml
 
 # ============================================================
 # OUTPUTS

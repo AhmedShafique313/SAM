@@ -12,7 +12,7 @@ cached = true
 [default.deploy.parameters]
 s3_bucket = "cammi"
 s3_prefix = "cammi"
-capabilities = "CAPABILITY_IAM"
+capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
 confirm_changeset = true
 fail_on_empty_changeset = false
 image_repositories = [] 

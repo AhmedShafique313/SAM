@@ -18,10 +18,11 @@ Resources:
       Handler: continue-with-google.lambda_handler
       CodeUri: src/
       Runtime: python3.13
+      Tracing: Active
       Timeout: 900
       MemorySize: 128
       Description: Handles user login via Google OAuth
-      Role: arn:aws:iam::468943998235:role/cammi-lambda-role
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Layers:
         - !ImportValue GoogleLibrariesLayerArn
       Environment:
@@ -29,6 +30,7 @@ Resources:
           CLIENT_ID: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:CLIENT_ID}}"
           CLIENT_SECRET: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:CLIENT_SECRET}}"
           ZOHO_APP_PASSWORD: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:ZOHO_APP_PASSWORD}}"
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
       Events:
         GoogleLoginApi:

@@ -24,13 +24,13 @@ Resources:
   # ---------------------------------------------------
   # Shared API Gateway for CAMMI
   # ---------------------------------------------------
-  CammiApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: CammiApi
-      StageName: cammi-mvp
-      TracingEnabled: true
-      EndpointConfiguration: REGIONAL
+  # CammiApi:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     Name: CammiApi
+  #     StageName: cammi-mvp
+  #     TracingEnabled: true
+  #     EndpointConfiguration: REGIONAL
 
   # ---------------------------------------------------
   # DynamoDB stack (new nested application)
@@ -40,24 +40,28 @@ Resources:
     Properties:
       Location: db/template.yaml
 
+  GoogleLibrariesLayerStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: layers/template.yaml
   # ---------------------------------------------------
   # Feature-based Modules (examples)
   # ---------------------------------------------------
-  AuthFeature:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: auth/template.yaml
-      Parameters:
-        ParentApiId: !Ref CammiApi
-        StageName: cammi-mvp
+  # AuthFeature:
+  #   Type: AWS::Serverless::Application
+  #   Properties:
+  #     Location: auth/template.yaml
+  #     Parameters:
+  #       ParentApiId: !Ref CammiApi
+  #       StageName: cammi-mvp
   
-  FeedbackFeature:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: feedback/template.yaml
-      Parameters:
-        ParentApiId: !Ref CammiApi
-        StageName: cammi-mvp
+  # FeedbackFeature:
+  #   Type: AWS::Serverless::Application
+  #   Properties:
+  #     Location: feedback/template.yaml
+  #     Parameters:
+  #       ParentApiId: !Ref CammiApi
+  #       StageName: cammi-mvp
 
 # ============================================================
 # OUTPUTS

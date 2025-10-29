@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: DynamoDB tables for CAMMI - users and feedback data storage
+Resources:
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: users-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: email
+        AttributeType: S
+      KeySchema:
+      - AttributeName: email
+        KeyType: HASH
+  UsersFeedbackTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: users-feedback-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: user_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: user_id
+        KeyType: HASH
+Outputs:
+  UsersTableName:
+    Description: Name of the Users table
+    Value:
+      Ref: UsersTable
+    Export:
+      Name: CAMMI-UsersTableName
+  UsersFeedbackTableName:
+    Description: Name of the Users Feedback table
+    Value:
+      Ref: UsersFeedbackTable
+    Export:
+      Name: CAMMI-UsersFeedbackTableName

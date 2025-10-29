@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'CAMMI - Serverless Application replicated from AWS Console resources.
+  Python 3.13 runtime, 15-minute Lambda timeout, feature-based structure.
+
+  '
+Globals:
+  Function:
+    Runtime: python3.13
+    Timeout: 900
+    MemorySize: 128
+    Architectures:
+    - x86_64
+    Tracing: Active
+Resources:
+  DynamoDBStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: DynamoDBStack\template.yaml
+    Metadata:
+      SamResourceId: DynamoDBStack
+  GoogleLibrariesLayerStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: GoogleLibrariesLayerStack\template.yaml
+    Metadata:
+      SamResourceId: GoogleLibrariesLayerStack
+Outputs:
+  ApiUrl:
+    Description: Base URL for CAMMI API Gateway
+    Value:
+      Fn::Sub: https://${CammiApi}.execute-api.${AWS::Region}.amazonaws.com/${CammiApi.Stage}
+    Export:
+      Name: CAMMI-Dev-ApiUrl

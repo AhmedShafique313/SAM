@@ -33,13 +33,13 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UsersFeedbackTableName
-      Events:
-        CustomerFeedbackApi:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ParentApiId
-            Path: /feedback/customer-feedback
-            Method: post
+      # Events:
+      #   CustomerFeedbackApi:
+      #     Type: Api
+      #     Properties:
+      #       RestApiId: !Ref ParentApiId
+      #       Path: /feedback/customer-feedback
+      #       Method: post
 
   CheckCustomerFeedbackFunction:
     Type: AWS::Serverless::Function
@@ -57,23 +57,23 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UsersFeedbackTableName
-      Events:
-        CheckCustomerFeedbackApi:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ParentApiId
-            Path: /feedback/check-customer-feedback
-            Method: post
+      # Events:
+      #   CheckCustomerFeedbackApi:
+      #     Type: Api
+      #     Properties:
+      #       RestApiId: !Ref ParentApiId
+      #       Path: /feedback/check-customer-feedback
+      #       Method: post
 
-Outputs:
-  CustomerFeedbackFunctionName:
-    Description: "Lambda handling customer feedback submission"
-    Value: !Ref CustomerFeedbackFunction
+# Outputs:
+#   CustomerFeedbackFunctionName:
+#     Description: "Lambda handling customer feedback submission"
+#     Value: !Ref CustomerFeedbackFunction
 
-  CheckCustomerFeedbackFunctionName:
-    Description: "Lambda checking existing customer feedback"
-    Value: !Ref CheckCustomerFeedbackFunction
+#   CheckCustomerFeedbackFunctionName:
+#     Description: "Lambda checking existing customer feedback"
+#     Value: !Ref CheckCustomerFeedbackFunction
 
-  FeedbackApiBasePath:
-    Description: "Base path for feedback APIs"
-    Value: !Sub "/feedback"
+#   FeedbackApiBasePath:
+#     Description: "Base path for feedback APIs"
+#     Value: !Sub "/feedback"

@@ -55,13 +55,13 @@ Resources:
   #       ParentApiId: !Ref CammiApi
   #       StageName: cammi-mvp
   
-  # FeedbackFeature:
-  #   Type: AWS::Serverless::Application
-  #   Properties:
-  #     Location: feedback/template.yaml
-  #     Parameters:
-  #       ParentApiId: !Ref CammiApi
-  #       StageName: cammi-mvp
+  FeedbackFeature:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: feedback/template.yaml
+      # Parameters:
+      #   ParentApiId: !Ref CammiApi
+      #   StageName: cammi-mvp
 
 # ============================================================
 # OUTPUTS
@@ -69,6 +69,6 @@ Resources:
 # Outputs:
 #   ApiUrl:
 #     Description: "Base URL for CAMMI API Gateway"
-#     Value: !Sub "https://${CammiApi}.execute-api.${AWS::Region}.amazonaws.com/${CammiApi.Stage}"
+#     Value: !Sub "https://${CammiApi}.execute-api.${AWS::Region}.amazonaws.com/cammi-mvp"
 #     Export:
 #       Name: CAMMI-Dev-ApiUrl

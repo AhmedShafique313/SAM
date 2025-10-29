@@ -25,7 +25,7 @@ Resources:
   GoogleLibrariesLayerStack:
     Type: AWS::Serverless::Application
     Properties:
-      Location: Layers/template.yaml
+      Location: layers/template.yaml
 
   # Feedback Lambdas
   FeedbackFeature:

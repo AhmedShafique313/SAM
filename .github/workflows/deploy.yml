@@ -35,7 +35,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::687088702813:role/CICD-SAM-CAMMI
-          # role-to-assume: arn:aws:iam::468943998235:role/CICD-SAM-CAMMI
           aws-region: us-east-1
 
       - name: Build SAM application

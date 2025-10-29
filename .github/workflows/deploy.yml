@@ -33,7 +33,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Build SAM application
-        run: sam build
+        run: sam build --template-file template.yaml
 
       - name: Deploy SAM application
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+        run: sam deploy --template-file template.yaml --no-confirm-changeset --no-fail-on-empty-changeset

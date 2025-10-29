@@ -31,3 +31,16 @@ Resources:
       Location: FeedbackFeature\template.yaml
     Metadata:
       SamResourceId: FeedbackFeature
+Outputs:
+  DynamoDBStackOutput:
+    Description: Outputs from nested DynamoDB stack
+    Value:
+      Ref: DynamoDBStack
+  GoogleLibrariesLayerStackOutput:
+    Description: Outputs from Google libraries layer stack
+    Value:
+      Ref: GoogleLibrariesLayerStack
+  FeedbackFeatureOutput:
+    Description: Outputs from Feedback feature stack
+    Value:
+      Ref: FeedbackFeature

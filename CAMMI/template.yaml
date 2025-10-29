@@ -22,53 +22,46 @@ Globals:
 Resources:
 
   # ---------------------------------------------------
-  # Shared API Gateway for CAMMI
-  # ---------------------------------------------------
-  # CammiApi:
-  #   Type: AWS::Serverless::Api
-  #   Properties:
-  #     Name: CammiApi
-  #     StageName: cammi-mvp
-  #     TracingEnabled: true
-  #     EndpointConfiguration: REGIONAL
-
-  # ---------------------------------------------------
-  # DynamoDB stack (new nested application)
+  # DynamoDB stack (nested application)
   # ---------------------------------------------------
   DynamoDBStack:
     Type: AWS::Serverless::Application
     Properties:
       Location: db/template.yaml
 
+  # ---------------------------------------------------
+  # Google Libraries Layer stack
+  # ---------------------------------------------------
   GoogleLibrariesLayerStack:
     Type: AWS::Serverless::Application
     Properties:
       Location: layers/template.yaml
+
   # ---------------------------------------------------
-  # Feature-based Modules (examples)
+  # Feature-based Modules (example)
   # ---------------------------------------------------
   # AuthFeature:
   #   Type: AWS::Serverless::Application
   #   Properties:
   #     Location: auth/template.yaml
-  #     Parameters:
-  #       ParentApiId: !Ref CammiApi
-  #       StageName: cammi-mvp
-  
+
   FeedbackFeature:
     Type: AWS::Serverless::Application
     Properties:
       Location: feedback/template.yaml
-      # Parameters:
-      #   ParentApiId: !Ref CammiApi
-      #   StageName: cammi-mvp
 
 # ============================================================
 # OUTPUTS
 # ============================================================
-# Outputs:
-#   ApiUrl:
-#     Description: "Base URL for CAMMI API Gateway"
-#     Value: !Sub "https://${CammiApi}.execute-api.${AWS::Region}.amazonaws.com/cammi-mvp"
-#     Export:
-#       Name: CAMMI-Dev-ApiUrl
+Outputs:
+  DynamoDBStackOutput:
+    Description: "Outputs from nested DynamoDB stack"
+    Value: !Ref DynamoDBStack
+
+  GoogleLibrariesLayerStackOutput:
+    Description: "Outputs from Google libraries layer stack"
+    Value: !Ref GoogleLibrariesLayerStack
+
+  FeedbackFeatureOutput:
+    Description: "Outputs from Feedback feature stack"
+    Value: !Ref FeedbackFeature

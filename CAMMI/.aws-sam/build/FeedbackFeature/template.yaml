@@ -2,13 +2,25 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Feedback feature for CAMMI
 Parameters:
-  ParentApiId:
-    Type: String
-    Description: The ID of the parent API Gateway defined in the root template
   StageName:
     Type: String
     Description: The deployment stage name for the API (e.g., cammi-mvp)
 Resources:
+  FeedbackApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: CammiApi-Feedback
+      StageName:
+        Ref: StageName
+      TracingEnabled: true
+      EndpointConfiguration: REGIONAL
+      Description: Feedback routes for shared CAMMI API
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: CAMMI Feedback API
+          version: '1.0'
+        paths: {}
   CustomerFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -27,6 +39,14 @@ Resources:
             Fn::ImportValue: CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE:
             Fn::ImportValue: CAMMI-UsersFeedbackTableName
+      Events:
+        CustomerFeedbackApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: FeedbackApi
+            Path: /feedback/customer-feedback
+            Method: post
     Metadata:
       SamResourceId: CustomerFeedbackFunction
   CheckCustomerFeedbackFunction:
@@ -47,5 +67,20 @@ Resources:
             Fn::ImportValue: CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE:
             Fn::ImportValue: CAMMI-UsersFeedbackTableName
+      Events:
+        CheckCustomerFeedbackApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: FeedbackApi
+            Path: /feedback/check-customer-feedback
+            Method: post
     Metadata:
       SamResourceId: CheckCustomerFeedbackFunction
+Outputs:
+  FeedbackApiUrl:
+    Description: URL for Feedback API Gateway
+    Value:
+      Fn::Sub: https://${FeedbackApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}
+    Export:
+      Name: CAMMI-FeedbackApiUrl

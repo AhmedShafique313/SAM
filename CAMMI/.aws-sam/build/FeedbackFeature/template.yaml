@@ -4,6 +4,7 @@ Description: Feedback feature for CAMMI
 Parameters:
   StageName:
     Type: String
+    Default: cammi-mvp
     Description: The deployment stage name for the API (e.g., cammi-mvp)
 Resources:
   FeedbackApi:
@@ -20,7 +21,12 @@ Resources:
         info:
           title: CAMMI Feedback API
           version: '1.0'
-        paths: {}
+        paths:
+          /dummy:
+            get:
+              responses:
+                '200':
+                  description: dummy
   CustomerFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:

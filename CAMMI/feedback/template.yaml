@@ -26,7 +26,12 @@ Resources:
         info:
           title: "CAMMI Feedback API"
           version: "1.0"
-        paths: {}  # Empty — Lambdas will attach dynamically
+        paths:
+          /dummy:
+            get:
+              responses:
+                '200':
+                  description: dummy
 
   ###################################################
   # Lambda Functions

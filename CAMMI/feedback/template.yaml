@@ -6,32 +6,9 @@ Parameters:
   StageName:
     Type: String
     Default: cammi-mvp
-    Description: The deployment stage name for the API (e.g., cammi-mvp)
+    Description: The deployment stage name for the API
 
 Resources:
-
-  ###################################################
-  # Shared API definition (logical link to parent API)
-  ###################################################
-  FeedbackApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: CammiApi-Feedback
-      StageName: !Ref StageName
-      TracingEnabled: true
-      EndpointConfiguration: REGIONAL
-      Description: Feedback routes for shared CAMMI API
-      DefinitionBody:
-        swagger: "2.0"
-        info:
-          title: "CAMMI Feedback API"
-          version: "1.0"
-        paths:
-          /dummy:
-            get:
-              responses:
-                '200':
-                  description: dummy
 
   ###################################################
   # Lambda Functions
@@ -53,13 +30,6 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UsersFeedbackTableName
-      Events:
-        CustomerFeedbackApi:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedbackApi
-            Path: /feedback/customer-feedback
-            Method: post
 
   CheckCustomerFeedbackFunction:
     Type: AWS::Serverless::Function
@@ -77,13 +47,38 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UsersFeedbackTableName
-      Events:
-        CheckCustomerFeedbackApi:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedbackApi
-            Path: /feedback/check-customer-feedback
-            Method: post
+
+  ###################################################
+  # API Gateway (all paths defined inline)
+  ###################################################
+  FeedbackApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: CammiApi-Feedback
+      StageName: !Ref StageName
+      TracingEnabled: true
+      EndpointConfiguration: REGIONAL
+      Description: Feedback routes for shared CAMMI API
+      DefinitionBody:
+        swagger: "2.0"
+        info:
+          title: "CAMMI Feedback API"
+          version: "1.0"
+        paths:
+          /feedback/customer-feedback:
+            post:
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerFeedbackFunction.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+              responses: {}
+          /feedback/check-customer-feedback:
+            post:
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckCustomerFeedbackFunction.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+              responses: {}
 
 Outputs:
   FeedbackApiUrl:

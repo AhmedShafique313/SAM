@@ -5,28 +5,8 @@ Parameters:
   StageName:
     Type: String
     Default: cammi-mvp
-    Description: The deployment stage name for the API (e.g., cammi-mvp)
+    Description: The deployment stage name for the API
 Resources:
-  FeedbackApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: CammiApi-Feedback
-      StageName:
-        Ref: StageName
-      TracingEnabled: true
-      EndpointConfiguration: REGIONAL
-      Description: Feedback routes for shared CAMMI API
-      DefinitionBody:
-        swagger: '2.0'
-        info:
-          title: CAMMI Feedback API
-          version: '1.0'
-        paths:
-          /dummy:
-            get:
-              responses:
-                '200':
-                  description: dummy
   CustomerFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -45,14 +25,6 @@ Resources:
             Fn::ImportValue: CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE:
             Fn::ImportValue: CAMMI-UsersFeedbackTableName
-      Events:
-        CustomerFeedbackApi:
-          Type: Api
-          Properties:
-            RestApiId:
-              Ref: FeedbackApi
-            Path: /feedback/customer-feedback
-            Method: post
     Metadata:
       SamResourceId: CustomerFeedbackFunction
   CheckCustomerFeedbackFunction:
@@ -73,16 +45,39 @@ Resources:
             Fn::ImportValue: CAMMI-UsersTableName
           USERS_FEEDBACK_TABLE:
             Fn::ImportValue: CAMMI-UsersFeedbackTableName
-      Events:
-        CheckCustomerFeedbackApi:
-          Type: Api
-          Properties:
-            RestApiId:
-              Ref: FeedbackApi
-            Path: /feedback/check-customer-feedback
-            Method: post
     Metadata:
       SamResourceId: CheckCustomerFeedbackFunction
+  FeedbackApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: CammiApi-Feedback
+      StageName:
+        Ref: StageName
+      TracingEnabled: true
+      EndpointConfiguration: REGIONAL
+      Description: Feedback routes for shared CAMMI API
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: CAMMI Feedback API
+          version: '1.0'
+        paths:
+          /feedback/customer-feedback:
+            post:
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerFeedbackFunction.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+              responses: {}
+          /feedback/check-customer-feedback:
+            post:
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckCustomerFeedbackFunction.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+              responses: {}
 Outputs:
   FeedbackApiUrl:
     Description: URL for Feedback API Gateway

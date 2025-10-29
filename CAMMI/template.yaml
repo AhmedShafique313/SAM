@@ -66,9 +66,9 @@ Resources:
 # ============================================================
 # OUTPUTS
 # ============================================================
-Outputs:
-  ApiUrl:
-    Description: "Base URL for CAMMI API Gateway"
-    Value: !Sub "https://${CammiApi}.execute-api.${AWS::Region}.amazonaws.com/${CammiApi.Stage}"
-    Export:
-      Name: CAMMI-Dev-ApiUrl
+# Outputs:
+#   ApiUrl:
+#     Description: "Base URL for CAMMI API Gateway"
+#     Value: !Sub "https://${CammiApi}.execute-api.${AWS::Region}.amazonaws.com/${CammiApi.Stage}"
+#     Export:
+#       Name: CAMMI-Dev-ApiUrl

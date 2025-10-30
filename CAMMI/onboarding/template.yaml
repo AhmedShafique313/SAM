@@ -19,7 +19,7 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UserOnboardingQuestionsTableName
+          USER_ONBOARDING_QUESTIONS_TABLE: !ImportValue CAMMI-UserOnboardingQuestionsTableName
 
 Outputs:
   UserOnboardingFunctionArn:

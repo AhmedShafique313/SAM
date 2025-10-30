@@ -53,6 +53,31 @@ Resources:
         - AttributeName: question
           KeyType: RANGE
 
+
+  OrganizationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: organizations-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  ProjectsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: projects-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
 Outputs:
   ###################################################
   # Exports for cross-stack references
@@ -74,3 +99,15 @@ Outputs:
     Value: !Ref UserOnboardingQuestionsTable
     Export:
       Name: CAMMI-UserOnboardingQuestionsTableName
+
+  OrganizationsTableName:
+    Description: Name of the Organizations table
+    Value: !Ref OrganizationsTable
+    Export:
+      Name: CAMMI-OrganizationsTableName
+
+  ProjectsTableName:
+    Description: Name of the projects table
+    Value: !Ref ProjectsTable
+    Export:
+      Name: CAMMI-ProjectsTableName

@@ -63,4 +63,22 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["OnboardingFeature/UserOnboardingFunction"]
 
+[function_build_definitions.aa08fd4d-cc48-46c5-9b45-b173d4e308bb]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\project-organization\\src\\all-organizations"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ProjectOrganizationFeature/AllOrganizationsFunction"]
+
+[function_build_definitions.7f58d13f-6357-441f-9c75-815f4e8ec289]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\project-organization\\src\\all-projects"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ProjectOrganizationFeature/AllProjectsFunction"]
+
 [layer_build_definitions]

@@ -50,6 +50,13 @@ Resources:
       - DynamoDBStack
     Properties:
       Location: onboarding/template.yaml
+  
+  ProjectOrganizationFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: project-organization/template.yaml
 
 Outputs:
   DynamoDBStackOutput:
@@ -71,3 +78,7 @@ Outputs:
   onboardingFeatureOutput:
     Description: Outputs from onboarding feature stack
     Value: !Ref OnboardingFeature
+  
+  ProjectOrganizationFeatureOutput:
+    Description: Outputs from project-organization feature stack
+    Value: !Ref ProjectOrganizationFeature

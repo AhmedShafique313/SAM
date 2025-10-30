@@ -21,11 +21,6 @@ jobs:
         with:
           python-version: '3.13'
 
-      # - name: Install AWS SAM CLI
-      #   uses: aws-actions/setup-sam@v2
-      #   with:
-      #     version: 1.116.0
-
       - name: Install Latest AWS SAM CLI
         run: |
           pip install --upgrade aws-sam-cli

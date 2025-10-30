@@ -1,57 +1,57 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: API Template for CAMMI Feedback
+# AWSTemplateFormatVersion: '2010-09-09'
+# Transform: AWS::Serverless-2016-10-31
+# Description: API Template for CAMMI Feedback
 
-Parameters:
-  CustomerFeedbackFunctionArn:
-    Type: String
-    Description: ARN of the CustomerFeedback Lambda
-  StageName:
-    Type: String
-    Default: cammi-mvp
+# Parameters:
+#   CustomerFeedbackFunctionArn:
+#     Type: String
+#     Description: ARN of the CustomerFeedback Lambda
+#   StageName:
+#     Type: String
+#     Default: cammi-mvp
 
-Resources:
+# Resources:
 
-  # Main API
-  cammi:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      Name: cammi-endpoints
+#   # Main API
+#   cammi:
+#     Type: AWS::ApiGateway::RestApi
+#     Properties:
+#       Name: cammi-endpoints
 
-  # Feedback Resource
-  UserFeedbackResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt cammi.RootResourceId
-      PathPart: feedback
-      RestApiId: !Ref cammi
+#   # Feedback Resource
+#   UserFeedbackResource:
+#     Type: AWS::ApiGateway::Resource
+#     Properties:
+#       ParentId: !GetAtt cammi.RootResourceId
+#       PathPart: feedback
+#       RestApiId: !Ref cammi
 
-  # POST Method for /feedback
-  UserFeedbackResourcePOSTMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref cammi
-      ResourceId: !Ref UserFeedbackResource
-      HttpMethod: POST
-      AuthorizationType: NONE
-      ApiKeyRequired: false
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerFeedbackFunctionArn}/invocations
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        TimeoutInMillis: 10000
+#   # POST Method for /feedback
+#   UserFeedbackResourcePOSTMethod:
+#     Type: AWS::ApiGateway::Method
+#     Properties:
+#       RestApiId: !Ref cammi
+#       ResourceId: !Ref UserFeedbackResource
+#       HttpMethod: POST
+#       AuthorizationType: NONE
+#       ApiKeyRequired: false
+#       Integration:
+#         Type: AWS_PROXY
+#         IntegrationHttpMethod: POST
+#         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerFeedbackFunctionArn}/invocations
+#         PassthroughBehavior: WHEN_NO_TEMPLATES
+#         TimeoutInMillis: 10000
 
-  # Permission for API Gateway to invoke Lambda
-  CustomerFeedbackLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref CustomerFeedbackFunctionArn
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${cammi}/*/POST/feedback
+#   # Permission for API Gateway to invoke Lambda
+#   CustomerFeedbackLambdaPermission:
+#     Type: AWS::Lambda::Permission
+#     Properties:
+#       FunctionName: !Ref CustomerFeedbackFunctionArn
+#       Action: lambda:InvokeFunction
+#       Principal: apigateway.amazonaws.com
+#       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${cammi}/*/POST/feedback
 
-Outputs:
-  FeedbackApiId:
-    Description: Feedback API ID
-    Value: !Ref cammi
+# Outputs:
+#   FeedbackApiId:
+#     Description: Feedback API ID
+#     Value: !Ref cammi

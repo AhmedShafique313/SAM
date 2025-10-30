@@ -35,15 +35,6 @@ Resources:
       Parameters:
         StageName: cammi-mvp
 
-  # API Gateway stack
-  APIFeature:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: API/template.yaml
-      Parameters:
-        CustomerFeedbackFunctionArn: !GetAtt FeedbackFeature.CustomerFeedbackFunctionArn
-        StageName: cammi-mvp
-
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack
@@ -56,7 +47,3 @@ Outputs:
   FeedbackFeatureOutput:
     Description: Outputs from Feedback feature stack
     Value: !Ref FeedbackFeature
-
-  APIFeatureOutput:
-    Description: Outputs from API Gateway feature stack
-    Value: !Ref APIFeature

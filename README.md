@@ -28,18 +28,3 @@ SAM/
         └── src/
             ├── customer-feedback.py
             └── check-customer-feedback.py
-
-
-
-# google auth
-aws secretsmanager create-secret \
-  --name cammi-google-client-id \
-  --secret-string "<YOUR_GOOGLE_CLIENT_ID>"
-
-aws secretsmanager create-secret \
-  --name cammi-google-client-secret \
-  --secret-string "<YOUR_GOOGLE_CLIENT_SECRET>"
-
-aws secretsmanager create-secret \
-  --name cammi-zoho-app-password \
-  --secret-string "<YOUR_ZOHO_APP_PASSWORD>"

@@ -40,6 +40,38 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
+  
+  ForgotPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: forgot-password
+      Handler: app.lambda_handler
+      CodeUri: src/forgot-password/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 128
+      Description: Handles user password management via sign-in
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+  
+  LoginLogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: login-logout
+      Handler: app.lambda_handler
+      CodeUri: src/login-logout/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 128
+      Description: Handles user session management via sign-in and register
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
 Outputs:
   AuthLoginFunctionArn:
@@ -49,3 +81,11 @@ Outputs:
   RegisterFunctionArn:
     Description: "Arn of user registeration function"
     Value: !GetAtt RegisterFunction.Arn
+
+  ForgotPasswordFunctionArn:
+    Description: "Arn of user password management function"
+    Value: !GetAtt ForgotPasswordFunction.Arn
+  
+  LoginLogoutFunctionArn:
+    Description: "Arn of user session management function"
+    Value: !GetAtt LoginLogoutFunction.Arn

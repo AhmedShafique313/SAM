@@ -36,4 +36,22 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["AuthFeature/RegisterFunction"]
 
+[function_build_definitions.3f98a9d3-53c4-48d8-86c6-7ad6812d1df7]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\auth\\src\\forgot-password"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AuthFeature/ForgotPasswordFunction"]
+
+[function_build_definitions.bcc8edf2-8a59-4aae-8e69-283e4b7270c8]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\auth\\src\\login-logout"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AuthFeature/LoginLogoutFunction"]
+
 [layer_build_definitions]

@@ -20,9 +20,9 @@ Resources:
         - !ImportValue GoogleLibrariesLayerArn
       Environment:
         Variables:
-          CLIENT_ID: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:CLIENT_ID}}"
-          CLIENT_SECRET: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:CLIENT_SECRET}}"
-          ZOHO_APP_PASSWORD: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:ZOHO_APP_PASSWORD}}"
+          CLIENT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:CLIENT_ID}}"
+          CLIENT_SECRET: "{{resolve:secretsmanager:cammi-secrets:SecretString:CLIENT_SECRET}}"
+          ZOHO_APP_PASSWORD: "{{resolve:secretsmanager:cammi-secrets:SecretString:ZOHO_APP_PASSWORD}}"
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
   RegisterFunction:

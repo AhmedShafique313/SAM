@@ -30,6 +30,8 @@ Resources:
   # Feedback Lambdas
   FeedbackFeature:
     Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
     Properties:
       Location: feedback/template.yaml
       Parameters:

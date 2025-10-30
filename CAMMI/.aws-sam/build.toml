@@ -18,13 +18,22 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["FeedbackFeature/CheckCustomerFeedbackFunction"]
 
-[function_build_definitions.85a91f3f-b0f0-4494-a839-f421b2fed0f1]
-codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\auth\\src"
+[function_build_definitions.9d482953-5596-4e44-8c2a-3d1efd78c76a]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\auth\\src\\continue-with-google"
 runtime = "python3.13"
 architecture = "x86_64"
 handler = "app.lambda_handler"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["AuthFeature/AuthLoginFunction"]
+
+[function_build_definitions.e72e55db-ca3b-4339-b1d4-a281e28b9c4d]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\auth\\src\\register"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AuthFeature/RegisterFunction"]
 
 [layer_build_definitions]

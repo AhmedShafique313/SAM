@@ -34,6 +34,15 @@ Resources:
       - DynamoDBStack
     Properties:
       Location: feedback/template.yaml
+  
+  # auth lambdas
+  AuthFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - GoogleLibrariesLayerStack
+    Properties:
+      Location: auth/template.yaml
 
 Outputs:
   DynamoDBStackOutput:
@@ -47,3 +56,7 @@ Outputs:
   FeedbackFeatureOutput:
     Description: Outputs from Feedback feature stack
     Value: !Ref FeedbackFeature
+
+  AuthFeatureOutput:
+    Description: Outputs from Auth feature stack
+    Value: !Ref AuthFeature

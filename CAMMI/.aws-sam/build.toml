@@ -18,4 +18,13 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["FeedbackFeature/CheckCustomerFeedbackFunction"]
 
+[function_build_definitions.85a91f3f-b0f0-4494-a839-f421b2fed0f1]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\auth\\src"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AuthFeature/AuthLoginFunction"]
+
 [layer_build_definitions]

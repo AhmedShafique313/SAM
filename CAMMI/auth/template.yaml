@@ -2,20 +2,13 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Auth feature for CAMMI - handles Google OAuth login and callback
 
-Parameters:
-  ParentApiId:
-    Type: String
-    Description: The ID of the parent API Gateway defined in the root template
-  StageName:
-    Type: String
-    Description: The deployment stage name for the API (e.g., cammi-mvp)
 
 Resources:
   AuthLoginFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: continue-with-google
-      Handler: continue-with-google.lambda_handler
+      Handler: app.lambda_handler
       CodeUri: src/
       Runtime: python3.13
       Tracing: Active
@@ -32,24 +25,7 @@ Resources:
           ZOHO_APP_PASSWORD: "{{resolve:secretsmanager:cammi-google-secrets:SecretString:ZOHO_APP_PASSWORD}}"
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
-      Events:
-        GoogleLoginApi:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ParentApiId
-            Path: /auth/google-login
-            Method: post
-        GoogleCallbackApi:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ParentApiId
-            Path: /auth/google-callback
-            Method: post
-
 Outputs:
-  AuthLoginFunctionName:
-    Description: "Google OAuth Login Function"
-    Value: !Ref AuthLoginFunction
-  AuthLoginApiPath:
-    Description: "Google OAuth Login API Endpoint"
-    Value: !Sub "/auth/google-login"
+  AuthLoginFunctionArn:
+    Description: "Arn of Google OAuth Login Function"
+    Value: !GetAtt AuthLoginFunction.Arn

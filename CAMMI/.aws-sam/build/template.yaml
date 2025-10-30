@@ -33,6 +33,15 @@ Resources:
       Location: FeedbackFeature\template.yaml
     Metadata:
       SamResourceId: FeedbackFeature
+  AuthFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+    - DynamoDBStack
+    - GoogleLibrariesLayerStack
+    Properties:
+      Location: AuthFeature\template.yaml
+    Metadata:
+      SamResourceId: AuthFeature
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack
@@ -46,3 +55,7 @@ Outputs:
     Description: Outputs from Feedback feature stack
     Value:
       Ref: FeedbackFeature
+  AuthFeatureOutput:
+    Description: Outputs from Auth feature stack
+    Value:
+      Ref: AuthFeature

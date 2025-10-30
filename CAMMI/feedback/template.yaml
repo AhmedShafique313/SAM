@@ -2,20 +2,14 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Feedback feature for CAMMI
 
-Parameters:
-  StageName:
-    Type: String
-    Default: cammi-mvp
-    Description: Deployment stage name for the API
-
 Resources:
 
   CustomerFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: customer-feedback
-      Handler: customer-feedback.lambda_handler
-      CodeUri: src/
+      Handler: app.lambda_handler
+      CodeUri: src/customer-feedback/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
@@ -31,8 +25,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: check-customer-feedback
-      Handler: check-customer-feedback.lambda_handler
-      CodeUri: src/
+      Handler: app.lambda_handler
+      CodeUri: src/check-customer-feedback/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128

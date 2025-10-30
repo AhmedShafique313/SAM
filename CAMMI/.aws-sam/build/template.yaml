@@ -27,24 +27,12 @@ Resources:
       SamResourceId: GoogleLibrariesLayerStack
   FeedbackFeature:
     Type: AWS::Serverless::Application
+    DependsOn:
+    - DynamoDBStack
     Properties:
       Location: FeedbackFeature\template.yaml
-      Parameters:
-        StageName: cammi-mvp
     Metadata:
       SamResourceId: FeedbackFeature
-  APIFeature:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: APIFeature\template.yaml
-      Parameters:
-        CustomerFeedbackFunctionArn:
-          Fn::GetAtt:
-          - FeedbackFeature
-          - CustomerFeedbackFunctionArn
-        StageName: cammi-mvp
-    Metadata:
-      SamResourceId: APIFeature
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack
@@ -58,7 +46,3 @@ Outputs:
     Description: Outputs from Feedback feature stack
     Value:
       Ref: FeedbackFeature
-  APIFeatureOutput:
-    Description: Outputs from API Gateway feature stack
-    Value:
-      Ref: APIFeature

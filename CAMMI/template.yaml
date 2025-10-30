@@ -34,8 +34,6 @@ Resources:
       - DynamoDBStack
     Properties:
       Location: feedback/template.yaml
-      Parameters:
-        StageName: cammi-mvp
 
 Outputs:
   DynamoDBStackOutput:

@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Onboarding feature for CAMMI
+
+Resources:
+
+  UserOnboardingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: user-onboarding
+      Handler: app.lambda_handler
+      CodeUri: src/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles user onboarding questions on sign-up
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          USERS_FEEDBACK_TABLE: !ImportValue CAMMI-UserOnboardingQuestionsTableName
+
+Outputs:
+  UserOnboardingFunctionArn:
+    Description: ARN of user onboarding Lambda
+    Value: !GetAtt UserOnboardingFunction.Arn

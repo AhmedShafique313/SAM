@@ -54,4 +54,13 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["AuthFeature/LoginLogoutFunction"]
 
+[function_build_definitions.b79a2621-9495-483f-80f3-993b5ae5e55e]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\onboarding\\src"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["OnboardingFeature/UserOnboardingFunction"]
+
 [layer_build_definitions]

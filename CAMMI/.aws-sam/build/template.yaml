@@ -42,6 +42,14 @@ Resources:
       Location: AuthFeature\template.yaml
     Metadata:
       SamResourceId: AuthFeature
+  OnboardingFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+    - DynamoDBStack
+    Properties:
+      Location: OnboardingFeature\template.yaml
+    Metadata:
+      SamResourceId: OnboardingFeature
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack
@@ -59,3 +67,7 @@ Outputs:
     Description: Outputs from Auth feature stack
     Value:
       Ref: AuthFeature
+  onboardingFeatureOutput:
+    Description: Outputs from onboarding feature stack
+    Value:
+      Ref: OnboardingFeature

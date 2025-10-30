@@ -43,6 +43,13 @@ Resources:
       - GoogleLibrariesLayerStack
     Properties:
       Location: auth/template.yaml
+  
+  OnboardingFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: onboarding/template.yaml
 
 Outputs:
   DynamoDBStackOutput:
@@ -60,3 +67,7 @@ Outputs:
   AuthFeatureOutput:
     Description: Outputs from Auth feature stack
     Value: !Ref AuthFeature
+
+  onboardingFeatureOutput:
+    Description: Outputs from onboarding feature stack
+    Value: !Ref OnboardingFeature

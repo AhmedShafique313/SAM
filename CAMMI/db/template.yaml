@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: DynamoDB tables for CAMMI - users and feedback data storage
+Description: DynamoDB tables for CAMMI - users, feedback, and onboarding data storage
 
 Resources:
 
@@ -34,6 +34,25 @@ Resources:
         - AttributeName: user_id
           KeyType: HASH
 
+  ###################################################
+  # Onboarding Questions Table
+  ###################################################
+  UserOnboardingQuestionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: onboarding-questions-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: question
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: question
+          KeyType: RANGE
+
 Outputs:
   ###################################################
   # Exports for cross-stack references
@@ -49,3 +68,9 @@ Outputs:
     Value: !Ref UsersFeedbackTable
     Export:
       Name: CAMMI-UsersFeedbackTableName
+
+  UserOnboardingQuestionsTableName:
+    Description: Name of the Onboarding Questions table
+    Value: !Ref UserOnboardingQuestionsTable
+    Export:
+      Name: CAMMI-UserOnboardingQuestionsTableName

@@ -48,3 +48,5 @@ Outputs:
   CheckCustomerFeedbackFunctionArn:
     Description: ARN of CheckCustomerFeedback Lambda
     Value: !GetAtt CheckCustomerFeedbackFunction.Arn
+    Export:
+      Name: CheckCustomerFeedbackFunctionArn

@@ -11,12 +11,11 @@ Resources:
     Properties:
       Name: cammi-endpoints
 
+
   RestAPIDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
-      - cammi
-      - CustomerFeedbackFunctionResource
-      - CustomerFeedbackFunctionResourcePOSTMethod
+      - Feedback
     Properties:
       RestApiId: !Ref cammi
 
@@ -82,35 +81,12 @@ Resources:
     Properties:
       CloudWatchRoleArn: !GetAtt ApiLoggingRole.Arn
 
-
-  # Feedback Resource
-  CustomerFeedbackFunctionResource:
-    Type: AWS::ApiGateway::Resource
+  Feedback:
+    Type: AWS::Serverless::Application
     Properties:
-      ParentId: !GetAtt cammi.RootResourceId
-      PathPart: feedback
-      RestApiId: !Ref cammi
-
-  # POST Method for /feedback
-  CustomerFeedbackFunctionResourcePOSTMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref cammi
-      ResourceId: !Ref CustomerFeedbackFunctionResource
-      HttpMethod: POST
-      AuthorizationType: NONE
-      ApiKeyRequired: false
-      Integration:
-        Credentials: arn:aws:iam::687088702813:role/cammi-lambda-role
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub
-          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerFeedbackFunctionArn}/invocations
-          - CustomerFeedbackFunctionArn: !ImportValue CustomerFeedbackFunctionArn
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        TimeoutInMillis: 29000
+      Location: feedback.yaml
 
 Outputs:
   CammiApiId:
-    Description: Feedback API ID
+    Description: Cammi API ID
     Value: !Ref cammi

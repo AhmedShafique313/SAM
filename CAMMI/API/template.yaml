@@ -102,7 +102,9 @@ Resources:
         Credentials: arn:aws:iam::687088702813:role/cammi-lambda-role
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/$}{!ImportValue: CustomerFeedbackFunctionArn}}/invocations
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CustomerFeedbackFunctionArn}/invocations
+          - CustomerFeedbackFunctionArn: !ImportValue CustomerFeedbackFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 

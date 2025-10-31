@@ -58,6 +58,12 @@ Resources:
       Location: ProjectOrganizationFeature\template.yaml
     Metadata:
       SamResourceId: ProjectOrganizationFeature
+  ApiGatewayFeature:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ApiGatewayFeature\template.yaml
+    Metadata:
+      SamResourceId: ApiGatewayFeature
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack

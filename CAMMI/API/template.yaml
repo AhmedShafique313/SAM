@@ -16,6 +16,7 @@ Resources:
     DependsOn:
       - cammi
       - CustomerFeedbackFunctionResource
+      - CustomerFeedbackFunctionResourcePOSTMethod
     Properties:
       RestApiId: !Ref cammi
 

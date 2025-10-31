@@ -15,6 +15,7 @@ Resources:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - cammi
+      - CustomerFeedbackFunctionResource
     Properties:
       RestApiId: !Ref cammi
 

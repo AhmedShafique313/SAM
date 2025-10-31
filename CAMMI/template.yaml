@@ -58,12 +58,12 @@ Resources:
     Properties:
       Location: project-organization/template.yaml
 
-  ApiGatewayFeature:
-    Type: AWS::Serverless::Application
-    DependsOn:
-      - FeedbackFeature
-    Properties:
-      Location: API/template.yaml
+  # ApiGatewayFeature:
+  #   Type: AWS::Serverless::Application
+  #   DependsOn:
+  #     - FeedbackFeature
+  #   Properties:
+  #     Location: API/template.yaml
 
 Outputs:
   DynamoDBStackOutput:

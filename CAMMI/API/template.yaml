@@ -85,6 +85,10 @@ Resources:
     Type: AWS::Serverless::Application
     Properties:
       Location: feedback.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi
+        
 
 Outputs:
   CammiApiId:

@@ -2,15 +2,21 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: API Template for CAMMI Feedback
 
+Parameters:
+  RootResourceId:
+    Type: String
+  RestApiId:
+    Type: String
+
 Resources:
 
   # Feedback Resource
   FeedbackParentResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt cammi.RootResourceId
+      ParentId: !Ref RootResourceId
       PathPart: feedback
-      RestApiId: !Ref cammi
+      RestApiId: !Ref RestApiId
 
   # Customer Feedback Resource
   CustomerFeedbackFunctionResource:
@@ -18,13 +24,13 @@ Resources:
     Properties:
       ParentId: !GetAtt FeedbackParentResource.ResourceId
       PathPart: customer-feedback
-      RestApiId: !Ref cammi
+      RestApiId: !Ref RestApiId
 
   # POST Method for /feedback/customer-feedback
   CustomerFeedbackFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      RestApiId: !Ref cammi
+      RestApiId: !Ref RestApiId
       ResourceId: !Ref CustomerFeedbackFunctionResource
       HttpMethod: POST
       AuthorizationType: NONE
@@ -43,7 +49,7 @@ Resources:
   CustomerFeedbackFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      RestApiId: !Ref cammi
+      RestApiId: !Ref RestApiId
       ResourceId: !Ref CustomerFeedbackFunctionResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
@@ -72,13 +78,13 @@ Resources:
     Properties:
       ParentId: !GetAtt FeedbackParentResource.ResourceId
       PathPart: check-customer-feedback
-      RestApiId: !Ref cammi
+      RestApiId: !Ref RestApiId
 
   # POST Method for /feedback/check-customer-feedback
   CheckCustomerFeedbackFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      RestApiId: !Ref cammi
+      RestApiId: !Ref RestApiId
       ResourceId: !Ref CheckCustomerFeedbackFunctionResource
       HttpMethod: POST
       AuthorizationType: NONE
@@ -97,7 +103,7 @@ Resources:
   CheckCustomerFeedbackFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      RestApiId: !Ref cammi
+      RestApiId: !Ref RestApiId
       ResourceId: !Ref CheckCustomerFeedbackFunctionResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE

@@ -81,4 +81,58 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["ProjectOrganizationFeature/AllProjectsFunction"]
 
+[function_build_definitions.ba89a555-0533-4f6c-9761-660d108c39d3]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\project-organization\\src\\create-project"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ProjectOrganizationFeature/CreateProjectFunction"]
+
+[function_build_definitions.6cb3779d-7abf-4d7a-adc8-14809b089616]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\project-organization\\src\\organization-based-projects"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ProjectOrganizationFeature/OrganizationBasedProjectsFunction"]
+
+[function_build_definitions.d57f5c15-dfe5-4c12-b4f1-555d202d1b56]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\project-organization\\src\\organizations-against-user"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ProjectOrganizationFeature/OrganizationsAgainstUserFunction"]
+
+[function_build_definitions.fade8f56-2c39-4f0b-b793-c3b8ab2dd953]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\project-organization\\src\\projects-against-user"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ProjectOrganizationFeature/ProjectsAgainstUserFunction"]
+
+[function_build_definitions.eb7bd2cc-e0f6-48af-81c4-ca5e9ba3ff2a]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\project-organization\\src\\specific-organizations"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ProjectOrganizationFeature/SpecificOrganizationsFunction"]
+
+[function_build_definitions.14f242ae-3b0e-4230-a8cf-387bc8dad806]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\project-organization\\src\\specific-projects"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ProjectOrganizationFeature/SpecificProjectsFunction"]
+
 [layer_build_definitions]

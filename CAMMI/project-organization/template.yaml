@@ -34,7 +34,111 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          ORGANIZATIONS_TABLE: !ImportValue CAMMI-ProjectsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+
+  CreateProjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: create-project
+      Handler: app.lambda_handler
+      CodeUri: src/create-project/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles project creation
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+
+  OrganizationBasedProjectsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: organization-based-projects
+      Handler: app.lambda_handler
+      CodeUri: src/organization-based-projects/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles organization and project mapping
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+
+  OrganizationsAgainstUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: organizations-against-user
+      Handler: app.lambda_handler
+      CodeUri: src/organizations-against-user/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles user based organizations
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+
+  ProjectsAgainstUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: projects-against-user
+      Handler: app.lambda_handler
+      CodeUri: src/projects-against-user/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles user based projects
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+
+  SpecificOrganizationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: specific-organizations
+      Handler: app.lambda_handler
+      CodeUri: src/specific-organizations/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles specific organizations
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+
+  SpecificProjectsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: specific-projects
+      Handler: app.lambda_handler
+      CodeUri: src/specific-projects/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles specific projects
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+
 
 Outputs:
   AllOrganizationsFunctionArn:
@@ -44,3 +148,27 @@ Outputs:
   AllProjectsFunctionArn:
     Description: ARN of all projects Lambda
     Value: !GetAtt AllProjectsFunction.Arn
+
+  CreateProjectFunctionArn:
+    Description: ARN of project creation Lambda
+    Value: !GetAtt CreateProjectFunction.Arn
+
+  OrganizationBasedProjectsFunctionArn:
+    Description: ARN of organization based projects Lambda
+    Value: !GetAtt OrganizationBasedProjectsFunction.Arn
+
+  OrganizationsAgainstUserFunctionArn:
+    Description: ARN of organizations against user Lambda
+    Value: !GetAtt OrganizationsAgainstUserFunction.Arn
+
+  ProjectsAgainstUserFunctionArn:
+    Description: ARN of projects against user Lambda
+    Value: !GetAtt ProjectsAgainstUserFunction.Arn
+
+  SpecificOrganizationsFunctionArn:
+    Description: ARN of specific organizations lambda
+    Value: !GetAtt SpecificOrganizationsFunction.Arn
+
+  SpecificProjectsFunctionArn:
+    Description: ARN of specific projects lambda
+    Value: !GetAtt SpecificProjectsFunction.Arn

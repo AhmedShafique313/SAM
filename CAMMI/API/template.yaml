@@ -57,11 +57,28 @@ Resources:
             "integration_latency": "$context.integrationLatency",
             "response_latency": "$context.responseLatency"
           }'
- 
+
+  ApiLoggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Allows the API to log errors to CloudWatch Logs
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+
   ApiGatewayAccount:
     Type: AWS::ApiGateway::Account
     Properties:
-      CloudWatchRoleArn: arn:aws:iam::687088702813:role/cammi-lambda-role
+      CloudWatchRoleArn: !GetAtt ApiLoggingRole.Arn
 
 
   # # Feedback Resource

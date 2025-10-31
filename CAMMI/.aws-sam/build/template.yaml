@@ -60,6 +60,8 @@ Resources:
       SamResourceId: ProjectOrganizationFeature
   ApiGatewayFeature:
     Type: AWS::Serverless::Application
+    DependsOn:
+    - FeedbackFeature
     Properties:
       Location: ApiGatewayFeature\template.yaml
     Metadata:

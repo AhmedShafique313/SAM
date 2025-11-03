@@ -14,7 +14,6 @@ Globals:
     Tracing: Active
 
 Resources:
-
   # Nested DynamoDB stack
   DynamoDBStack:
     Type: AWS::Serverless::Application
@@ -26,6 +25,11 @@ Resources:
     Type: AWS::Serverless::Application
     Properties:
       Location: layers/template.yaml
+
+  S3Feature:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: s3/template.yaml
 
   # Feedback Lambdas
   FeedbackFeature:

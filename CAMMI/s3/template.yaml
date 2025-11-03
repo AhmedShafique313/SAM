@@ -4,16 +4,16 @@ Description: S3 bucket stack for CAMMI app
 
 Resources:
   CammiS3Bucket:
-  Type: AWS::S3::Bucket
-  Properties:
-    BucketName: cammi
-    VersioningConfiguration:
-      Status: Enabled
-    PublicAccessBlockConfiguration:
-      BlockPublicAcls: true
-      BlockPublicPolicy: true
-      IgnorePublicAcls: true
-      RestrictPublicBuckets: true
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: cammi
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
 Outputs:
   CammiBucketName:

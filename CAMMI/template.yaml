@@ -26,7 +26,7 @@ Resources:
     Properties:
       Location: layers/template.yaml
 
-  S3Feature:
+  S3Stack:
     Type: AWS::Serverless::Application
     Properties:
       Location: s3/template.yaml
@@ -77,6 +77,10 @@ Outputs:
   GoogleLibrariesLayerStackOutput:
     Description: Outputs from Google libraries layer stack
     Value: !Ref GoogleLibrariesLayerStack
+
+  S3StackOutput:
+    Description: Outputs from Cammi S3 stack
+    Value: !Ref S3Stack
 
   FeedbackFeatureOutput:
     Description: Outputs from Feedback feature stack

@@ -8,11 +8,11 @@ SAM/
     ├── template.yaml                # 🧩 Root SAM orchestrator (nested stacks)
     ├── samconfig.toml               # Build/deploy configuration
     │
-    ├── Layers/
+    ├── layers/
     │   ├── template.yaml            # Google libraries layer definition
     │   └── layer_google.zip         # Packaged dependencies
     │
-    ├── dynamodb/
+    ├── db/
     │   └── template.yaml            # ✅ Contains users & feedback DynamoDB tables
     │
     ├── auth/
@@ -28,4 +28,3 @@ SAM/
         └── src/
             ├── customer-feedback.py
             └── check-customer-feedback.py
-            This is test text.

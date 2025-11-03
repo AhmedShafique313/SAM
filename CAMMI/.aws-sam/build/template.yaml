@@ -72,6 +72,14 @@ Resources:
       Location: ApiGatewayFeature\template.yaml
     Metadata:
       SamResourceId: ApiGatewayFeature
+  BrandSetupFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+    - S3Stack
+    Properties:
+      Location: BrandSetupFeature\template.yaml
+    Metadata:
+      SamResourceId: BrandSetupFeature
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack

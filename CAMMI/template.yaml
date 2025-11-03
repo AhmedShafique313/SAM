@@ -69,6 +69,13 @@ Resources:
     Properties:
       Location: API/template.yaml
 
+  BrandSetupFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - S3Stack
+    Properties:
+      Location: brand setup/template.yaml
+
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack

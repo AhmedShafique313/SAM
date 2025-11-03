@@ -19,5 +19,3 @@ Outputs:
   CammiBucketName:
     Description: Name of the CAMMI S3 bucket
     Value: !Ref CammiS3Bucket
-    Export:
-      Name: CAMMI-CammiBucketName

@@ -76,7 +76,7 @@ Resources:
     Properties:
       Location: brand-setup/template.yaml
       Parameters:
-        S3BucketName: !ImportValue CAMMI-CammiBucketName
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
 
 Outputs:

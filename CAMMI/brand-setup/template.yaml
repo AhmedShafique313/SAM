@@ -2,8 +2,12 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Brand Setup feature for CAMMI
 
-Resources:
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
 
+Resources:
   WebScrappingFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -19,7 +23,7 @@ Resources:
       Environment:
         Variables:
           HYPERBROWSER_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:HYPERBROWSER_API_KEY}}"
-          S3_BUCKET_NAME: !ImportValue: CAMMI-CammiBucketName
+          S3_BUCKET_NAME: !Ref S3BucketName
 
   PdfExtractionFunction:
     Type: AWS::Serverless::Function

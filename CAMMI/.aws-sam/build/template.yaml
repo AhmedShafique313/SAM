@@ -78,6 +78,9 @@ Resources:
     - S3Stack
     Properties:
       Location: BrandSetupFeature\template.yaml
+      Parameters:
+        S3BucketName:
+          Fn::ImportValue: CAMMI-CammiBucketName
     Metadata:
       SamResourceId: BrandSetupFeature
 Outputs:

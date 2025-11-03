@@ -135,8 +135,8 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["ProjectOrganizationFeature/SpecificProjectsFunction"]
 
-[function_build_definitions.1681fc48-26ca-4b87-9d7f-adefe14b5ec3]
-codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\brand setup\\src\\web-scrapping"
+[function_build_definitions.243dbb3e-bdea-43d0-afe2-6fbdf65f45a5]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\brand-setup\\src\\web-scrapping"
 runtime = "python3.13"
 architecture = "x86_64"
 handler = "app.lambda_handler"
@@ -144,8 +144,8 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["BrandSetupFeature/WebScrappingFunction"]
 
-[function_build_definitions.1a35cda4-66fe-4781-9088-2c6c1349b7db]
-codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\brand setup\\src\\pdf-extraction"
+[function_build_definitions.8ab4ae17-7e75-434c-a045-ddb093f99792]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\brand-setup\\src\\pdf-extraction"
 runtime = "python3.13"
 architecture = "x86_64"
 handler = "app.lambda_handler"

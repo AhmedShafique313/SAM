@@ -74,7 +74,10 @@ Resources:
     DependsOn:
       - S3Stack
     Properties:
-      Location: brand setup/template.yaml
+      Location: brand-setup/template.yaml
+      Parameters:
+        S3BucketName: !ImportValue CAMMI-CammiBucketName
+
 
 Outputs:
   DynamoDBStackOutput:

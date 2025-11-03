@@ -9,8 +9,8 @@ dynamodb = boto3.resource('dynamodb')
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 # Constants
-BUCKET_NAME = "cammi"
-USERS_TABLE = "Users"
+BUCKET_NAME = "cammi-devprod"
+USERS_TABLE = "Users-table"
 
 # 🧠 Bedrock LLM call
 def llm_calling(prompt, model_id, session_id="default-session"):

@@ -18,7 +18,7 @@ s3 = boto3.client("s3")
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 # --- Configuration ---
-BUCKET_NAME = "cammi"
+BUCKET_NAME = "cammi-devprod"
 users_table = dynamodb.Table("Users")
 client_scraper = get_secret(os.environ["HYPERBROWSER_API_KEY"])
 

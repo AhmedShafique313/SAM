@@ -6,7 +6,7 @@ Resources:
   CammiS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: cammi
+      BucketName: cammi-devprod
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:

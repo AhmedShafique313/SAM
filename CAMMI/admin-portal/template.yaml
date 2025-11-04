@@ -3,7 +3,9 @@ Transform: AWS::Serverless-2016-10-31
 Description: Admin Portal feature for CAMMI
 
 Resources:
-  # payment data
+  ###################################################
+  # Payment Data
+  ###################################################
   PaymentDataFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -21,9 +23,10 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
           PAYMENT_HISTORY_TABLE: !ImportValue CAMMI-PaymentHistoryTableName
- 
 
-  # payment history
+  ###################################################
+  # Payment History
+  ###################################################
   PaymentHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -41,9 +44,10 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
           PAYMENT_HISTORY_TABLE: !ImportValue CAMMI-PaymentHistoryTableName
- 
 
-  # all review docs
+  ###################################################
+  # All Review Documents
+  ###################################################
   AllReviewDocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -60,23 +64,9 @@ Resources:
         Variables:
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
-  # all review docs
-  AllUsersFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: all-users
-      Handler: app.lambda_handler
-      CodeUri: src/all-users/
-      Runtime: python3.13
-      Timeout: 900
-      MemorySize: 128
-      Tracing: Active
-      Description: Fetches all users.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Environment:
-        Variables:
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName         
-
+  ###################################################
+  # Single Review Document
+  ###################################################
   SingleReviewDocumentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -91,10 +81,30 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName   
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
+  ###################################################
+  # All Users
+  ###################################################
+  AllUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: all-users
+      Handler: app.lambda_handler
+      CodeUri: src/all-users/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches all users.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
-  # all orgs
+  ###################################################
+  # All Organizations
+  ###################################################
   AllOrganizationsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -111,8 +121,9 @@ Resources:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
 
-
-  # all projects
+  ###################################################
+  # All Projects
+  ###################################################
   AllProjectsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -129,8 +140,9 @@ Resources:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
 
-          
-  # organization-based projects
+  ###################################################
+  # Organization-Based Projects
+  ###################################################
   OrganizationBasedProjectsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -148,7 +160,9 @@ Resources:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
 
-
+  ###################################################
+  # CAMMI Analytics
+  ###################################################
   CammiAnalyticsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -159,7 +173,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches cammi analytics on super admin panel
+      Description: Fetches CAMMI analytics on super admin panel
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
@@ -168,7 +182,9 @@ Resources:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
-
+  ###################################################
+  # User → Organization → Project Mapping
+  ###################################################
   UserOrganizationProjectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -182,11 +198,14 @@ Resources:
       Description: Fetches all organizations and projects of user.
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
-        Variables:  
+        Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
-          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName                          
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName           
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
+###################################################
+# Outputs
+###################################################
 Outputs:
   PaymentDataFunctionArn:
     Description: ARN of PaymentDataFunction Lambda
@@ -200,18 +219,22 @@ Outputs:
     Description: ARN of AllReviewDocumentsFunction Lambda
     Value: !GetAtt AllReviewDocumentsFunction.Arn
 
-  SingleReviewDocumentsFunctionArn:
-    Description: ARN of AllReviewDocumentsFunction Lambda
-    Value: !GetAtt SingleReviewDocumentsFunction.Arn    
+  SingleReviewDocumentFunctionArn:
+    Description: ARN of SingleReviewDocumentFunction Lambda
+    Value: !GetAtt SingleReviewDocumentFunction.Arn
+
+  AllUsersFunctionArn:
+    Description: ARN of AllUsersFunction Lambda
+    Value: !GetAtt AllUsersFunction.Arn
 
   AllOrganizationsFunctionArn:
     Description: ARN of AllOrganizationsFunction Lambda
     Value: !GetAtt AllOrganizationsFunction.Arn
- 
+
   AllProjectsFunctionArn:
     Description: ARN of AllProjectsFunction Lambda
     Value: !GetAtt AllProjectsFunction.Arn
- 
+
   OrganizationBasedProjectsFunctionArn:
     Description: ARN of OrganizationBasedProjectsFunction Lambda
     Value: !GetAtt OrganizationBasedProjectsFunction.Arn
@@ -220,11 +243,6 @@ Outputs:
     Description: ARN of CammiAnalyticsFunction Lambda
     Value: !GetAtt CammiAnalyticsFunction.Arn
 
-  AllUsersFunctionArn:
-    Description: ARN of AllUsersFunction Lambda
-    Value: !GetAtt AllUsersFunction.Arn
-
   UserOrganizationProjectFunctionArn:
     Description: ARN of UserOrganizationProjectFunction Lambda
     Value: !GetAtt UserOrganizationProjectFunction.Arn
-

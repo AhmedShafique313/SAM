@@ -179,7 +179,40 @@ Resources:
         Variables:  
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName                          
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName           
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName 
+
+  RecentActivityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: recent-activity
+      Handler: app.lambda_handler
+      CodeUri: src/recent-activity/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches all the recent activity of a user.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:  
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName                          
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName                       
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
+
+  ShowBalanceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: show-balance
+      Handler: app.lambda_handler
+      CodeUri: src/show-balance/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches the balance of a user from Stripes.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      
 
 Outputs:
   PaymentDataFunctionArn:
@@ -221,4 +254,12 @@ Outputs:
   UserOrganizationProjectFunctionArn:
     Description: ARN of UserOrganizationProjectFunction Lambda
     Value: !GetAtt UserOrganizationProjectFunction.Arn
+
+  RecentActivityFunctionArn:
+    Description: ARN of RecentActivityFunction Lambda
+    Value: !GetAtt RecentActivityFunction.Arn 
+
+  ShowBalanceFunctionArn:
+    Description: ARN of ShowBalanceFunction Lambda
+    Value: !GetAtt ShowBalanceFunction.Arn        
 

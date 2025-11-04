@@ -13,9 +13,75 @@ Resources:
         - python3.13
       RetentionPolicy: Delete
 
+  GroqLibrariesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: groq-libraries
+      Description: Shared dependencies for gpt oss etc.
+      ContentUri: groq_layer.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
+
+  GeminiLibrariesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: gemini-libraries
+      Description: Shared dependencies for image generation etc.
+      ContentUri: gemini_layer.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
+
+  PdfLibrariesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: pdf-libraries
+      Description: Shared dependencies for download as pdf etc.
+      ContentUri: pdf_layer.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
+
+  WebLibrariesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: web-libraries
+      Description: Shared dependencies for web extraction etc.
+      ContentUri: web_layer.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
+
+
 Outputs:
   GoogleLibrariesLayerArn:
     Description: ARN of the Google Libraries Layer
     Value: !Ref GoogleLibrariesLayer
     Export:
       Name: GoogleLibrariesLayerArn
+
+  GroqLibrariesLayerArn:
+    Description: ARN of the Groq Libraries Layer
+    Value: !Ref GroqLibrariesLayer
+    Export:
+      Name: GroqLibrariesLayerArn
+
+  GeminiLibrariesLayerArn:
+    Description: ARN of the Gemini Libraries Layer
+    Value: !Ref GeminiLibrariesLayer
+    Export:
+      Name: GeminiLibrariesLayerArn
+
+  PdfLibrariesLayerArn:
+    Description: ARN of the PdfPlumber Libraries Layer
+    Value: !Ref PdfLibrariesLayer
+    Export:
+      Name: PdfLibrariesLayerArn
+
+  WebLibrariesLayerArn:
+    Description: ARN of the web scrapping Libraries Layer
+    Value: !Ref WebLibrariesLayer
+    Export:
+      Name: WebLibrariesLayerArn
+

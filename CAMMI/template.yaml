@@ -21,7 +21,7 @@ Resources:
       Location: db/template.yaml
 
   # Nested Google Libraries Layer stack
-  GoogleLibrariesLayerStack:
+  LayerStack:
     Type: AWS::Serverless::Application
     Properties:
       Location: layers/template.yaml
@@ -99,9 +99,9 @@ Outputs:
     Description: Outputs from nested DynamoDB stack
     Value: !Ref DynamoDBStack
 
-  GoogleLibrariesLayerStackOutput:
+  LayerStackOutput:
     Description: Outputs from Google libraries layer stack
-    Value: !Ref GoogleLibrariesLayerStack
+    Value: !Ref LayerStack
 
   S3StackOutput:
     Description: Outputs from Cammi S3 stack

@@ -207,4 +207,22 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["PaymentGatewayFeature/StripeUsersFunction"]
 
+[function_build_definitions.82d2a27e-d7e1-440b-a29e-449ef15b1e36]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\admin-portal\\src\\cammi-analytics"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AdminPortalFeature/CammiAnalyticsFunction"]
+
+[function_build_definitions.aa3fc8ca-31d5-42b9-8c85-a39ea64f7a7f]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\admin-portal\\src\\all-users"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AdminPortalFeature/AllUsersFunction"]
+
 [layer_build_definitions]

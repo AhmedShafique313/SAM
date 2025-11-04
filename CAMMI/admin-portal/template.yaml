@@ -77,7 +77,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches a single document that is for review.
+      Description: Fetches a single document that is for review
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
@@ -96,7 +96,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches all users.
+      Description: Fetches all users
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
@@ -195,15 +195,17 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches all organizations and projects of user.
+      Description: Fetches all organizations and projects of user
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
-<<<<<<< HEAD
-          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName                          
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName 
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
+  ###################################################
+  # Recent Activity
+  ###################################################
   RecentActivityFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -214,15 +216,18 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches all the recent activity of a user.
+      Description: Fetches all recent activity of a user
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
-        Variables:  
+        Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
-          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName                          
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName                       
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
+  ###################################################
+  # Show Balance
+  ###################################################
   ShowBalanceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -233,13 +238,11 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches the balance of a user from Stripes.
+      Description: Fetches the balance of a user from Stripe
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      
-=======
-          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName
->>>>>>> ac8f6412f0a1af63d03454fabb4d1fa7a32f1d78
+      Environment:
+        Variables:
+          STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
 
 ###################################################
 # Outputs
@@ -284,15 +287,11 @@ Outputs:
   UserOrganizationProjectFunctionArn:
     Description: ARN of UserOrganizationProjectFunction Lambda
     Value: !GetAtt UserOrganizationProjectFunction.Arn
-<<<<<<< HEAD
 
   RecentActivityFunctionArn:
     Description: ARN of RecentActivityFunction Lambda
-    Value: !GetAtt RecentActivityFunction.Arn 
+    Value: !GetAtt RecentActivityFunction.Arn
 
   ShowBalanceFunctionArn:
     Description: ARN of ShowBalanceFunction Lambda
-    Value: !GetAtt ShowBalanceFunction.Arn        
-
-=======
->>>>>>> ac8f6412f0a1af63d03454fabb4d1fa7a32f1d78
+    Value: !GetAtt ShowBalanceFunction.Arn

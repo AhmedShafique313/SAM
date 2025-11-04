@@ -11,7 +11,7 @@ Resources:
   PaymentGatewayFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: payment-gateway-lambda
+      FunctionName: payment-gateway
       Handler: app.lambda_handler
       CodeUri: src/
       Runtime: python3.13
@@ -24,6 +24,7 @@ Resources:
         Variables:
           STRIPE_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:STRIPE_API_KEY}}"
           STRIPE_TABLE_NAME: !ImportValue CAMMI-StripeTableName
+
 
 Outputs:
   PaymentGatewayFunctionArn:

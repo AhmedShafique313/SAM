@@ -1,7 +1,7 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "CAMMI-V1"
+stack_name = "CAMMI"
 region = "us-east-1"
 
 [default.build.parameters]

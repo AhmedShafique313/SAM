@@ -16,8 +16,8 @@ Resources:
       MemorySize: 128
       Description: Handles user login via Google OAuth
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Layers:
-        - !ImportValue GoogleLibrariesLayerArn
+      # Layers:
+      #   - !ImportValue GoogleLibrariesLayerArn
       Environment:
         Variables:
           CLIENT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:CLIENT_ID}}"

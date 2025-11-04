@@ -20,11 +20,11 @@ Resources:
     Properties:
       Location: db/template.yaml
 
-  # Nested Google Libraries Layer stack
-  LayerStack:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: layers/template.yaml
+  # # Nested Google Libraries Layer stack
+  # LayerStack:
+  #   Type: AWS::Serverless::Application
+  #   Properties:
+  #     Location: layers/template.yaml
 
   S3Stack:
     Type: AWS::Serverless::Application
@@ -44,7 +44,7 @@ Resources:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
-      - LayerStack
+      # - LayerStack
     Properties:
       Location: auth/template.yaml
   

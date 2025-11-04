@@ -153,4 +153,31 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["BrandSetupFeature/PdfExtractionFunction"]
 
+[function_build_definitions.3b541b5d-25a6-4a8d-ab54-6227e2f98c0d]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\admin-portal\\src\\payment-data"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AdminPortalFeature/PaymentDataFunction"]
+
+[function_build_definitions.4d5e418e-58f8-446c-ab29-48305aa3577a]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\admin-portal\\src\\payment-history"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AdminPortalFeature/PaymentHistoryFunction"]
+
+[function_build_definitions.eeda2a3b-4009-4d22-a748-539a3c32c5c8]
+codeuri = "C:\\Users\\Kavtech AI Engineer\\Downloads\\Projects\\SAM\\CAMMI\\payment-gateway\\src"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["PaymentGatewayFeature/PaymentGatewayFunction"]
+
 [layer_build_definitions]

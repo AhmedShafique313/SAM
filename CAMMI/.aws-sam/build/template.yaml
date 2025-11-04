@@ -85,6 +85,22 @@ Resources:
           - Outputs.CammiBucketName
     Metadata:
       SamResourceId: BrandSetupFeature
+  AdminPortalFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+    - DynamoDBStack
+    Properties:
+      Location: AdminPortalFeature\template.yaml
+    Metadata:
+      SamResourceId: AdminPortalFeature
+  PaymentGatewayFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+    - DynamoDBStack
+    Properties:
+      Location: PaymentGatewayFeature\template.yaml
+    Metadata:
+      SamResourceId: PaymentGatewayFeature
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack
@@ -114,3 +130,11 @@ Outputs:
     Description: Outputs from project-organization feature stack
     Value:
       Ref: ProjectOrganizationFeature
+  AdminPortalFeatureOutput:
+    Description: Outputs from the admin portal feature stack
+    Value:
+      Ref: AdminPortalFeature
+  PaymentGatewayFeatureOutput:
+    Description: Outputs from the payment gateway feature stack
+    Value:
+      Ref: PaymentGatewayFeature

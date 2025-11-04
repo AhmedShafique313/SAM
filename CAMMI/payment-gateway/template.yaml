@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Payment Gateway feature for CAMMI
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: payment Gateway Lamda
+
+Resources:
+  PaymentGatewayFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: payment-gateway-lambda
+      Handler: app.lambda_handler
+      CodeUri: src/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles payment processing for CAMMI
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          STRIPE_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:STRIPE_API_KEY}}"
+          STRIPE_TABLE_NAME: !ImportValue CAMMI-StripeTableName
+
+Outputs:
+  PaymentGatewayFunctionArn:
+    Description: ARN of payment gateway Lambda
+    Value: !GetAtt PaymentGatewayFunction.Arn

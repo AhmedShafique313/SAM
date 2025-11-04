@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Feedback feature for CAMMI
+
+Resources:
+
+  PaymentDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: payment-data
+      Handler: app.lambda_handler
+      CodeUri: src/payment-data/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles payment data on super admin panel
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
+          PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
+
+  PaymentHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: payment-history
+      Handler: app.lambda_handler
+      CodeUri: src/payment-history/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches and getting payment history details on super admin panel
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
+          PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
+
+Outputs:
+  PaymentDataFunctionArn:
+    Description: ARN of PaymentDataFunction Lambda
+    Value: !GetAtt PaymentDataFunction.Arn
+    Export:
+      Name: PaymentDataFunctionArn
+
+  PaymentHistoryFunctionArn:
+    Description: ARN of PaymentHistoryFunction Lambda
+    Value: !GetAtt PaymentHistoryFunction.Arn
+    Export:
+      Name: PaymentHistoryFunctionArn

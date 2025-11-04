@@ -78,6 +78,21 @@ Resources:
       Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
+  AdminPortalFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: admin-portal/template.yaml
+  
+
+  PaymentGatewayFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: payment-gateway/template.yaml
+
 
 Outputs:
   DynamoDBStackOutput:
@@ -107,3 +122,13 @@ Outputs:
   ProjectOrganizationFeatureOutput:
     Description: Outputs from project-organization feature stack
     Value: !Ref ProjectOrganizationFeature
+
+  AdminPortalFeatureOutput:
+    Description: Outputs from the admin portal feature stack
+    Value: !Ref AdminPortalFeature
+
+  PaymentGatewayFeatureOutput:
+    Description: Outputs from the payment gateway feature stack
+    Value: !Ref PaymentGatewayFeature
+
+  

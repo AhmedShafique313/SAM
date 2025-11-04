@@ -78,6 +78,30 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
+  StripeTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: stripe-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+
+  PaymentHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: payment-history-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: index_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: index_id
+          KeyType: HASH
+
 Outputs:
   ###################################################
   # Exports for cross-stack references
@@ -111,3 +135,15 @@ Outputs:
     Value: !Ref ProjectsTable
     Export:
       Name: CAMMI-ProjectsTableName
+
+  StripeTableName:
+    Description: Name of the stripe table
+    Value: !Ref StripeTable
+    Export:
+      Name: CAMMI-StripeTableName
+
+  PaymentHistoryTableName:
+    Description: Name of the payment history table
+    Value: !Ref PaymentHistoryTable
+    Export:
+      Name: CAMMI-PaymentHistoryTableName

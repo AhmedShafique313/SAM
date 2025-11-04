@@ -99,9 +99,9 @@ Outputs:
     Description: Outputs from nested DynamoDB stack
     Value: !Ref DynamoDBStack
 
-  LayerStackOutput:
-    Description: Outputs from many libraries layer stack
-    Value: !Ref LayerStack
+  # LayerStackOutput:
+  #   Description: Outputs from many libraries layer stack
+  #   Value: !Ref LayerStack
 
   S3StackOutput:
     Description: Outputs from Cammi S3 stack

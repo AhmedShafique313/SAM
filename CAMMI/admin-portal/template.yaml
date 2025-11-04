@@ -1,11 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Admin Portal feature for CAMMI
-<<<<<<< HEAD
- 
-=======
 
->>>>>>> bb9456666e4409edc310c668f42ec31e8bad6278
 Resources:
   # payment data
   PaymentDataFunction:

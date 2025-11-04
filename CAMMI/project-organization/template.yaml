@@ -4,38 +4,6 @@ Description: Projects-Organizations feature for CAMMI
 
 Resources:
 
-  AllOrganizationsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: all-organizations
-      Handler: app.lambda_handler
-      CodeUri: src/all-organizations/
-      Runtime: python3.13
-      Timeout: 900
-      MemorySize: 128
-      Tracing: Active
-      Description: Handles user organizations
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Environment:
-        Variables:
-          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
-
-  AllProjectsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: all-projects
-      Handler: app.lambda_handler
-      CodeUri: src/all-projects/
-      Runtime: python3.13
-      Timeout: 900
-      MemorySize: 128
-      Tracing: Active
-      Description: Handles user projects
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Environment:
-        Variables:
-          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
-
   CreateProjectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -51,23 +19,6 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
-          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
-
-  OrganizationBasedProjectsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: organization-based-projects
-      Handler: app.lambda_handler
-      CodeUri: src/organization-based-projects/
-      Runtime: python3.13
-      Timeout: 900
-      MemorySize: 128
-      Tracing: Active
-      Description: Handles organization and project mapping
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Environment:
-        Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
 
@@ -141,21 +92,9 @@ Resources:
 
 
 Outputs:
-  AllOrganizationsFunctionArn:
-    Description: ARN of all organizations Lambda
-    Value: !GetAtt AllOrganizationsFunction.Arn
-
-  AllProjectsFunctionArn:
-    Description: ARN of all projects Lambda
-    Value: !GetAtt AllProjectsFunction.Arn
-
   CreateProjectFunctionArn:
     Description: ARN of project creation Lambda
     Value: !GetAtt CreateProjectFunction.Arn
-
-  OrganizationBasedProjectsFunctionArn:
-    Description: ARN of organization based projects Lambda
-    Value: !GetAtt OrganizationBasedProjectsFunction.Arn
 
   OrganizationsAgainstUserFunctionArn:
     Description: ARN of organizations against user Lambda

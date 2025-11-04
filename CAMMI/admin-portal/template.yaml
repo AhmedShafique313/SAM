@@ -1,7 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Admin Portal feature for CAMMI
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> bb9456666e4409edc310c668f42ec31e8bad6278
 Resources:
   # payment data
   PaymentDataFunction:
@@ -22,6 +26,7 @@ Resources:
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
           PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
  
+
   # payment history
   PaymentHistoryFunction:
     Type: AWS::Serverless::Function
@@ -41,6 +46,7 @@ Resources:
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
           PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
  
+
   # all review docs
   AllReviewDocumentsFunction:
     Type: AWS::Serverless::Function
@@ -57,7 +63,6 @@ Resources:
       Environment:
         Variables:
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
- 
   # all orgs
   AllOrganizationsFunction:
     Type: AWS::Serverless::Function
@@ -74,7 +79,6 @@ Resources:
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
- 
   # all projects
   AllProjectsFunction:
     Type: AWS::Serverless::Function
@@ -91,7 +95,6 @@ Resources:
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
- 
   # organization-based projects
   OrganizationBasedProjectsFunction:
     Type: AWS::Serverless::Function
@@ -109,20 +112,19 @@ Resources:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
- 
 Outputs:
   PaymentDataFunctionArn:
     Description: ARN of PaymentDataFunction Lambda
     Value: !GetAtt PaymentDataFunction.Arn
- 
+
   PaymentHistoryFunctionArn:
     Description: ARN of PaymentHistoryFunction Lambda
     Value: !GetAtt PaymentHistoryFunction.Arn
- 
+
   AllReviewDocumentsFunctionArn:
     Description: ARN of AllReviewDocumentsFunction Lambda
     Value: !GetAtt AllReviewDocumentsFunction.Arn
- 
+
   AllOrganizationsFunctionArn:
     Description: ARN of AllOrganizationsFunction Lambda
     Value: !GetAtt AllOrganizationsFunction.Arn
@@ -134,4 +136,3 @@ Outputs:
   OrganizationBasedProjectsFunctionArn:
     Description: ARN of OrganizationBasedProjectsFunction Lambda
     Value: !GetAtt OrganizationBasedProjectsFunction.Arn
- 

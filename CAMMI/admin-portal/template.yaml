@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Admin Portal feature for CAMMI
 
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
 Resources:
   ###################################################
   # Payment Data
@@ -244,6 +249,25 @@ Resources:
         Variables:
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
 
+  ###################################################
+  # Return Review Document
+  ###################################################
+  ReturnReviewDocumentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: return-review-document
+      Handler: app.lambda_handler
+      CodeUri: src/return-review-document/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches document that has been reviewed and return to the user. Also sends email notification.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName         
+
 ###################################################
 # Outputs
 ###################################################
@@ -294,4 +318,8 @@ Outputs:
 
   ShowBalanceFunctionArn:
     Description: ARN of ShowBalanceFunction Lambda
-    Value: !GetAtt ShowBalanceFunction.Arn
+    Value: !GetAtt ShowBalanceFunction.
+    
+  ReturnReviewDocumentFunctionArn:
+    Description: ARN of ReturnReviewDocumentFunction Lambda
+    Value: !GetAtt ReturnReviewDocumentFunction.Arn    

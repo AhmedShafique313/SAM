@@ -262,11 +262,11 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches document that has been reviewed and return to the user. Also sends email notification.
+      Description: Fetches document that has been reviewed and returns to the user. Also sends email notification.
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName         
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
 ###################################################
 # Outputs
@@ -318,8 +318,8 @@ Outputs:
 
   ShowBalanceFunctionArn:
     Description: ARN of ShowBalanceFunction Lambda
-    Value: !GetAtt ShowBalanceFunction.
-    
+    Value: !GetAtt ShowBalanceFunction.Arn
+
   ReturnReviewDocumentFunctionArn:
     Description: ARN of ReturnReviewDocumentFunction Lambda
-    Value: !GetAtt ReturnReviewDocumentFunction.Arn    
+    Value: !GetAtt ReturnReviewDocumentFunction.Arn

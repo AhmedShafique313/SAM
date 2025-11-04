@@ -91,7 +91,7 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName          
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName    
   # all orgs
   AllOrganizationsFunction:
     Type: AWS::Serverless::Function
@@ -162,6 +162,25 @@ Resources:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
+
+  UserOrganizationProjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: user-organization-project
+      Handler: app.lambda_handler
+      CodeUri: src/user-organization-project/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches all organizations and projects of user.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:  
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName                          
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName           
+
 Outputs:
   PaymentDataFunctionArn:
     Description: ARN of PaymentDataFunction Lambda
@@ -198,3 +217,8 @@ Outputs:
   AllUsersFunctionArn:
     Description: ARN of AllUsersFunction Lambda
     Value: !GetAtt AllUsersFunction.Arn
+
+  UserOrganizationProjectFunctionArn:
+    Description: ARN of UserOrganizationProjectFunction Lambda
+    Value: !GetAtt UserOrganizationProjectFunction.Arn
+

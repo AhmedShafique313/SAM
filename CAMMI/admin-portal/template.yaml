@@ -20,7 +20,7 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
-          PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
+          PAYMENT_HISTORY_TABLE: !ImportValue CAMMI-PaymentHistoryTableName
  
 
   # payment history
@@ -40,7 +40,7 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
-          PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
+          PAYMENT_HISTORY_TABLE: !ImportValue CAMMI-PaymentHistoryTableName
  
 
   # all review docs
@@ -124,6 +124,27 @@ Resources:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+
+
+  CammiAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: cammi-analytics
+      Handler: app.lambda_handler
+      CodeUri: src/cammi-analytics/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches cammi analytics on super admin panel
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
+
 Outputs:
   PaymentDataFunctionArn:
     Description: ARN of PaymentDataFunction Lambda
@@ -152,3 +173,7 @@ Outputs:
   OrganizationBasedProjectsFunctionArn:
     Description: ARN of OrganizationBasedProjectsFunction Lambda
     Value: !GetAtt OrganizationBasedProjectsFunction.Arn
+
+  CammiAnalyticsFunctionArn:
+    Description: ARN of CammiAnalyticsFunction Lambda
+    Value: !GetAtt CammiAnalyticsFunction.Arn

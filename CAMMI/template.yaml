@@ -14,24 +14,16 @@ Globals:
     Tracing: Active
 
 Resources:
-  # Nested DynamoDB stack
   DynamoDBStack:
     Type: AWS::Serverless::Application
     Properties:
       Location: db/template.yaml
-
-  # # Nested Google Libraries Layer stack
-  # LayerStack:
-  #   Type: AWS::Serverless::Application
-  #   Properties:
-  #     Location: layers/template.yaml
 
   S3Stack:
     Type: AWS::Serverless::Application
     Properties:
       Location: s3/template.yaml
 
-  # Feedback Lambdas
   FeedbackFeature:
     Type: AWS::Serverless::Application
     DependsOn:
@@ -39,12 +31,10 @@ Resources:
     Properties:
       Location: feedback/template.yaml
   
-  # auth lambdas
   AuthFeature:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
-      # - LayerStack
     Properties:
       Location: auth/template.yaml
   
@@ -85,7 +75,6 @@ Resources:
     Properties:
       Location: admin-portal/template.yaml
   
-
   PaymentGatewayFeature:
     Type: AWS::Serverless::Application
     DependsOn:
@@ -93,15 +82,10 @@ Resources:
     Properties:
       Location: payment-gateway/template.yaml
 
-
 Outputs:
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack
     Value: !Ref DynamoDBStack
-
-  # LayerStackOutput:
-  #   Description: Outputs from many libraries layer stack
-  #   Value: !Ref LayerStack
 
   S3StackOutput:
     Description: Outputs from Cammi S3 stack
@@ -115,20 +99,18 @@ Outputs:
     Description: Outputs from Auth feature stack
     Value: !Ref AuthFeature
 
-  onboardingFeatureOutput:
-    Description: Outputs from onboarding feature stack
+  OnboardingFeatureOutput:
+    Description: Outputs from Onboarding feature stack
     Value: !Ref OnboardingFeature
   
   ProjectOrganizationFeatureOutput:
-    Description: Outputs from project-organization feature stack
+    Description: Outputs from Project Organization feature stack
     Value: !Ref ProjectOrganizationFeature
 
   AdminPortalFeatureOutput:
-    Description: Outputs from the admin portal feature stack
+    Description: Outputs from Admin Portal feature stack
     Value: !Ref AdminPortalFeature
 
   PaymentGatewayFeatureOutput:
-    Description: Outputs from the payment gateway feature stack
+    Description: Outputs from Payment Gateway feature stack
     Value: !Ref PaymentGatewayFeature
-
-  

@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Auth feature for CAMMI - handles Google OAuth login and callback
 
-
 Resources:
   AuthLoginFunction:
     Type: AWS::Serverless::Function
@@ -16,8 +15,6 @@ Resources:
       MemorySize: 128
       Description: Handles user login via Google OAuth
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      # Layers:
-      #   - !ImportValue GoogleLibrariesLayerArn
       Environment:
         Variables:
           CLIENT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:CLIENT_ID}}"
@@ -35,12 +32,12 @@ Resources:
       Tracing: Active
       Timeout: 900
       MemorySize: 128
-      Description: Handles user registeration via sign-up
+      Description: Handles user registration via sign-up
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-  
+
   ForgotPasswordFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -56,7 +53,7 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-  
+
   LoginLogoutFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -77,15 +74,15 @@ Outputs:
   AuthLoginFunctionArn:
     Description: "Arn of Google OAuth Login Function"
     Value: !GetAtt AuthLoginFunction.Arn
-  
+
   RegisterFunctionArn:
-    Description: "Arn of user registeration function"
+    Description: "Arn of user registration function"
     Value: !GetAtt RegisterFunction.Arn
 
   ForgotPasswordFunctionArn:
     Description: "Arn of user password management function"
     Value: !GetAtt ForgotPasswordFunction.Arn
-  
+
   LoginLogoutFunctionArn:
     Description: "Arn of user session management function"
     Value: !GetAtt LoginLogoutFunction.Arn

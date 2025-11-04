@@ -171,15 +171,6 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["AdminPortalFeature/PaymentHistoryFunction"]
 
-[function_build_definitions.b8860887-1db3-4739-ac25-8610a5454bba]
-codeuri = "C:\\Users\\Kavtech\\Documents\\Project\\SAM\\CAMMI\\payment-gateway\\src\\payment-gateway"
-runtime = "python3.13"
-architecture = "x86_64"
-handler = "app.lambda_handler"
-manifest_hash = ""
-packagetype = "Zip"
-functions = ["PaymentGatewayFeature/PaymentGatewayFunction"]
-
 [function_build_definitions.bc75e63a-e09d-4648-9233-e298b718a842]
 codeuri = "C:\\Users\\Kavtech\\Documents\\Project\\SAM\\CAMMI\\payment-gateway\\src\\stripe-users"
 runtime = "python3.13"
@@ -188,5 +179,14 @@ handler = "app.lambda_handler"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["PaymentGatewayFeature/StripeUsersFunction"]
+
+[function_build_definitions.5de0b66c-c38f-472f-aebb-1ee8320d2011]
+codeuri = "C:\\Users\\Kavtech\\Documents\\Project\\SAM\\CAMMI\\payment-gateway\\src\\payment-gateway-lambda"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["PaymentGatewayFeature/PaymentGatewayFunction"]
 
 [layer_build_definitions]

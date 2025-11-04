@@ -40,6 +40,23 @@ Resources:
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
           PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
 
+  AllReviewDocumentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: all-review-documents
+      Handler: app.lambda_handler
+      CodeUri: src/all-review-documents/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches all documents that are sent for review.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
+  
+
 Outputs:
   PaymentDataFunctionArn:
     Description: ARN of PaymentDataFunction Lambda
@@ -52,3 +69,9 @@ Outputs:
     Value: !GetAtt PaymentHistoryFunction.Arn
     Export:
       Name: PaymentHistoryFunctionArn
+
+  AllReviewDocumentsFunctionArn:
+    Description: ARN of AllReviewDocumentsFunction Lambda
+    Value: !GetAtt AllReviewDocumentsFunction.Arn
+    Export:
+      Name: AllReviewDocumentsFunctionArn

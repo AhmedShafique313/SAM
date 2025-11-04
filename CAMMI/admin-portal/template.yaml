@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Feedback feature for CAMMI
+Description: Admin Portal feature for CAMMI
 
 Resources:
-
+  # payment data
   PaymentDataFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -22,6 +22,7 @@ Resources:
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
           PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
 
+  # payment history
   PaymentHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -32,7 +33,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches and getting payment history details on super admin panel
+      Description: Fetches payment history details on super admin panel
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
@@ -40,39 +41,41 @@ Resources:
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
           PAYMENT_HISTORY_NAME: !ImportValue CAMMI-PaymentHistoryTableName
 
-<<<<<<< HEAD
+  # all review docs
   AllReviewDocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: all-review-documents
       Handler: app.lambda_handler
       CodeUri: src/all-review-documents/
-=======
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches all documents sent for review
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
+
+  # all orgs
   AllOrganizationsFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: all-organizations
       Handler: app.lambda_handler
       CodeUri: src/all-organizations/
->>>>>>> b8c3685d07b578e1ef09a2deb03bc8ba0694d5a0
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-<<<<<<< HEAD
-      Description: Fetches all documents that are sent for review.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Environment:
-        Variables:
-          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
-  
-=======
-      Description: Handles user organizations
+      Description: Handles all organizations of user
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
 
+  # all projects
   AllProjectsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -89,6 +92,7 @@ Resources:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
 
+  # organization-based projects
   OrganizationBasedProjectsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -105,37 +109,28 @@ Resources:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
->>>>>>> b8c3685d07b578e1ef09a2deb03bc8ba0694d5a0
 
 Outputs:
   PaymentDataFunctionArn:
     Description: ARN of PaymentDataFunction Lambda
     Value: !GetAtt PaymentDataFunction.Arn
-    Export:
-      Name: PaymentDataFunctionArn
 
   PaymentHistoryFunctionArn:
     Description: ARN of PaymentHistoryFunction Lambda
     Value: !GetAtt PaymentHistoryFunction.Arn
-    Export:
-      Name: PaymentHistoryFunctionArn
 
-<<<<<<< HEAD
   AllReviewDocumentsFunctionArn:
     Description: ARN of AllReviewDocumentsFunction Lambda
     Value: !GetAtt AllReviewDocumentsFunction.Arn
-    Export:
-      Name: AllReviewDocumentsFunctionArn
-=======
+
   AllOrganizationsFunctionArn:
-    Description: ARN of all organizations Lambda
+    Description: ARN of AllOrganizationsFunction Lambda
     Value: !GetAtt AllOrganizationsFunction.Arn
 
   AllProjectsFunctionArn:
-    Description: ARN of all projects Lambda
+    Description: ARN of AllProjectsFunction Lambda
     Value: !GetAtt AllProjectsFunction.Arn
 
   OrganizationBasedProjectsFunctionArn:
-    Description: ARN of organization based projects Lambda
+    Description: ARN of OrganizationBasedProjectsFunction Lambda
     Value: !GetAtt OrganizationBasedProjectsFunction.Arn
->>>>>>> b8c3685d07b578e1ef09a2deb03bc8ba0694d5a0

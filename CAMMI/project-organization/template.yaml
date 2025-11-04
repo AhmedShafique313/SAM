@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: Projects-Organizations feature for CAMMI
 
 Resources:
-
+  # create project
   CreateProjectFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -22,6 +22,7 @@ Resources:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
 
+  # organizations against user
   OrganizationsAgainstUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -32,7 +33,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Handles user based organizations
+      Description: Handles user-based organizations
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
@@ -40,6 +41,7 @@ Resources:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
 
+  # projects against user
   ProjectsAgainstUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -50,13 +52,14 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Handles user based projects
+      Description: Handles user-based projects
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
 
+  # specific organizations
   SpecificOrganizationsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -74,6 +77,7 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
 
+  # specific projects
   SpecificProjectsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -90,24 +94,23 @@ Resources:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
 
-
 Outputs:
   CreateProjectFunctionArn:
-    Description: ARN of project creation Lambda
+    Description: ARN of CreateProjectFunction Lambda
     Value: !GetAtt CreateProjectFunction.Arn
 
   OrganizationsAgainstUserFunctionArn:
-    Description: ARN of organizations against user Lambda
+    Description: ARN of OrganizationsAgainstUserFunction Lambda
     Value: !GetAtt OrganizationsAgainstUserFunction.Arn
 
   ProjectsAgainstUserFunctionArn:
-    Description: ARN of projects against user Lambda
+    Description: ARN of ProjectsAgainstUserFunction Lambda
     Value: !GetAtt ProjectsAgainstUserFunction.Arn
 
   SpecificOrganizationsFunctionArn:
-    Description: ARN of specific organizations lambda
+    Description: ARN of SpecificOrganizationsFunction Lambda
     Value: !GetAtt SpecificOrganizationsFunction.Arn
 
   SpecificProjectsFunctionArn:
-    Description: ARN of specific projects lambda
+    Description: ARN of SpecificProjectsFunction Lambda
     Value: !GetAtt SpecificProjectsFunction.Arn

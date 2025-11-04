@@ -3,7 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: DynamoDB tables for CAMMI - users, feedback, and onboarding data storage
 
 Resources:
-
   ###################################################
   # Users Table
   ###################################################
@@ -53,7 +52,9 @@ Resources:
         - AttributeName: question
           KeyType: RANGE
 
-
+  ###################################################
+  # Organizations Table
+  ###################################################
   OrganizationsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -66,6 +67,9 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
+  ###################################################
+  # Projects Table
+  ###################################################
   ProjectsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -78,6 +82,9 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
+  ###################################################
+  # Stripe Table
+  ###################################################
   StripeTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -90,6 +97,9 @@ Resources:
         - AttributeName: email
           KeyType: HASH
 
+  ###################################################
+  # Payment History Table
+  ###################################################
   PaymentHistoryTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -101,6 +111,25 @@ Resources:
       KeySchema:
         - AttributeName: index_id
           KeyType: HASH
+
+  ###################################################
+  # Review Documents Table
+  ###################################################
+  ReviewDocumentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: review-documents-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+        - AttributeName: document_type_uuid
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+        - AttributeName: document_type_uuid
+          KeyType: RANGE
 
 Outputs:
   ###################################################
@@ -131,19 +160,25 @@ Outputs:
       Name: CAMMI-OrganizationsTableName
 
   ProjectsTableName:
-    Description: Name of the projects table
+    Description: Name of the Projects table
     Value: !Ref ProjectsTable
     Export:
       Name: CAMMI-ProjectsTableName
 
   StripeTableName:
-    Description: Name of the stripe table
+    Description: Name of the Stripe table
     Value: !Ref StripeTable
     Export:
       Name: CAMMI-StripeTableName
 
   PaymentHistoryTableName:
-    Description: Name of the payment history table
+    Description: Name of the Payment History table
     Value: !Ref PaymentHistoryTable
     Export:
       Name: CAMMI-PaymentHistoryTableName
+
+  ReviewDocumentsTableName:
+    Description: Name of the Review Documents table
+    Value: !Ref ReviewDocumentsTable
+    Export:
+      Name: CAMMI-ReviewDocumentsTableName

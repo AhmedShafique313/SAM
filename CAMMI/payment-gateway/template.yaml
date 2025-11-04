@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Payment Gateway feature for CAMMI
 
-
 Resources:
   PaymentGatewayFunction:
     Type: AWS::Serverless::Function
@@ -18,8 +17,8 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          STRIPE_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:STRIPE_API_KEY}}"
-          STRIPE_TABLE_NAME: !ImportValue CAMMI-StripeTableName
+          STRIPE_API_KEY: !Sub "{{resolve:secretsmanager:cammi-secrets:SecretString:STRIPE_API_KEY}}"
+          STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
 
   StripeUsersFunction:
     Type: AWS::Serverless::Function
@@ -35,14 +34,14 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          USERS_TABLE_NAME: !ImportValue CAMMI-UsersTableName
-          STRIPE_TABLE_NAME: !ImportValue CAMMI-StripeTableName          
-
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
 
 Outputs:
   PaymentGatewayFunctionArn:
     Description: ARN of payment gateway Lambda
     Value: !GetAtt PaymentGatewayFunction.Arn
+
   StripeUsersFunctionArn:
     Description: ARN of Stripe Users Function Lambda
     Value: !GetAtt StripeUsersFunction.Arn

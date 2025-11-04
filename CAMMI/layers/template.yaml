@@ -3,12 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: Google OAuth and common library layer for CAMMI
 
 Resources:
-  GoogleLibrariesLayer:
+  Google1LibrariesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: google-libraries
       Description: Shared dependencies for Google login, requests, cachecontrol, etc.
-      ContentUri: layer_google.zip
+      ContentUri: google_layer.zip
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete
@@ -55,11 +55,11 @@ Resources:
 
 
 Outputs:
-  GoogleLibrariesLayerArn:
+  Google1LibrariesLayerArn:
     Description: ARN of the Google Libraries Layer
-    Value: !Ref GoogleLibrariesLayer
+    Value: !Ref Google1LibrariesLayer
     Export:
-      Name: GoogleLibrariesLayerArn
+      Name: Google1LibrariesLayerArn
 
   GroqLibrariesLayerArn:
     Description: ARN of the Groq Libraries Layer

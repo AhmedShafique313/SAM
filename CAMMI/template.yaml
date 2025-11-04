@@ -14,6 +14,11 @@ Globals:
     Tracing: Active
 
 Resources:
+  LayersStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: layers/template.yaml
+
   DynamoDBStack:
     Type: AWS::Serverless::Application
     Properties:
@@ -35,6 +40,7 @@ Resources:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
+      - LayersStack
     Properties:
       Location: auth/template.yaml
   
@@ -83,6 +89,10 @@ Resources:
       Location: payment-gateway/template.yaml
 
 Outputs:
+  LayersStackOutput:
+    Description: Outputs from nested layers stack
+    Value: !Ref LayersStack
+
   DynamoDBStackOutput:
     Description: Outputs from nested DynamoDB stack
     Value: !Ref DynamoDBStack

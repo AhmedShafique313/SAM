@@ -60,6 +60,23 @@ Resources:
         Variables:
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
+  # all review docs
+  AllUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: all-users
+      Handler: app.lambda_handler
+      CodeUri: src/all-users/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches all users.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName         
+
   SingleReviewDocumentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -177,3 +194,7 @@ Outputs:
   CammiAnalyticsFunctionArn:
     Description: ARN of CammiAnalyticsFunction Lambda
     Value: !GetAtt CammiAnalyticsFunction.Arn
+
+  AllUsersFunctionArn:
+    Description: ARN of AllUsersFunction Lambda
+    Value: !GetAtt AllUsersFunction.Arn

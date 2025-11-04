@@ -91,7 +91,9 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName    
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName   
+
+
   # all orgs
   AllOrganizationsFunction:
     Type: AWS::Serverless::Function
@@ -108,6 +110,8 @@ Resources:
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+
+
   # all projects
   AllProjectsFunction:
     Type: AWS::Serverless::Function
@@ -124,6 +128,8 @@ Resources:
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+
+          
   # organization-based projects
   OrganizationBasedProjectsFunction:
     Type: AWS::Serverless::Function

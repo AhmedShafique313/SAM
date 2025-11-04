@@ -1,11 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Admin Portal feature for CAMMI
-<<<<<<< HEAD
- 
-=======
 
->>>>>>> bb9456666e4409edc310c668f42ec31e8bad6278
 Resources:
   # payment data
   PaymentDataFunction:
@@ -63,6 +59,22 @@ Resources:
       Environment:
         Variables:
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
+
+  SingleReviewDocumentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: single-review-document
+      Handler: app.lambda_handler
+      CodeUri: src/single-review-document/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches a single document that is for review.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName          
   # all orgs
   AllOrganizationsFunction:
     Type: AWS::Serverless::Function
@@ -124,6 +136,10 @@ Outputs:
   AllReviewDocumentsFunctionArn:
     Description: ARN of AllReviewDocumentsFunction Lambda
     Value: !GetAtt AllReviewDocumentsFunction.Arn
+
+  SingleReviewDocumentsFunctionArn:
+    Description: ARN of AllReviewDocumentsFunction Lambda
+    Value: !GetAtt SingleReviewDocumentsFunction.Arn    
 
   AllOrganizationsFunctionArn:
     Description: ARN of AllOrganizationsFunction Lambda

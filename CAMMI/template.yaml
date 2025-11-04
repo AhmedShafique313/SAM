@@ -44,7 +44,7 @@ Resources:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
-      - GoogleLibrariesLayerStack
+      - LayerStack
     Properties:
       Location: auth/template.yaml
   
@@ -100,7 +100,7 @@ Outputs:
     Value: !Ref DynamoDBStack
 
   LayerStackOutput:
-    Description: Outputs from Google libraries layer stack
+    Description: Outputs from many libraries layer stack
     Value: !Ref LayerStack
 
   S3StackOutput:

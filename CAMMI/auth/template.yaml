@@ -15,6 +15,8 @@ Resources:
       MemorySize: 128
       Description: Handles user login via Google OAuth
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Layers:
+        - !ImportValue Google1LibrariesLayerArn
       Environment:
         Variables:
           CLIENT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:CLIENT_ID}}"
@@ -48,7 +50,7 @@ Resources:
       Tracing: Active
       Timeout: 900
       MemorySize: 128
-      Description: Handles user password management via sign-in
+      Description: Handles user password reset via forgot-password
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:

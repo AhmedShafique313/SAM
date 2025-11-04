@@ -7,9 +7,9 @@ Resources:
   PaymentGatewayFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: payment-gateway
+      FunctionName: payment-gateway-lambda
       Handler: app.lambda_handler
-      CodeUri: src/payment-gateway/
+      CodeUri: src/payment-gateway-lambda/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128

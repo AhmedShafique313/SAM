@@ -13,7 +13,7 @@ Resources:
     Properties:
       FunctionName: payment-gateway
       Handler: app.lambda_handler
-      CodeUri: src/
+      CodeUri: src/payment-gateway/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
@@ -25,8 +25,28 @@ Resources:
           STRIPE_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:STRIPE_API_KEY}}"
           STRIPE_TABLE_NAME: !ImportValue CAMMI-StripeTableName
 
+  StripeUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: stripe-users
+      Handler: app.lambda_handler
+      CodeUri: src/stripe-users/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles Stripe Users for CAMMI
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE_NAME: !ImportValue CAMMI-UsersTableName
+          STRIPE_TABLE_NAME: !ImportValue CAMMI-StripeTableName          
+
 
 Outputs:
   PaymentGatewayFunctionArn:
     Description: ARN of payment gateway Lambda
     Value: !GetAtt PaymentGatewayFunction.Arn
+  StripeUsersFunctionArn:
+    Description: ARN of Stripe Users Function Lambda
+    Value: !GetAtt StripeUsersFunction.Arn

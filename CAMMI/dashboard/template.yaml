@@ -80,6 +80,7 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
           

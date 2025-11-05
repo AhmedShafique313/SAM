@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Common Lambda feature for CAMMI
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
+Resources:
+  S3ToFrontendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: s3-to-frontend
+      Handler: app.lambda_handler
+      CodeUri: src/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles S3 to gateway
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+
+Outputs:
+  S3ToFrontendFunctionArn:
+    Description: ARN of S3ToFrontendFunction Lambda
+    Value: !GetAtt S3ToFrontendFunction.Arn
+    Export:
+      Name: S3ToFrontendFunctionArn

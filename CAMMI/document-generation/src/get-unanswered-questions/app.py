@@ -1,210 +1,168 @@
 import json
 import boto3
-import pdfplumber
-import io
-from boto3.dynamodb.conditions import Key, Attr
-
-s3 = boto3.client('s3')
-dynamodb = boto3.resource('dynamodb')
-bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
-
-# Constants
-BUCKET_NAME = "cammi-devprod"
-USERS_TABLE = "Users-table"
-
-# 🧠 Bedrock LLM call
-def llm_calling(prompt, model_id, session_id="default-session"):
-    """Call AWS Bedrock LLM. (No try/except — errors will propagate for visibility.)"""
-    conversation = [
-        {
-            "role": "user",
-            "content": [{"text": str(prompt)}]
-        }
-    ]
-
-    response = bedrock_runtime.converse(
-        modelId=model_id,
-        messages=conversation,
-        inferenceConfig={
-            "temperature": 0.7,
-            "topP": 0.9
-        },
-        requestMetadata={
-            "sessionId": session_id
-        }
-    )
-
-    response_text = response["output"]["message"]["content"][0]["text"]
-    return response_text.strip()
-
-# 🧾 Prompt builder for business profile extraction
-def call_llm_extract_profile(all_content: str) -> str:
-    prompt_relevancy = f"""
-You are an expert business and marketing analyst specializing in B2B brand strategy.
+from boto3.dynamodb.conditions import Key
  
-You are given structured company information (scraped and pre-organized in JSON or markdown):
-{str(all_content)}
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table("project-questions-table")
  
-Your task:
-1. Extract all key information relevant to building a detailed and personalized business profile.
-2. Use only factual data found in the input. Do not infer or invent data.
-3. Return the response in the exact format below using the same headings and order.
-4. If any field cannot be determined confidently, leave it blank (do not make assumptions).
+# Hardcoded questions
+icp  = [
+    "What is the name of your business?",
+    "How would you describe your business concept in a few sentences?",
+    "Who is your main customer right now?",
+    "What are the top 3 goals you want to hit in the next 12 months?",
+    "What challenges are you facing in finding or converting customers?",
+    "Do you already know your best-fit customers or industries?",
+    "Who are your main competitors?"
+]
  
-Return your answer in this format exactly:
- 
-Business Name:
-Industry / Sector:
-Mission:
-Vision:
-Objective / Purpose Statement:
-Business Concept:
-Products or Services Offered:
-Target Market:
-Who They Currently Sell To:
-Value Proposition:
-Top Business Goals:
-Challenges:
-Company Overview / About Summary:
-Core Values / Brand Personality:
-Unique Selling Points (USPs):
-Competitive Advantage / What Sets Them Apart:
-Market Positioning Statement:
-Customer Segments:
-Proof Points / Case Studies / Testimonials Summary:
-Key Differentiators:
-Tone of Voice / Brand Personality Keywords:
-Core Features / Capabilities:
-Business Model:
-Technology Stack / Tools / Platform:
-Geographic Presence:
-Leadership / Founder Info:
-Company Values / Culture:
-Strategic Initiatives / Future Plans:
-Awards / Recognition / Partnerships:
-Press Mentions or Achievements:
-Client or Industry Verticals Served:
- 
-Notes:
-- Keep responses concise and factual.
-- Avoid any assumptions or generation of new data.
-- Use sentence form, not bullet lists, except where lists are explicitly more natural.
-    """.strip()
+kmf = [
+    "What is the name of your business?",
+    "Which industry does your business belong to?",
+    "What is the main objective or goal of your business?",
+    "How would you describe your business concept in a few sentences?",
+    "Who is your target market or ideal customer?",
+    "What is your short value proposition (how you help customers in a simple way)?",
+    "What is the long-term vision for your business?",
+    "What key problems does your business solve for customers?",
+    "What are the core products or services your business offers?",
+    "What makes your business unique compared to competitors?",
+    "What tone or personality should your brand convey (e.g., professional, friendly, innovative)?",
+    "Are there any additional themes or values you want associated with your brand?"
+]
 
-    return llm_calling(prompt_relevancy, model_id="us.anthropic.claude-sonnet-4-20250514-v1:0")
+sr = [
+    "What is the name of your business?",
+    "How would you describe your business concept in a few sentences?",
+    "What is the main objective or goal of your business?",
+    "What is your value proposition (the main benefit your platform offers customers)?",
+    "Which industry does your business belong to?",
+    "What is your business model (e.g., subscription, pay-per-download, freemium)?",
+    "Who is your target market or ideal customer?",
+    "What is your primary geographic market focus?",
+    "How do you position your pricing (e.g., low-tier, mid-tier, premium)?",
+    "Who are your main competitors?",
+    "What is your estimated marketing budget?",
+    "What stage of development is your business currently in?",
+    "What are your top user development priorities?",
+    "What are your key marketing objectives?",
+    "When do you plan to start this project?",
+    "When is your planned end date or long-term milestone?"
+]
 
-# 🧩 Lambda entrypoint (triggered by S3 PUT event)
+bs = [
+    "What is the name of your business?",
+    "How would you describe your business concept in a few sentences?",
+    "What is your value proposition (the main benefit your platform offers customers)?",
+    "Which industry does your business belong to?",
+    "Who is your target market or ideal customer?",
+    "What is your primary geographic market focus?",
+    "How do you position your pricing (e.g., low-tier, mid-tier, premium)?",
+    "Who are your main competitors?",
+    "When do you plan to start this project?",
+    "What is your long-term end date or milestone?",
+    "Which customers are approved to be publicly showcased?",
+    "Can you provide links to approved customer video assets?",
+    "Can you provide links to approved customer case studies?",
+    "What are the approved customer quotes you want to feature?",
+    "Can you provide links to approved customer logos or other visual assets?",
+    "What brag points or achievements would you like to highlight?",
+    "Who will act as the spokesperson for your business?",
+    "What is the spokesperson’s title or role?",
+    "Can you provide links to your brand’s visual assets (e.g., logo, product screenshots)?"
+]
+
+gtm = [
+    "What do you want to accomplish in one year?",
+    "Where do you want to be in three years?",
+    "Where is your short term focus?",
+    "How would you describe your business concept in a few sentences?",
+    "Tell us about who you sell to? Where are they located?",
+    "What is unique about your business?",
+    "What marketing tools do you have available to you?",
+    "Who are your main competitors?",
+    "What are your strengths, weaknesses, opps and threats?",
+    "Tell us about your product/solution/service?"
+]
+ 
 def lambda_handler(event, context):
-    print("Received S3 event:", json.dumps(event))
-
-    # Extract bucket and object key from event
-    record = event["Records"][0]
-    bucket_name = record["s3"]["bucket"]["name"]
-    object_key = record["s3"]["object"]["key"]
-
-    # Ensure correct bucket
-    if bucket_name != BUCKET_NAME:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"message": f"Unexpected bucket: {bucket_name}"})
-        }
-
-    # ✅ Extract project_id and session_id from object_key
-    # Expected pattern: pdf_files/{project_id}/{session_id}/{file_name}
-    parts = object_key.split("/")
-    if len(parts) < 4 or parts[0] != "pdf_files":
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"message": f"Invalid S3 key structure: {object_key}"})
-        }
-
-    project_id = parts[1]
-    session_id = parts[2]
-    file_name = parts[3]
-
-    print(f"Extracted project_id: {project_id}, session_id: {session_id}, file_name: {file_name}")
-
-    # ✅ Fetch PDF file from S3
-    pdf_obj = s3.get_object(Bucket=bucket_name, Key=object_key)
-    pdf_bytes = pdf_obj["Body"].read()
-
-    print(f"Reading file from S3: {object_key}")
-    print(f"File size: {len(pdf_bytes)} bytes")
-
-    # ✅ Extract text from PDF
-    all_text = ""
-    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        print(f"Total pages: {len(pdf.pages)}")
-        for i, page in enumerate(pdf.pages):
-            print(f"Extracting page {i + 1} ...")
-            text = page.extract_text()
-            if text:
-                all_text += text + "\n" + "-" * 80 + "\n"
-
-    # 🧠 Call Bedrock LLM
-    print("Calling Bedrock LLM to generate structured business profile...")
-    parsed_profile = call_llm_extract_profile(all_text)
-    print("LLM processing completed.")
-
-    # ✅ Get user_id from DynamoDB
-    table = dynamodb.Table(USERS_TABLE)
     try:
+        # ✅ Read headers
+        headers = event.get("headers", {})
+        project_id = headers.get("project_id")
+        document_type = headers.get("document_type")
+ 
+        if not project_id or not document_type:
+            return {
+                "statusCode": 400,
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",  
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+                },
+                "body": json.dumps({"error": "Missing project_id or document_type in headers"})
+            }
+ 
+        # ✅ Select predefined questions based on document_type
+        if document_type.lower() == 'icp':
+            question_list = icp
+        elif document_type.lower() == 'gtm': 
+            question_list = gtm
+        elif document_type.lower() == 'kmf':
+            question_list = kmf
+        elif document_type.lower() == 'sr':
+            question_list = sr  
+        elif document_type.lower() == 'bs':
+            question_list = bs             
+        else:
+            return {
+                "statusCode": 400,
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",  
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+                },
+                "body": json.dumps({"error": "Invalid document_type"})
+            }
+ 
+        # ✅ Query DynamoDB for project_id
         response = table.query(
-            IndexName="session_id-index",
-            KeyConditionExpression=Key("session_id").eq(session_id)
+            KeyConditionExpression=Key("project_id").eq(project_id)
         )
-        if not response.get("Items"):
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"message": f"No user found for session_id {session_id}"})
-            }
-        user_id = response["Items"][0]["id"]
-        print(f"User found via GSI: {user_id}")
+        items = response.get("Items", [])
+ 
+        if items:
+            # Extract all question_text from DB
+            db_questions = {item["question_text"] for item in items}
+ 
+            # Find missing questions
+            missing_questions = [
+                q for q in question_list if q not in db_questions
+            ]
+        else:
+            # If no data for this project, return all predefined
+            missing_questions = question_list
+ 
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",  
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+            },
+            "body": json.dumps({
+                "missing_questions": missing_questions,
+                "document_type": document_type
+            })
+        }
+ 
     except Exception as e:
-        print(f"GSI not found or query failed, fallback to scan: {e}")
-        response = table.scan(
-            FilterExpression=Attr("session_id").eq(session_id)
-        )
-        if not response.get("Items"):
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"message": f"No user found for session_id {session_id}"})
-            }
-        user_id = response["Items"][0]["id"]
-        print(f"User found via scan: {user_id}")
-
-    # ✅ Upload extracted + parsed text to S3 (append if exists)
-    s3_key = f"url_parsing/{project_id}/{user_id}/web_scraping.txt"
-
-    try:
-        existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
-        existing_content = existing_obj["Body"].read().decode("utf-8")
-        print("Existing file found. Appending new content...")
-    except s3.exceptions.NoSuchKey:
-        existing_content = ""
-        print("No existing file found. Creating a new one...")
-
-    final_output = (
-        existing_content + "\n\n--- NEW PDF EXTRACT ---\n\n" + parsed_profile
-        if existing_content
-        else parsed_profile
-    )
-
-    s3.put_object(
-        Bucket=BUCKET_NAME,
-        Key=s3_key,
-        Body=final_output.encode("utf-8"),
-        ContentType="text/plain"
-    )
-
-    s3_url = f"s3://{BUCKET_NAME}/{s3_key}"
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "Triggered by S3: PDF processed successfully and profile saved.",
-            "project_id": project_id,
-            "session_id": session_id,
-            "url": s3_url
-        })
-    }
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+            },
+            "body": json.dumps({"error": str(e)})
+        }

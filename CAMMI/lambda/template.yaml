@@ -13,7 +13,7 @@ Resources:
     Properties:
       FunctionName: s3-to-frontend
       Handler: app.lambda_handler
-      CodeUri: src/
+      CodeUri: src/s3-to-frontend/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
@@ -25,9 +25,35 @@ Resources:
           S3_BUCKET_NAME: !Ref S3BucketName
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
+  RequestToReviewDocumentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: request-to-review-documents
+      Handler: app.lambda_handler
+      CodeUri: src/request-to-review-documents/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles add review documents
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
+
 Outputs:
   S3ToFrontendFunctionArn:
     Description: ARN of S3ToFrontendFunction Lambda
     Value: !GetAtt S3ToFrontendFunction.Arn
     Export:
       Name: S3ToFrontendFunctionArn
+
+  RequestToReviewDocumentsFunctionArn:
+    Description: ARN of RequestToReviewDocumentsFunction lambda
+    Value: !GetAtt RequestToReviewDocumentsFunction
+    Export:
+      Name: RequestToReviewDocumentsFunctionArn

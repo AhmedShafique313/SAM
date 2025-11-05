@@ -143,7 +143,23 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          S3_BUCKET_NAME: !Ref S3BucketName                                     
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+  EditHeadingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: edit-heading-function
+      Handler: app.lambda_handler
+      CodeUri: src/edit-heading-function/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles edit heading function
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName                                 
 
 ###################################################
 # Outputs
@@ -176,3 +192,9 @@ Outputs:
   S3LambdaTriggerFunctionArn:
     Description: ARN of S3LambdaTriggerFunction Lambda
     Value: !GetAtt S3LambdaTriggerFunction.Arn
+
+  EditHeadingFunctionArn:
+    Description: ARN of EditHeadingFunction Lambda
+    Value: !GetAtt EditHeadingFunction.Arn
+    Export:
+      Name: EditHeadingFunctionArn

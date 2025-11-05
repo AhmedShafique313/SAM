@@ -14,7 +14,7 @@ org_table = dynamodb.Table("organizations-table")
 projects_table = dynamodb.Table("projects-table")
 review_table = dynamodb.Table("review-documents-table")
 
-BUCKET_NAME = "cammi"
+BUCKET_NAME = "cammi-devprod"
 FOLDER_NAME = "ReviewDocuments"
 
 def build_response(status_code, body):

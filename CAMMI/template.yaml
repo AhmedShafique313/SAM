@@ -111,15 +111,15 @@ Resources:
       - S3Stack
     Properties:
       Location: document-generation/template.yaml
-  
+      Parameters:                            
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
   PaymentGatewayFeature:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
     Properties:
-      Location: payment-gateway/template.yaml
-      Parameters:
-        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+      Location: payment-gateway/template.yaml 
 
 Outputs:
   LayersStackOutput:

@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Document Generation feature for CAMMI
 
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
 Resources:
   ###################################################
   # Get Unanswered Questions Data
@@ -116,7 +121,8 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName   
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          S3_BUCKET_NAME: !Ref S3BucketName   
 
   ###################################################
   # S3 Lamda Trigger
@@ -135,7 +141,8 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName                                     
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          S3_BUCKET_NAME: !Ref S3BucketName                                     
 
 ###################################################
 # Outputs

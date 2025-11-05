@@ -121,6 +121,14 @@ Resources:
     Properties:
       Location: payment-gateway/template.yaml 
 
+  AIGenerationFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - LayersStack
+    Properties:
+      Location: ai-generation/template.yaml
+
 Outputs:
   LayersStackOutput:
     Description: Outputs from nested layers stack
@@ -173,3 +181,7 @@ Outputs:
   DocumentGenerationFeatureOutput:
     Description: Outputs from DocumentGenerationFeature feature stack
     Value: !Ref DocumentGenerationFeature
+
+  AIGenerationFeatureOutput:
+    Description: Outputs from AIGenerationFeature stack
+    Value: !Ref AIGenerationFeature

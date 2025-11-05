@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AI Content Generation Feature for CAMMI - handles content generation part of Scheduler
+
+Resources:
+  ###################################################
+  # Image Generation Lambda
+  ###################################################
+  ImageGenerationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: image-generation
+      Handler: app.lambda_handler
+      CodeUri: src/image-generation/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 10240
+      Description: Handles Image Generation Lambda
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Layers:
+        - !ImportValue GeminiLibrariesLayerArn
+      Environment:
+        Variables:
+          GCP_SERVICE_SECRET_NAME: "gcp-service-secrets"
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+
+  ###################################################
+  # Text Generation Lambda
+  ###################################################
+  TextGenerationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: text-generation
+      Handler: app.lambda_handler
+      CodeUri: src/text-generation/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 128
+      Description: Handles AI Text Post Generator Lambda
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Layers:
+        - !ImportValue GroqLibrariesLayerArn
+      Environment:
+        Variables:
+          GROQ_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:GROQ_API_KEY}}"
+
+Outputs:
+  ImageGenerationFunctionArn:
+    Description: ARN of ImageGenerationFunction Lambda
+    Value: !GetAtt ImageGenerationFunction.Arn
+    Export:
+      Name: ImageGenerationFunctionArn
+
+  TextGenerationFunctionArn:
+    Description: ARN of TextGenerationFunction Lambda
+    Value: !GetAtt TextGenerationFunction.Arn
+    Export:
+      Name: TextGenerationFunctionArn

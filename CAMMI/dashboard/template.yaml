@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Dashboard feature for CAMMI
 
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
 Resources:
 
   ###################################################
@@ -83,7 +88,7 @@ Resources:
           S3_BUCKET_NAME: !Ref S3BucketName
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
-          
+
 Outputs:
   CreditsStatusFunctionArn:
     Description: ARN of CreditsStatusFunction Lambda

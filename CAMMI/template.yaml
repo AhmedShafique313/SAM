@@ -83,6 +83,36 @@ Resources:
       Location: admin-portal/template.yaml
       Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
+  LambdaFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - S3Stack
+    Properties:
+      Location: lambda/template.yaml
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
+  DashboardFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - S3Stack
+    Properties:
+      Location: dashboard/template.yaml
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
+  DocumentGenerationFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - S3Stack
+    Properties:
+      Location: document-generation/template.yaml
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
   
   PaymentGatewayFeature:
     Type: AWS::Serverless::Application
@@ -127,3 +157,15 @@ Outputs:
   PaymentGatewayFeatureOutput:
     Description: Outputs from Payment Gateway feature stack
     Value: !Ref PaymentGatewayFeature
+
+  LambdaFeatureOutput:
+    Description: Outputs form LambdaFeature feature stack
+    Value: !Ref LambdaFeature
+
+  DashboardFeatureOutput:
+    Description: Outputs from DashboardFeature feature stack
+    Value: !Ref DashboardFeature
+
+  DocumentGenerationFeatureOutput:
+    Description: Outputs from DocumentGenerationFeature feature stack
+    Value: !Ref DocumentGenerationFeature

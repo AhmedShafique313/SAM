@@ -148,9 +148,9 @@ Resources:
   EditHeadingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: edit-heading-function
+      FunctionName: edit-heading
       Handler: app.lambda_handler
-      CodeUri: src/edit-heading-function/
+      CodeUri: src/edit-heading/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128

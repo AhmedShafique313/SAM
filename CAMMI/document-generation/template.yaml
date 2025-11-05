@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description:  Document Generation feature for CAMMI
+Description: Document Generation feature for CAMMI
 
 Parameters:
   S3BucketName:
@@ -11,7 +11,7 @@ Resources:
   ###################################################
   # Get Unanswered Questions Data
   ###################################################
- GetUnansweredQuestionsFunction:
+  GetUnansweredQuestionsFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: get-unanswered-questions
@@ -27,7 +27,6 @@ Resources:
         Variables:
           PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName
 
-
   ###################################################
   # User Input Enhancement
   ###################################################
@@ -41,15 +40,13 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: This lamda enhances the user input.
+      Description: This lambda enhances the user input.
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Environment:
-        Layers:
-          - !ImportValue GroqLibrariesLayerArn
-
+      Layers:
+        - !ImportValue GroqLibrariesLayerArn
 
   ###################################################
-  # All Review Documents
+  # Add Questions in DB
   ###################################################
   AddQuestionsInDBFunction:
     Type: AWS::Serverless::Function

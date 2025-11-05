@@ -150,6 +150,10 @@ Outputs:
     Description: Outputs from Project Organization feature stack
     Value: !Ref ProjectOrganizationFeature
 
+  ApiGatewayFeatureOutput:
+    Description: Outputs from API Gateway feature stack
+    Value: !Ref ApiGatewayFeature
+
   AdminPortalFeatureOutput:
     Description: Outputs from Admin Portal feature stack
     Value: !Ref AdminPortalFeature
@@ -159,7 +163,7 @@ Outputs:
     Value: !Ref PaymentGatewayFeature
 
   LambdaFeatureOutput:
-    Description: Outputs form LambdaFeature feature stack
+    Description: Outputs from LambdaFeature feature stack
     Value: !Ref LambdaFeature
 
   DashboardFeatureOutput:

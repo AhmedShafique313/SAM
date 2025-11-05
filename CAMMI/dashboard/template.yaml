@@ -4,6 +4,9 @@ Description: Dashboard feature for CAMMI
 
 Resources:
 
+  ###################################################
+  # Credits Status Lambda
+  ###################################################
   CreditsStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -20,6 +23,9 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
+  ###################################################
+  # View All Documents Lambda
+  ###################################################
   ViewallDocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -37,6 +43,9 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
 
+  ###################################################
+  # View Review Documents Status Lambda
+  ###################################################
   ViewReviewDocumentsStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -54,6 +63,9 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
+  ###################################################
+  # View Specific Documents Lambda
+  ###################################################
   ViewSpecificDocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -71,7 +83,6 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
           
-
 Outputs:
   CreditsStatusFunctionArn:
     Description: ARN of CreditsStatusFunction Lambda
@@ -86,13 +97,13 @@ Outputs:
       Name: ViewallDocumentsFunctionArn
 
   ViewReviewDocumentsStatusFunctionArn:
-    Description: ARN of ViewReviewDocumentsStatusFunction lambda
-    Value: !GetAtt ViewReviewDocumentsStatusFunction
+    Description: ARN of ViewReviewDocumentsStatusFunction Lambda
+    Value: !GetAtt ViewReviewDocumentsStatusFunction.Arn
     Export:
       Name: ViewReviewDocumentsStatusFunctionArn
 
   ViewSpecificDocumentsFunctionArn:
-    Description: ARN of ViewSpecificDocumentsFunctionArn lambda
-    Value: !GetAtt ViewSpecificDocumentsFunction
+    Description: ARN of ViewSpecificDocumentsFunction Lambda
+    Value: !GetAtt ViewSpecificDocumentsFunction.Arn
     Export:
       Name: ViewSpecificDocumentsFunctionArn

@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Dashboard feature for CAMMI
+
+Resources:
+
+  CreditsStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: credits-status
+      Handler: app.lambda_handler
+      CodeUri: src/credits-status/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles total credits update lambda
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+
+  ViewallDocumentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: view-all-documents
+      Handler: app.lambda_handler
+      CodeUri: src/view-all-documents/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles get all documents against user
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+
+  ViewReviewDocumentsStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: view-review-documents-status
+      Handler: app.lambda_handler
+      CodeUri: src/view-review-documents-status/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles get specific review documents
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
+
+  ViewSpecificDocumentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: view-specific-documents
+      Handler: app.lambda_handler
+      CodeUri: src/view-specific-documents/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles get specific documents against user
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+          
+
+Outputs:
+  CreditsStatusFunctionArn:
+    Description: ARN of CreditsStatusFunction Lambda
+    Value: !GetAtt CreditsStatusFunction.Arn
+    Export:
+      Name: CreditsStatusFunctionArn
+
+  ViewallDocumentsFunctionArn:
+    Description: ARN of ViewallDocumentsFunction Lambda
+    Value: !GetAtt ViewallDocumentsFunction.Arn
+    Export:
+      Name: ViewallDocumentsFunctionArn
+
+  ViewReviewDocumentsStatusFunctionArn:
+    Description: ARN of ViewReviewDocumentsStatusFunction lambda
+    Value: !GetAtt ViewReviewDocumentsStatusFunction
+    Export:
+      Name: ViewReviewDocumentsStatusFunctionArn
+
+  ViewSpecificDocumentsFunctionArn:
+    Description: ARN of ViewSpecificDocumentsFunctionArn lambda
+    Value: !GetAtt ViewSpecificDocumentsFunction
+    Export:
+      Name: ViewSpecificDocumentsFunctionArn

@@ -131,6 +131,38 @@ Resources:
         - AttributeName: document_type_uuid
           KeyType: RANGE
 
+  DocumentsHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: documents-history-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: document_type_uuid
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: document_type_uuid
+          KeyType: RANGE
+
+  ProjectQuestionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: project-questions-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+        - AttributeName: question_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+        - AttributeName: question_id
+          KeyType: RANGE
+
 Outputs:
   ###################################################
   # Exports for cross-stack references
@@ -182,3 +214,15 @@ Outputs:
     Value: !Ref ReviewDocumentsTable
     Export:
       Name: CAMMI-ReviewDocumentsTableName
+
+  DocumentsHistoryTableName:
+    Description: Name of the DocumentsHistoryTable
+    Value: !Ref DocumentsHistoryTable
+    Export:
+      Name: CAMMI-DocumentsHistoryTableName
+
+  ProjectQuestionsTableName:
+    Description: Name of the ProjectQuestionsTable
+    Value: !Ref ProjectQuestionsTable
+    Export:
+      Name: CAMMI-ProjectQuestionsTableName

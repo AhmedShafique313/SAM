@@ -61,6 +61,82 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName
 
+  ###################################################
+  # get-question-against-doc-type
+  ###################################################
+  GetQuestionsAgainstDocTypeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: get-question-against-doc-type
+      Handler: app.lambda_handler
+      CodeUri: src/get-question-against-doc-type/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Return questions against Document type to front end.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName    
+
+  ###################################################
+  # Edit Question Lamda
+  ###################################################
+  EditQuestionAnswerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: edit-question-answer
+      Handler: app.lambda_handler
+      CodeUri: src/edit-question-answer/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Edits answer of a question and save in DB.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName    
+
+  ###################################################
+  # File Upload to S3 Lamda
+  ###################################################
+  AnswersFileUploadToS3Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: answers-file-upload-to-s3
+      Handler: app.lambda_handler
+      CodeUri: src/answers-file-upload-to-s3/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: This lambda uploads answers to S3 as a text file.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName   
+
+  ###################################################
+  # S3 Lamda Trigger
+  ###################################################
+  S3LambdaTriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: s3-lambda-trigger
+      Handler: app.lambda_handler
+      CodeUri: src/s3-lambda-trigger/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: This lambda triggers state machine.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName                                     
+
 ###################################################
 # Outputs
 ###################################################
@@ -76,3 +152,19 @@ Outputs:
   AddQuestionsInDBFunctionArn:
     Description: ARN of AddQuestionsInDBFunction Lambda
     Value: !GetAtt AddQuestionsInDBFunction.Arn
+
+  GetQuestionsAgainstDocTypeFunctionArn:
+    Description: ARN of GetQuestionsAgainstDocTypeFunction Lambda
+    Value: !GetAtt GetQuestionsAgainstDocTypeFunction.Arn    
+
+  EditQuestionAnswerFunctionArn:
+    Description: ARN of EditQuestionAnswerFunction Lambda
+    Value: !GetAtt EditQuestionAnswerFunction.Arn     
+
+  AnswersFileUploadToS3FunctionArn:
+    Description: ARN of AnswersFileUploadToS3Function Lambda
+    Value: !GetAtt AnswersFileUploadToS3Function.Arn  
+
+  S3LambdaTriggerFunctionArn:
+    Description: ARN of S3LambdaTriggerFunction Lambda
+    Value: !GetAtt S3LambdaTriggerFunction.Arn      

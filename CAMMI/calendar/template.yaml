@@ -61,9 +61,9 @@ Resources:
   WordpressCalendarViewFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: wordprpress-calendar-view
+      FunctionName: wordpress-calendar-view
       Handler: app.lambda_handler
-      CodeUri: src/wordprpress-calendar-view/
+      CodeUri: src/wordpress-calendar-view/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128

@@ -18,7 +18,7 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName 
+          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
 
   FetchPostLinkedInFunction:
     Type: AWS::Serverless::Function
@@ -34,7 +34,7 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName 
+          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
 
   LinkedInPostEditDeleteFunction:
     Type: AWS::Serverless::Function
@@ -46,11 +46,27 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Manages LinkedIn post editing and deletion. Only allows operations if post status is 'pending'. Updates or deletes records in linkedin-text-post table based on action parameter.
+      Description: Manages LinkedIn post editing and deletion. Only allows operations if post status is 'pending'. Updates or deletes records in linkedin-text-post table based on action parameter (edit-delete-1).
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName           
+          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
+
+    WordpressCalendarViewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wordprpress-calendar-view
+      Handler: app.lambda_handler
+      CodeUri: src/wordprpress-calendar-view/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Queries WordPressPosts table by post_id (and optionally publish_at). Returns post records with Decimal-to-number conversion for frontend compatibility.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName                  
 
 
 
@@ -66,4 +82,8 @@ Outputs:
 
   LinkedInPostEditDeleteFunctionArn:
     Description: ARN of LinkedInPostEditDeleteFunction Lambda
-    Value: !GetAtt LinkedInPostEditDeleteFunction.Arn     
+    Value: !GetAtt LinkedInPostEditDeleteFunction.Arn
+
+  WordpressCalendarViewFunctionArn:
+    Description: ARN of WordpressCalendarViewFunction Lambda
+    Value: !GetAtt WordpressCalendarViewFunction.Arn      

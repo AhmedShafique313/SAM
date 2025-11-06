@@ -191,6 +191,25 @@ Resources:
         - AttributeName: post_time
           KeyType: RANGE
 
+  ###################################################
+  # Wordpress Posts Table
+  ###################################################
+
+  WordpressPostsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: wordpress-posts-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: post_id
+          AttributeType: S
+        - AttributeName: publish_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: post_id
+          KeyType: HASH
+        - AttributeName: publish_at
+          KeyType: RANGE
 
 Outputs:
   ###################################################
@@ -260,4 +279,10 @@ Outputs:
     Description: Name of the LinkedInPostsTable
     Value: !Ref LinkedInPostsTable
     Export:
-      Name: CAMMI-LinkedInPostsTableName      
+      Name: CAMMI-LinkedInPostsTableName
+
+    WordpressPostsTableName:
+    Description: Name of the LinkedInPostsTable
+    Value: !Ref WordpressPostsTable
+    Export:
+      Name: CAMMI-WordpressPostsTableName

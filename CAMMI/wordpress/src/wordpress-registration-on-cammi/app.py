@@ -2,7 +2,7 @@ import json, uuid, boto3
 from botocore.exceptions import ClientError
  
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('Wordpress-sites-table')
+table = dynamodb.Table('wordpress-sites-table')
  
 def lambda_handler(event, context):
     # CORS Policy

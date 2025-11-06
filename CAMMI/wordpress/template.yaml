@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Wordpress feature for CAMMI
+
+Resources:
+  WordpressRegistrationOnCammiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wordpress-registration-on-cammi
+      Handler: app.lambda_handler
+      CodeUri: src/wordpress-registration-on-cammi/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Registers WordPress sites in DynamoDB (WordPressSites table). Validates input fields, generates UUID, and stores site credentials (baseurl, username, app_password).
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          WORDPRESS_SITES_TABLE: !ImportValue CAMMI-WordpressSitesTableName  
+
+  WordpressSchedularCammiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wordpress-schedular-cammi
+      Handler: app.lambda_handler
+      CodeUri: src/wordpress-schedular-cammi/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Schedules WordPress posts by storing metadata in DynamoDB, uploading images to S3, and creating EventBridge schedules. Handles immediate posting or future scheduling with PKT timezone conversion.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          WORDPRESS_SITES_TABLE: !ImportValue CAMMI-WordpressSitesTableName 
+          WORDPRESS_POSTS_TABLE: !ImportValue CAMMI-WordpressPostsTableName
+
+  EventbridgeTriggeredWordpressSchedularCammiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: eventbridge-triggered-wordpress-schedular-cammi
+      Handler: app.lambda_handler
+      CodeUri: src/eventbridge-triggered-wordpress-schedular-cammi/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: EventBridge-triggered poster that executes scheduled WordPress posts. Downloads images from S3, uploads to WordPress, publishes post, and updates DynamoDB status.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          WORDPRESS_SITES_TABLE: !ImportValue CAMMI-WordpressSitesTableName 
+          WORDPRESS_POSTS_TABLE: !ImportValue CAMMI-WordpressPostsTableName                                  
+
+
+Outputs:
+  WordpressRegistrationOnCammiFunctionArn:
+    Description: ARN of WordpressRegistrationOnCammiFunction Lambda
+    Value: !GetAtt WordpressRegistrationOnCammiFunction.Arn
+
+  WordpressSchedularCammiFunctionArn:
+    Description: ARN of WordpressSchedularCammiFunction Lambda
+    Value: !GetAtt WordpressSchedularCammiFunction.Arn    
+
+  EventbridgeTriggeredWordpressSchedularCammiFunctionArn:
+    Description: ARN of EventbridgeTriggeredWordpressSchedularCammiFunction Lambda
+    Value: !GetAtt EventbridgeTriggeredWordpressSchedularCammiFunction.Arn      
+
+
+    

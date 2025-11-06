@@ -134,7 +134,15 @@ Resources:
     DependsOn:
       - DynamoDBStack
     Properties:
-      Location: calendar/template.yaml      
+      Location: calendar/template.yaml 
+
+  WordpressFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - S3Stack      
+    Properties:
+      Location: wordpress/template.yaml             
 
 Outputs:
   LayersStackOutput:
@@ -194,5 +202,9 @@ Outputs:
     Value: !Ref AIGenerationFeature
 
   CalendarFeatureOutput:
-    Description: Outputs from AIGenerationFeature stack
+    Description: Outputs from CalendarFeature stack
     Value: !Ref CalendarFeature
+
+  WordpressFeature:
+    Description: Outputs from WordpressFeature stack
+    Value: !Ref WordpressFeature    

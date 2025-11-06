@@ -131,6 +131,10 @@ Resources:
         - AttributeName: document_type_uuid
           KeyType: RANGE
 
+  ###################################################
+  # Documents History Table
+  ###################################################
+
   DocumentsHistoryTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -147,6 +151,10 @@ Resources:
         - AttributeName: document_type_uuid
           KeyType: RANGE
 
+  ###################################################
+  # Project Questions Table
+  ###################################################
+
   ProjectQuestionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -162,6 +170,27 @@ Resources:
           KeyType: HASH
         - AttributeName: question_id
           KeyType: RANGE
+
+  ###################################################
+  # Linkedin Posts Table
+  ###################################################
+
+  LinkedInPostsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: linkedin-posts-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: sub
+          AttributeType: S
+        - AttributeName: post_time
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sub
+          KeyType: HASH
+        - AttributeName: post_time
+          KeyType: RANGE
+
 
 Outputs:
   ###################################################
@@ -226,3 +255,9 @@ Outputs:
     Value: !Ref ProjectQuestionsTable
     Export:
       Name: CAMMI-ProjectQuestionsTableName
+
+  LinkedInPostsTableName:
+    Description: Name of the LinkedInPostsTable
+    Value: !Ref LinkedInPostsTable
+    Export:
+      Name: CAMMI-LinkedInPostsTableName      

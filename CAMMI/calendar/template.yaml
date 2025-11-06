@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Calendar feature for CAMMI
+
+Resources:
+  # create project
+  LinkedInCalendarViewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: linkedin-calendar-view
+      Handler: app.lambda_handler
+      CodeUri: src/linkedin-calendar-view/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Queries linkedin-posts-table table by 'sub' (user ID), returns all posts with Decimal-to-number conversion for calendar display. 
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName 
+
+  FetchPostLinkedInFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: fetch-post-linkedin
+      Handler: app.lambda_handler
+      CodeUri: src/fetch-post-linkedin/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches LinkedIn post details by sub and post_time. Downloads images from S3, converts to base64, and returns post data with embedded image data. 
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName 
+
+  LinkedInPostEditDeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: linkedin-post-edit-delete
+      Handler: app.lambda_handler
+      CodeUri: src/linkedin-post-edit-delete/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Manages LinkedIn post editing and deletion. Only allows operations if post status is 'pending'. Updates or deletes records in linkedin-text-post table based on action parameter.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName           
+
+
+
+  
+Outputs:
+  LinkedInCalendarViewFunctionArn:
+    Description: ARN of LinkedInCalendarViewFunction Lambda
+    Value: !GetAtt LinkedInCalendarViewFunction.Arn
+
+  FetchPostLinkedInFunctionArn:
+    Description: ARN of FetchPostLinkedInFunction Lambda
+    Value: !GetAtt FetchPostLinkedInFunction.Arn    
+
+  LinkedInPostEditDeleteFunctionArn:
+    Description: ARN of LinkedInPostEditDeleteFunction Lambda
+    Value: !GetAtt LinkedInPostEditDeleteFunction.Arn     

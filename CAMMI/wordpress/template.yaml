@@ -40,6 +40,7 @@ Resources:
         Variables:
           WORDPRESS_SITES_TABLE: !ImportValue CAMMI-WordpressSitesTableName 
           WORDPRESS_POSTS_TABLE: !ImportValue CAMMI-WordpressPostsTableName
+          S3_BUCKET_NAME: !Ref S3BucketName
 
   EventbridgeTriggeredWordpressSchedularCammiFunction:
     Type: AWS::Serverless::Function
@@ -56,7 +57,8 @@ Resources:
       Environment:
         Variables:
           WORDPRESS_SITES_TABLE: !ImportValue CAMMI-WordpressSitesTableName 
-          WORDPRESS_POSTS_TABLE: !ImportValue CAMMI-WordpressPostsTableName                                  
+          WORDPRESS_POSTS_TABLE: !ImportValue CAMMI-WordpressPostsTableName   
+          S3_BUCKET_NAME: !Ref S3BucketNames                               
 
 
 Outputs:

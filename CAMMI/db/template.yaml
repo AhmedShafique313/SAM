@@ -1,8 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: DynamoDB tables for CAMMI - users, feedback, and onboarding data storage
+Description: DynamoDB tables for CAMMI - users, feedback, onboarding, projects, posts, etc.
 
 Resources:
+
   ###################################################
   # Users Table
   ###################################################
@@ -134,7 +135,6 @@ Resources:
   ###################################################
   # Documents History Table
   ###################################################
-
   DocumentsHistoryTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -154,7 +154,6 @@ Resources:
   ###################################################
   # Project Questions Table
   ###################################################
-
   ProjectQuestionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -172,9 +171,8 @@ Resources:
           KeyType: RANGE
 
   ###################################################
-  # Linkedin Posts Table
+  # LinkedIn Posts Table
   ###################################################
-
   LinkedInPostsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -194,7 +192,6 @@ Resources:
   ###################################################
   # Wordpress Posts Table
   ###################################################
-
   WordpressPostsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -214,7 +211,6 @@ Resources:
   ###################################################
   # Wordpress Sites Table
   ###################################################
-
   WordpressSitesTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -227,6 +223,9 @@ Resources:
         - AttributeName: sitename
           KeyType: HASH
 
+  ###################################################
+  # Post Questions Table
+  ###################################################
   PostQuestionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -239,8 +238,11 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
+  ###################################################
+  # LinkedIn User Table (FIXED: removed invalid AWS::Serverless::Table)
+  ###################################################
   LinkedInUserTable:
-    Type: AWS::Serverless::Table
+    Type: AWS::DynamoDB::Table
     Properties:
       TableName: linkedin-user-table
       BillingMode: PAY_PER_REQUEST
@@ -252,11 +254,8 @@ Resources:
           KeyType: HASH
 
 
-
 Outputs:
-  ###################################################
-  # Exports for cross-stack references
-  ###################################################
+
   UsersTableName:
     Description: Name of the Users table
     Value: !Ref UsersTable
@@ -264,87 +263,85 @@ Outputs:
       Name: CAMMI-UsersTableName
 
   UsersFeedbackTableName:
-    Description: Name of the Users Feedback table
+    Description: Name of Users Feedback table
     Value: !Ref UsersFeedbackTable
     Export:
       Name: CAMMI-UsersFeedbackTableName
 
   UserOnboardingQuestionsTableName:
-    Description: Name of the Onboarding Questions table
+    Description: Onboarding Questions table
     Value: !Ref UserOnboardingQuestionsTable
     Export:
       Name: CAMMI-UserOnboardingQuestionsTableName
 
   OrganizationsTableName:
-    Description: Name of the Organizations table
+    Description: Organizations table
     Value: !Ref OrganizationsTable
     Export:
       Name: CAMMI-OrganizationsTableName
 
   ProjectsTableName:
-    Description: Name of the Projects table
+    Description: Projects table
     Value: !Ref ProjectsTable
     Export:
       Name: CAMMI-ProjectsTableName
 
   StripeTableName:
-    Description: Name of the Stripe table
+    Description: Stripe table
     Value: !Ref StripeTable
     Export:
       Name: CAMMI-StripeTableName
 
   PaymentHistoryTableName:
-    Description: Name of the Payment History table
+    Description: Payment History table
     Value: !Ref PaymentHistoryTable
     Export:
       Name: CAMMI-PaymentHistoryTableName
 
   ReviewDocumentsTableName:
-    Description: Name of the Review Documents table
+    Description: Review Documents table
     Value: !Ref ReviewDocumentsTable
     Export:
       Name: CAMMI-ReviewDocumentsTableName
 
   DocumentsHistoryTableName:
-    Description: Name of the DocumentsHistoryTable
+    Description: Documents History table
     Value: !Ref DocumentsHistoryTable
     Export:
       Name: CAMMI-DocumentsHistoryTableName
 
   ProjectQuestionsTableName:
-    Description: Name of the ProjectQuestionsTable
+    Description: Project Questions table
     Value: !Ref ProjectQuestionsTable
     Export:
       Name: CAMMI-ProjectQuestionsTableName
 
   LinkedInPostsTableName:
-    Description: Name of the LinkedInPostsTable
+    Description: LinkedIn Posts table
     Value: !Ref LinkedInPostsTable
     Export:
       Name: CAMMI-LinkedInPostsTableName
 
   WordpressPostsTableName:
-    Description: Name of the LinkedInPostsTable
+    Description: Wordpress Posts table
     Value: !Ref WordpressPostsTable
     Export:
       Name: CAMMI-WordpressPostsTableName
 
   WordpressSitesTableName:
-    Description: Name of the WordpressSitesTable
+    Description: Wordpress Sites table
     Value: !Ref WordpressSitesTable
     Export:
-      Name: CAMMI-WordpressSitesTableName      
+      Name: CAMMI-WordpressSitesTableName
 
   PostQuestionsTableName:
-    Description: Name of the PostQuestionsTable
+    Description: Post Questions table
     Value: !Ref PostQuestionsTable
     Export:
       Name: CAMMI-PostQuestionsTableName
 
   LinkedInUserTableName:
-    Description: Name of the LinkedInUserTable
+    Description: LinkedIn User table
     Value: !Ref LinkedInUserTable
     Export:
       Name: CAMMI-LinkedInUserTableName
-
-    

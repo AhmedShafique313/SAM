@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Wordpress feature for CAMMI
 
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
 Resources:
   WordpressRegistrationOnCammiFunction:
     Type: AWS::Serverless::Function

@@ -129,6 +129,13 @@ Resources:
     Properties:
       Location: ai-generation/template.yaml
 
+  CalendarFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: calendar/template.yaml      
+
 Outputs:
   LayersStackOutput:
     Description: Outputs from nested layers stack
@@ -185,3 +192,7 @@ Outputs:
   AIGenerationFeatureOutput:
     Description: Outputs from AIGenerationFeature stack
     Value: !Ref AIGenerationFeature
+
+  CalendarFeatureOutput:
+    Description: Outputs from AIGenerationFeature stack
+    Value: !Ref CalendarFeature

@@ -211,6 +211,24 @@ Resources:
         - AttributeName: publish_at
           KeyType: RANGE
 
+  ###################################################
+  # Wordpress Sites Table
+  ###################################################
+
+  WordpressSitesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: wordpress-sites-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: sitename
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sitename
+          KeyType: HASH
+
+
+
 Outputs:
   ###################################################
   # Exports for cross-stack references
@@ -286,3 +304,9 @@ Outputs:
     Value: !Ref WordpressPostsTable
     Export:
       Name: CAMMI-WordpressPostsTableName
+
+    WordpressSitesTableName:
+    Description: Name of the WordpressSitesTable
+    Value: !Ref WordpressSitesTable
+    Export:
+      Name: CAMMI-WordpressSitesTableName      

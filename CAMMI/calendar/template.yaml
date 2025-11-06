@@ -58,7 +58,7 @@ Resources:
         Variables:
           LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
 
-    WordpressCalendarViewFunction:
+  WordpressCalendarViewFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: wordprpress-calendar-view

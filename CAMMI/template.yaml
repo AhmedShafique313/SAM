@@ -134,7 +134,10 @@ Resources:
     DependsOn:
       - DynamoDBStack
     Properties:
-      Location: calendar/template.yaml 
+      Location: calendar/template.yaml
+      Parameters:                            
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
 
   WordpressFeature:
     Type: AWS::Serverless::Application
@@ -142,7 +145,28 @@ Resources:
       - DynamoDBStack
       - S3Stack      
     Properties:
-      Location: wordpress/template.yaml             
+      Location: wordpress/template.yaml
+      Parameters:                            
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
+  SchedulerFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: scheduler/template.yaml
+
+  LinkedInFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - S3Stack
+    Properties:
+      Location: linkedIn/template.yaml
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
+
 
 Outputs:
   LayersStackOutput:
@@ -205,6 +229,14 @@ Outputs:
     Description: Outputs from CalendarFeature stack
     Value: !Ref CalendarFeature
 
-  WordpressFeature:
+  WordpressFeatureOuput:
     Description: Outputs from WordpressFeature stack
-    Value: !Ref WordpressFeature    
+    Value: !Ref WordpressFeature
+
+  SchedulerFeatureOutput:
+    Description: Outputs from SchedulerFeature stack
+    Value: !Ref SchedulerFeature
+
+  LinkedInFeatureOutput:
+    Description: Outputs from LinkedInFeature stack
+    Value: !Ref LinkedInFeature   

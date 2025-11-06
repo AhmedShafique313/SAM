@@ -239,6 +239,18 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
+  LinkedInUserTable:
+    Type: AWS::Serverless::Table
+    Properties:
+      TableName: linkedin-user-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: sub
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sub
+          KeyType: HASH
+
 
 
 Outputs:
@@ -311,20 +323,28 @@ Outputs:
     Export:
       Name: CAMMI-LinkedInPostsTableName
 
-    WordpressPostsTableName:
+  WordpressPostsTableName:
     Description: Name of the LinkedInPostsTable
     Value: !Ref WordpressPostsTable
     Export:
       Name: CAMMI-WordpressPostsTableName
 
-    WordpressSitesTableName:
+  WordpressSitesTableName:
     Description: Name of the WordpressSitesTable
     Value: !Ref WordpressSitesTable
     Export:
       Name: CAMMI-WordpressSitesTableName      
 
-    PostQuestionsTableName:
+  PostQuestionsTableName:
     Description: Name of the PostQuestionsTable
     Value: !Ref PostQuestionsTable
     Export:
       Name: CAMMI-PostQuestionsTableName
+
+  LinkedInUserTableName:
+    Description: Name of the LinkedInUserTable
+    Value: !Ref LinkedInUserTable
+    Export:
+      Name: CAMMI-LinkedInUserTableName
+
+    

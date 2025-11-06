@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: LinkedIn feature for CAMMI - handles LinkedIn OAuth login and Post-Schedule
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
+Resources:
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: login
+      Handler: app.lambda_handler
+      CodeUri: src/login/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 128
+      Description: Handles linkedin_oauth
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          L_CLIENT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:L_CLIENT_ID}}"
+          L_CLIENT_SECRET: "{{resolve:secretsmanager:cammi-secrets:SecretString:L_CLIENT_SECRET}}"
+          LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
+
+  PostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: post
+      Handler: app.lambda_handler
+      CodeUri: src/post/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 128
+      Description: Handles direct_text_post
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
+          LINKEDIN_POSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
+
+  ScheduleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: schedule
+      Handler: app.lambda_handler
+      CodeUri: src/schedule/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 128
+      Description: Handles schedule_functionality_creator
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
+          LINKEDIN_POSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+Outputs:
+  LoginFunctionArn:
+    Description: "Arn of linkedin OAuth Login Function"
+    Value: !GetAtt LoginFunction.Arn
+    Export:
+      Name: LoginFunctionArn
+
+  PostFunctionArn:
+    Description: "Arn of PostFunction lambda"
+    Value: !GetAtt PostFunction.Arn
+    Export:
+      Name: PostFunctionArn
+
+  ScheduleFunctionArn:
+    Description: "Arn of ScheduleFunction lambda"
+    Value: !GetAtt ScheduleFunction.Arn
+    Export:
+      Name: ScheduleFunctionArn

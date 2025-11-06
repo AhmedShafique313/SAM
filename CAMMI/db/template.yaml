@@ -227,6 +227,18 @@ Resources:
         - AttributeName: sitename
           KeyType: HASH
 
+  PostQuestionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: post-questions-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
 
 
 Outputs:
@@ -310,3 +322,9 @@ Outputs:
     Value: !Ref WordpressSitesTable
     Export:
       Name: CAMMI-WordpressSitesTableName      
+
+    PostQuestionsTableName:
+    Description: Name of the PostQuestionsTable
+    Value: !Ref PostQuestionsTable
+    Export:
+      Name: CAMMI-PostQuestionsTableName

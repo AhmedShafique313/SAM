@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Calendar feature for CAMMI
 
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
 Resources:
   # create project
   LinkedInCalendarViewFunction:
@@ -35,6 +40,7 @@ Resources:
       Environment:
         Variables:
           LINKEDINPOSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
+          S3_BUCKET_NAME: !Ref S3BucketName
 
   LinkedInPostEditDeleteFunction:
     Type: AWS::Serverless::Function

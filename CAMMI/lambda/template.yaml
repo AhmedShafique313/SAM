@@ -89,7 +89,20 @@ Resources:
         S3_BUCKET_NAME: !Ref S3BucketName
         DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
 
-  
+  GenerationCompleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: generation-complete
+      Handler: app.lambda_handler
+      CodeUri: src/generation-complete/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles doc_edit_complete
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
 Outputs:
   S3ToFrontendFunctionArn:
@@ -115,3 +128,9 @@ Outputs:
     Value: !GetAtt DocumentationFunction.Arn
     Export:
       Name: DocumentationFunctionArn
+
+  GenerationCompleteFunctionArn:
+    Description: ARN of GenerationCompleteFunction lambda
+    Value: !GetAtt GenerationCompleteFunction.Arn
+    Export:
+      Name: GenerationCompleteFunctionArn

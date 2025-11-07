@@ -148,40 +148,40 @@ Outputs:
     Description: ARN
     Value: !GetAtt ClientIDRegisterationFunction.Arn
     Export:
-      Name: CAMMI-ClientIDRegisterationFunctionArn
+      Name: ClientIDRegisterationFunctionArn
 
   GetNextPendingTierFunctionArn:
     Description: ARN
     Value: !GetAtt GetNextPendingTierFunction.Arn
     Export:
-      Name: CAMMI-GetNextPendingTierFunctionArn
+      Name: GetNextPendingTierFunctionArn
 
   EventCreatorFunctionArn:
     Description: ARN
     Value: !GetAtt EventCreatorFunction.Arn
     Export:
-      Name: CAMMI-EventCreatorFunctionArn
+      Name: EventCreatorFunctionArn
 
   RealtimeTextFrontEndFunctionArn:
     Description: ARN
     Value: !GetAtt RealtimeTextFrontEndFunction.Arn
     Export:
-      Name: CAMMI-RealtimeTextFrontEndFunctionArn
+      Name: RealtimeTextFrontEndFunctionArn
 
   CreatorEventFunctionArn:
     Description: ARN
     Value: !GetAtt CreatorEventFunction.Arn
     Export:
-      Name: CAMMI-CreatorEventFunctionArn
+      Name: CreatorEventFunctionArn
 
   UpdateTierStatusFunctionArn:
     Description: ARN
     Value: !GetAtt UpdateTierStatusFunction.Arn
     Export:
-      Name: CAMMI-UpdateTierStatusFunctionArn
+      Name: UpdateTierStatusFunctionArn
 
   ProgressBarFunctionArn:
     Description: ARN
     Value: !GetAtt ProgressBarFunction.Arn
     Export:
-      Name: CAMMI-ProgressBarFunctionArn
+      Name: ProgressBarFunctionArn

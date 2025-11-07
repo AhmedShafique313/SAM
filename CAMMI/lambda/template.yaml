@@ -52,7 +52,7 @@ Resources:
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
   ###################################################
-  # state machine starter Lambda
+  # State Machine Starter Lambda
   ###################################################
   StateMachineStarterFunction:
     Type: AWS::Serverless::Function
@@ -67,8 +67,9 @@ Resources:
       Description: Handles api_request_func
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
-        S3_BUCKET_NAME: !Ref S3BucketName
-        CLAUDE_USAGE_LOGS_TABLE: !ImportValue CAMMI-ClaudeUsageLogsTableName
+        Variables:                    # ✅ FIXED — added `Variables:`
+          S3_BUCKET_NAME: !Ref S3BucketName
+          CLAUDE_USAGE_LOGS_TABLE: !ImportValue CAMMI-ClaudeUsageLogsTableName
 
   ###################################################
   # Documentation Lambda
@@ -86,9 +87,13 @@ Resources:
       Description: Handles marketing_strategy_doc_generation
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
-        S3_BUCKET_NAME: !Ref S3BucketName
-        DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
 
+  ###################################################
+  # Generation Complete Function
+  ###################################################
   GenerationCompleteFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -102,8 +107,12 @@ Resources:
       Description: Handles doc_edit_complete
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
-        USERS_TABLE: !ImportValue CAMMI-UsersTableName
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
+###################################################
+# Outputs
+###################################################
 Outputs:
   S3ToFrontendFunctionArn:
     Description: ARN of S3ToFrontendFunction Lambda

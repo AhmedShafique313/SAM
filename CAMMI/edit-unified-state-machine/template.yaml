@@ -13,7 +13,7 @@ Resources:
     Properties:
       FunctionName: key-identifier
       Handler: app.lambda_handler
-      CodeUri: src/web-scrapping/
+      CodeUri: src/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128

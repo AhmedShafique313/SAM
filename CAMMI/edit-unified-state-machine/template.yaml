@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: edit state machine feature for CAMMI
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
+Resources:
+  KeyIdentifierFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: key-identifier
+      Handler: app.lambda_handler
+      CodeUri: src/web-scrapping/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles key_identifier
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+Outputs:
+  KeyIdentifierFunctionArn:
+    Description: ARN of web scrapping Lambda
+    Value: !GetAtt KeyIdentifierFunction.Arn
+    Export:
+      Name: KeyIdentifierFunctionArn

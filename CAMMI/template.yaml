@@ -174,7 +174,16 @@ Resources:
     Properties:
       Location: linkedIn/template.yaml
       Parameters:
-        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName        
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName 
+
+  EditStateMachineFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - S3Stack
+    Properties:
+      Location: edit-unified-state-machine/template.yaml
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName       
 
 
 
@@ -254,3 +263,8 @@ Outputs:
   UnifiedStateMachineOutput:
     Description: Outputs from UnifiedStateMachineFeature stack
     Value: !Ref UnifiedStateMachineFeature      
+
+  EditStateMachineFeatureOutput:
+    Description: Outputs from EditStateMachineFeature stack
+    Value: !Ref EditStateMachineFeature
+    

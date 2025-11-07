@@ -35,7 +35,7 @@ Resources:
       - DynamoDBStack
     Properties:
       Location: feedback/template.yaml
-  
+
   AuthFeature:
     Type: AWS::Serverless::Application
     DependsOn:
@@ -43,14 +43,14 @@ Resources:
       - LayersStack
     Properties:
       Location: auth/template.yaml
-  
+
   OnboardingFeature:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
     Properties:
       Location: onboarding/template.yaml
-  
+
   ProjectOrganizationFeature:
     Type: AWS::Serverless::Application
     DependsOn:
@@ -111,7 +111,7 @@ Resources:
       - S3Stack
     Properties:
       Location: document-generation/template.yaml
-      Parameters:                            
+      Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
   PaymentGatewayFeature:
@@ -119,7 +119,7 @@ Resources:
     DependsOn:
       - DynamoDBStack
     Properties:
-      Location: payment-gateway/template.yaml 
+      Location: payment-gateway/template.yaml
 
   AIGenerationFeature:
     Type: AWS::Serverless::Application
@@ -135,18 +135,17 @@ Resources:
       - DynamoDBStack
     Properties:
       Location: calendar/template.yaml
-      Parameters:                            
+      Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
-
 
   WordpressFeature:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
-      - S3Stack      
+      - S3Stack
     Properties:
       Location: wordpress/template.yaml
-      Parameters:                            
+      Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
   SchedulerFeature:
@@ -172,9 +171,9 @@ Resources:
       - DynamoDBStack
       - S3Stack
     Properties:
-      Location: linkedIn/template.yaml
+      Location: unified-state-machine/template.yaml
       Parameters:
-        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName 
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
   EditStateMachineFeature:
     Type: AWS::Serverless::Application
@@ -183,88 +182,85 @@ Resources:
     Properties:
       Location: edit-unified-state-machine/template.yaml
       Parameters:
-        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName       
-
-
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
 Outputs:
   LayersStackOutput:
-    Description: Outputs from nested layers stack
+    Description: Outputs from layers stack
     Value: !Ref LayersStack
 
   DynamoDBStackOutput:
-    Description: Outputs from nested DynamoDB stack
+    Description: Outputs from DynamoDB stack
     Value: !Ref DynamoDBStack
 
   S3StackOutput:
-    Description: Outputs from Cammi S3 stack
+    Description: Outputs from S3 stack
     Value: !Ref S3Stack
 
   FeedbackFeatureOutput:
-    Description: Outputs from Feedback feature stack
+    Description: Outputs from Feedback feature
     Value: !Ref FeedbackFeature
 
   AuthFeatureOutput:
-    Description: Outputs from Auth feature stack
+    Description: Outputs from Auth feature
     Value: !Ref AuthFeature
 
   OnboardingFeatureOutput:
-    Description: Outputs from Onboarding feature stack
+    Description: Outputs from Onboarding feature
     Value: !Ref OnboardingFeature
-  
+
   ProjectOrganizationFeatureOutput:
-    Description: Outputs from Project Organization feature stack
+    Description: Outputs from Project Organization feature
     Value: !Ref ProjectOrganizationFeature
 
   ApiGatewayFeatureOutput:
-    Description: Outputs from API Gateway feature stack
+    Description: Outputs from API Gateway feature
     Value: !Ref ApiGatewayFeature
 
   AdminPortalFeatureOutput:
-    Description: Outputs from Admin Portal feature stack
+    Description: Outputs from Admin Portal feature
     Value: !Ref AdminPortalFeature
 
   PaymentGatewayFeatureOutput:
-    Description: Outputs from Payment Gateway feature stack
+    Description: Outputs from Payment Gateway feature
     Value: !Ref PaymentGatewayFeature
 
   LambdaFeatureOutput:
-    Description: Outputs from LambdaFeature feature stack
+    Description: Outputs from Lambda feature
     Value: !Ref LambdaFeature
 
   DashboardFeatureOutput:
-    Description: Outputs from DashboardFeature feature stack
+    Description: Outputs from Dashboard feature
     Value: !Ref DashboardFeature
 
   DocumentGenerationFeatureOutput:
-    Description: Outputs from DocumentGenerationFeature feature stack
+    Description: Outputs from Document Generation feature
     Value: !Ref DocumentGenerationFeature
 
   AIGenerationFeatureOutput:
-    Description: Outputs from AIGenerationFeature stack
+    Description: Outputs from AI Generation feature
     Value: !Ref AIGenerationFeature
 
   CalendarFeatureOutput:
-    Description: Outputs from CalendarFeature stack
+    Description: Outputs from Calendar feature
     Value: !Ref CalendarFeature
 
-  WordpressFeatureOuput:
-    Description: Outputs from WordpressFeature stack
+  WordpressFeatureOutput:
+    Description: Outputs from Wordpress feature
     Value: !Ref WordpressFeature
 
   SchedulerFeatureOutput:
-    Description: Outputs from SchedulerFeature stack
+    Description: Outputs from Scheduler feature
     Value: !Ref SchedulerFeature
 
   LinkedInFeatureOutput:
-    Description: Outputs from LinkedInFeature stack
-    Value: !Ref LinkedInFeature   
+    Description: Outputs from LinkedIn feature
+    Value: !Ref LinkedInFeature
 
   UnifiedStateMachineOutput:
-    Description: Outputs from UnifiedStateMachineFeature stack
-    Value: !Ref UnifiedStateMachineFeature      
+    Description: Outputs from Unified State Machine feature
+    Value: !Ref UnifiedStateMachineFeature
 
   EditStateMachineFeatureOutput:
-    Description: Outputs from EditStateMachineFeature stack
+    Description: Outputs from Edit Unified State Machine feature
     Value: !Ref EditStateMachineFeature
-    

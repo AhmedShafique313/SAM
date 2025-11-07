@@ -51,6 +51,46 @@ Resources:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
 
+  ###################################################
+  # state machine starter Lambda
+  ###################################################
+  StateMachineStarterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: state-machine-starter
+      Handler: app.lambda_handler
+      CodeUri: src/state-machine-starter/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles api_request_func
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        S3_BUCKET_NAME: !Ref S3BucketName
+        CLAUDE_USAGE_LOGS_TABLE: !ImportValue CAMMI-ClaudeUsageLogsTableName
+
+  ###################################################
+  # Documentation Lambda
+  ###################################################
+  DocumentationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: documentation
+      Handler: app.lambda_handler
+      CodeUri: src/documentation/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles marketing_strategy_doc_generation
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        S3_BUCKET_NAME: !Ref S3BucketName
+        DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+
+  
+
 Outputs:
   S3ToFrontendFunctionArn:
     Description: ARN of S3ToFrontendFunction Lambda
@@ -63,3 +103,15 @@ Outputs:
     Value: !GetAtt RequestToReviewDocumentsFunction.Arn
     Export:
       Name: RequestToReviewDocumentsFunctionArn
+
+  StateMachineStarterFunctionArn:
+    Description: ARN of StateMachineStarterFunction lambda
+    Value: !GetAtt StateMachineStarterFunction.Arn
+    Export:
+      Name: StateMachineStarterFunctionArn
+
+  DocumentationFunctionArn:
+    Description: ARN of DocumentationFunction lambda
+    Value: !GetAtt DocumentationFunction.Arn
+    Export:
+      Name: DocumentationFunctionArn

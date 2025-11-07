@@ -253,6 +253,24 @@ Resources:
         - AttributeName: sub
           KeyType: HASH
 
+  ###################################################
+  # claude usage logs Table
+  ###################################################
+  ClaudeUsageLogsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: claude-usage-logs-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: session_id
+          AttributeType: S
+        - AttributeName: run_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: session_id
+          KeyType: HASH
+        - AttributeName: run_id
+          KeyType: RANGE
 
 Outputs:
 
@@ -345,3 +363,9 @@ Outputs:
     Value: !Ref LinkedInUserTable
     Export:
       Name: CAMMI-LinkedInUserTableName
+
+  ClaudeUsageLogsTableName:
+    Description: claude usage logs table
+    Value: !Ref ClaudeUsageLogsTable
+    Export:
+      Name: CAMMI-ClaudeUsageLogsTableName

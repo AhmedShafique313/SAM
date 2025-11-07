@@ -23,28 +23,122 @@ Resources:
       Tracing: Active
       Description: Copies execution_plan.json from flow/{document_type}/ to flow/{user_id}/{document_type}/ in S3 when a new user/document session starts. Returns copy status and S3 path.
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
 
   ###################################################
-  # Payment History
+  # Get Next Pending Tier
   ###################################################
-  PaymentHistoryFunction:
+  GetNextPendingTierFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: payment-history
+      FunctionName: get-next-pending-tier
       Handler: app.lambda_handler
-      CodeUri: src/payment-history/
+      CodeUri: src/get-next-pending-tier/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Fetches payment history details on super admin panel
+      Description: Reads execution_plan.json from S3, finds first tier with status=false, and returns its items as flat list with session/project/user context.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+  ###################################################
+  # Event Creator
+  ###################################################
+  EventCreatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: event-creator
+      Handler: app.lambda_handler
+      CodeUri: src/event-creator/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Simple transformer Lambda that parses Step Function event input, retrieves connection_id from DynamoDB using session_id, and formats it as a WebSocket event for the next Lambda.
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
-          PAYMENT_HISTORY_TABLE: !ImportValue CAMMI-PaymentHistoryTableName
+
+  ###################################################
+  # Realtime Text Front End
+  ###################################################
+  RealtimeTextFrontEndFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: realtime-text-frontend
+      Handler: app.lambda_handler
+      CodeUri: src/realtime-text-frontend/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Unified WebSocket handler for $connect, $disconnect, and sendMessage routes. Processes document tier completions, fetches content from S3, and sends real-time updates to connected clients.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+
+  ###################################################
+  # Creative Event Lambda
+  ###################################################
+  CreatorEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: creator-event
+      Handler: app.lambda_handler
+      CodeUri: src/creator-event/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Simple JSON parser that extracts and returns the body from Step Function events. Used as transformer between Step Function states.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+
+  ###################################################
+  # Update Tier Status Function
+  ###################################################
+  UpdateTierStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: update-tier-status
+      Handler: app.lambda_handler
+      CodeUri: src/update-tier-status/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Updates tier status in execution_plan.json on S3. Validates all items have status=true, then sets tier status to true and checks if any tiers remain incomplete.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+  ###################################################
+  # Progress Bar Function
+  ###################################################
+  ProgressBarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: progress-bar
+      Handler: app.lambda_handler
+      CodeUri: src/progress-bar/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Calculates document generation progress by reading execution_plan.json, counting true/false tier statuses, computing completion percentage, and sending via WebSocket to connected client.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
 ###################################################
 # Outputs
@@ -53,5 +147,41 @@ Outputs:
   ClientIDRegisterationFunctionArn:
     Description: ARN of ClientIDRegisterationFunction Lambda
     Value: !GetAtt ClientIDRegisterationFunction.Arn
+    Export:
+      Name: ClientIDRegisterationFunctionArn
 
- 
+  GetNextPendingTierFunctionArn:
+    Description: ARN of GetNextPendingTierFunction Lambda
+    Value: !GetAtt GetNextPendingTierFunction.Arn
+    Export:
+      Name: GetNextPendingTierFunctionArn
+
+  EventCreatorFunctionArn:
+    Description: ARN of EventCreatorFunction Lambda
+    Value: !GetAtt EventCreatorFunction.Arn
+    Export:
+      Name: EventCreatorFunctionArn
+
+  RealtimeTextFrontEndFunctionArn:
+    Description: ARN of RealtimeTextFrontEndFunction Lambda
+    Value: !GetAtt RealtimeTextFrontEndFunction.Arn
+    Export:
+      Name: RealtimeTextFrontEndFunctionArn
+
+  CreatorEventFunctionArn:
+    Description: ARN of CreatorEventFunction Lambda
+    Value: !GetAtt CreatorEventFunction.Arn
+    Export:
+      Name: CreatorEventFunctionArn
+
+  UpdateTierStatusFunctionArn:
+    Description: ARN of UpdateTierStatusFunction Lambda
+    Value: !GetAtt UpdateTierStatusFunction.Arn
+    Export:
+      Name: UpdateTierStatusFunctionArn
+
+  ProgressBarFunctionArn:
+    Description: ARN of ProgressBarFunction Lambda
+    Value: !GetAtt ProgressBarFunction.Arn
+    Export:
+      Name: ProgressBarFunctionArn

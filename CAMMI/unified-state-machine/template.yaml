@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Unified State Machine Lambdas for document generation for CAMMI
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
+Resources:
+  ###################################################
+  # Client ID Registeration Lambda
+  ###################################################
+  ClientIDRegisterationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: client-id-registeration
+      Handler: app.lambda_handler
+      CodeUri: src/client-id-registeration/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Copies execution_plan.json from flow/{document_type}/ to flow/{user_id}/{document_type}/ in S3 when a new user/document session starts. Returns copy status and S3 path.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+
+
+  ###################################################
+  # Payment History
+  ###################################################
+  PaymentHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: payment-history
+      Handler: app.lambda_handler
+      CodeUri: src/payment-history/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches payment history details on super admin panel
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
+          PAYMENT_HISTORY_TABLE: !ImportValue CAMMI-PaymentHistoryTableName
+
+###################################################
+# Outputs
+###################################################
+Outputs:
+  ClientIDRegisterationFunctionArn:
+    Description: ARN of ClientIDRegisterationFunction Lambda
+    Value: !GetAtt ClientIDRegisterationFunction.Arn
+
+ 

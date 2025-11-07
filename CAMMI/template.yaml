@@ -166,6 +166,16 @@ Resources:
       Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
+  UnifiedStateMachineFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - S3Stack
+    Properties:
+      Location: linkedIn/template.yaml
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName        
+
 
 
 Outputs:
@@ -240,3 +250,7 @@ Outputs:
   LinkedInFeatureOutput:
     Description: Outputs from LinkedInFeature stack
     Value: !Ref LinkedInFeature   
+
+  UnifiedStateMachineOutput:
+    Description: Outputs from UnifiedStateMachineFeature stack
+    Value: !Ref UnifiedStateMachineFeature      

@@ -62,6 +62,7 @@ Resources:
     Type: AWS::Serverless::Application
     DependsOn:
       - FeedbackFeature
+      - OnboardingFeature
     Properties:
       Location: API/template.yaml
 

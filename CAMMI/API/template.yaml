@@ -12,7 +12,7 @@ Resources:
       Name: cammi-endpoints
 
 
-  RestAPIDeployment:
+  RestAPIDeploymentv1:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - Feedback

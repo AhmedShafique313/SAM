@@ -40,7 +40,7 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserOnboardingFunctionArn}/invocations
-          - CustomerFeedbackFunctionArn: !ImportValue UserOnboardingFunctionArn
+          - UserOnboardingFunctionArn: !ImportValue UserOnboardingFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 

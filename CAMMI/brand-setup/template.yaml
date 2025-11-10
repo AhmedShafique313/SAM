@@ -36,7 +36,25 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles PDF extraction for brand setup
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role    
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role  
+
+  UploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: upload
+      Handler: app.lambda_handler
+      CodeUri: src/upload/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles frontend_to_s3
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+
 
 Outputs:
   WebScrappingFunctionArn:
@@ -45,3 +63,9 @@ Outputs:
   PdfExtractionFunctionArn:
     Description: ARN of PDF extraction Lambda
     Value: !GetAtt PdfExtractionFunction.Arn
+
+  UploadFunctionArn:
+    Description: ARN of pdf upload lambda
+    Value: !GetAtt UploadFunction.Arn
+    Export:
+      Name: UploadFunctionArn

@@ -12,7 +12,7 @@ Resources:
       Name: cammi-endpoints
 
 
-  RestAPIDeploymentv1:
+  RestAPIDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - Feedback
@@ -29,7 +29,7 @@ Resources:
   ApiGatewayStage:
     Type: AWS::ApiGateway::Stage
     Properties:
-      DeploymentId: !Ref RestAPIDeploymentv1
+      DeploymentId: !Ref RestAPIDeployment
       RestApiId: !Ref cammi
       StageName: dev
       TracingEnabled: true

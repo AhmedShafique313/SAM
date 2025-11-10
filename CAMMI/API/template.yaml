@@ -16,6 +16,7 @@ Resources:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - Feedback
+      - Onboarding
     Properties:
       RestApiId: !Ref cammi
 

@@ -29,7 +29,7 @@ Resources:
   ApiGatewayStage:
     Type: AWS::ApiGateway::Stage
     Properties:
-      DeploymentId: !Ref RestAPIDeployment
+      DeploymentId: !Ref RestAPIDeploymentv1
       RestApiId: !Ref cammi
       StageName: dev
       TracingEnabled: true

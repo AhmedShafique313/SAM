@@ -88,6 +88,14 @@ Resources:
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi
+
+  Onboarding:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: onboarding.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi
         
 
 Outputs:

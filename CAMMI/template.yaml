@@ -184,6 +184,13 @@ Resources:
       Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
+  ProfileFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: profile/template.yaml
+
 Outputs:
   LayersStackOutput:
     Description: Outputs from layers stack
@@ -264,3 +271,7 @@ Outputs:
   EditStateMachineFeatureOutput:
     Description: Outputs from Edit Unified State Machine feature
     Value: !Ref EditStateMachineFeature
+
+  ProfileFeatureOutput:
+    Description: Outputs from profile feature
+    Value: !Ref ProfileFeature

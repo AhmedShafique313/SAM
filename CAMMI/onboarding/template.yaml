@@ -25,3 +25,5 @@ Outputs:
   UserOnboardingFunctionArn:
     Description: ARN of user onboarding Lambda
     Value: !GetAtt UserOnboardingFunction.Arn
+    Export:
+      Name: UserOnboardingFunctionArn

@@ -140,6 +140,25 @@ Resources:
           S3_BUCKET_NAME: !Ref S3BucketName
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
+  ###################################################
+  # Progress Bar Function
+  ###################################################
+  DocumentCompleteEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: document-complete-event
+      Handler: app.lambda_handler
+      CodeUri: src/document-complete-event/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Send Document completion message to front end.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName          
+
 ###################################################
 # Outputs - fixed export names (unique)
 ###################################################
@@ -185,3 +204,9 @@ Outputs:
     Value: !GetAtt ProgressBarFunction.Arn
     Export:
       Name: ProgressBarFunctionArn
+
+  DocumentCompleteEventFunctionArn:
+    Description: ARN
+    Value: !GetAtt DocumentCompleteEventFunction.Arn
+    Export:
+      Name: DocumentCompleteEventFunctionArn      

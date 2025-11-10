@@ -145,6 +145,10 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName
 
+  ###################################################
+  # Edit heading Function
+  ###################################################
+
   EditHeadingFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -159,7 +163,28 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName                                 
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+
+  ###################################################
+  # Upload Text Extract Function
+  ###################################################
+
+  UploadTextExtractFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: upload-text-extract
+      Handler: app.lambda_handler
+      CodeUri: src/upload-text-extract/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: WebSocket handler for document text processing. Connects clients, processes uploaded documents through Bedrock AI, extracts Q&A data, saves to ProjectQuestions table, and streams results via WebSocket.
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName                                        
 
 ###################################################
 # Outputs
@@ -198,3 +223,9 @@ Outputs:
     Value: !GetAtt EditHeadingFunction.Arn
     Export:
       Name: EditHeadingFunctionArn
+
+  UploadTextExtractFunctionArn:
+    Description: ARN of UploadTextExtractFunction Lambda
+    Value: !GetAtt UploadTextExtractFunction.Arn
+    Export:
+      Name: UploadTextExtractFunctionArn      

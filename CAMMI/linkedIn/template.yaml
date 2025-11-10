@@ -61,6 +61,24 @@ Resources:
           LINKEDIN_POSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
           S3_BUCKET_NAME: !Ref S3BucketName
 
+  StatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: status
+      Handler: app.lambda_handler
+      CodeUri: src/status/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 128
+      Description: Handles post_status_check
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
+          LINKEDIN_POSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
+          S3_BUCKET_NAME: !Ref S3BucketName
+
 Outputs:
   LoginFunctionArn:
     Description: "Arn of linkedin OAuth Login Function"
@@ -79,3 +97,9 @@ Outputs:
     Value: !GetAtt ScheduleFunction.Arn
     Export:
       Name: ScheduleFunctionArn
+
+  StatusFunctionArn:
+    Description: "Arn of status function lambda"
+    Value: !GetAtt StatusFunction.Arn
+    Export:
+      Name: StatusFunctionArn

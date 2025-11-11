@@ -58,13 +58,13 @@ Resources:
     Properties:
       Location: project-organization/template.yaml
 
-  ApiGatewayFeature:
-    Type: AWS::Serverless::Application
-    DependsOn:
-      - FeedbackFeature
-      - OnboardingFeature
-    Properties:
-      Location: API/template.yaml
+  # ApiGatewayFeature:
+  #   Type: AWS::Serverless::Application
+  #   DependsOn:
+  #     - FeedbackFeature
+  #     - OnboardingFeature
+  #   Properties:
+  #     Location: API/template.yaml
 
   BrandSetupFeature:
     Type: AWS::Serverless::Application
@@ -221,9 +221,9 @@ Outputs:
     Description: Outputs from Project Organization feature
     Value: !Ref ProjectOrganizationFeature
 
-  ApiGatewayFeatureOutput:
-    Description: Outputs from API Gateway feature
-    Value: !Ref ApiGatewayFeature
+  # ApiGatewayFeatureOutput:
+  #   Description: Outputs from API Gateway feature
+  #   Value: !Ref ApiGatewayFeature
 
   AdminPortalFeatureOutput:
     Description: Outputs from Admin Portal feature

@@ -4,13 +4,18 @@ Description: API Template for CAMMI
 
 Resources:
 
-  # Main API
+  # --------------------------
+  # Main API Gateway REST API
+  # --------------------------
   cammi:
     Type: AWS::ApiGateway::RestApi
     Properties:
       Name: cammi-endpoints
 
 
+  # --------------------------
+  # API Deployment
+  # --------------------------
   RestAPIDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
@@ -18,12 +23,20 @@ Resources:
     Properties:
       RestApiId: !Ref cammi
 
+
+  # --------------------------
+  # CloudWatch Log Group
+  # --------------------------
   ApiLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: /aws/apigateway/CammiRestApiLogGroup
       RetentionInDays: 30
 
+
+  # --------------------------
+  # Stage + Logging
+  # --------------------------
   ApiGatewayStage:
     Type: AWS::ApiGateway::Stage
     Properties:
@@ -38,7 +51,8 @@ Resources:
           LoggingLevel: INFO
       AccessLogSetting:
         DestinationArn: !GetAtt ApiLogGroup.Arn
-        Format: '{
+        Format: |
+          {
             "request_id": "$context.requestId",
             "extended_request_id": "$context.extendedRequestId",
             "source_ip": "$context.identity.sourceIp",
@@ -50,14 +64,17 @@ Resources:
             "protocol": "$context.protocol",
             "status_code": "$context.status",
             "response_length": "$context.responseLength",
-            "request_id": "$context.requestId",
             "body": "$input.body",
             "params": "$input.params",
             "context_error_message": "$context.error.message",
             "integration_latency": "$context.integrationLatency",
             "response_latency": "$context.responseLatency"
-          }'
+          }
 
+
+  # --------------------------
+  # Logging IAM Role
+  # --------------------------
   ApiLoggingRole:
     Type: AWS::IAM::Role
     Properties:
@@ -65,53 +82,61 @@ Resources:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - apigateway.amazonaws.com
-          Action:
-          - sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - sts:AssumeRole
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 
+
+  # --------------------------
+  # API Gateway → Lambda Invoke Role
+  # --------------------------
   ApiGatewayFunctionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
-          - Sid: ''
-            Effect: 'Allow'
+          - Effect: Allow
             Principal:
               Service:
-                - 'apigateway.amazonaws.com'
+                - apigateway.amazonaws.com
             Action:
-              - 'sts:AssumeRole'
-      Path: '/'
-    Export:
-      Name: ApiGatewayFunctionRoleArn
- 
+              - sts:AssumeRole
+      Path: "/"
+
+
   ApiGatewayFunctionPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: "cammiApiGatewayFunctionPolicy"
+      PolicyName: cammiApiGatewayFunctionPolicy
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-        -
-          Effect: 'Allow'
-          Action: 'lambda:*'
-          Resource: '*'
-      Roles: 
-      - 
-        !Ref ApiGatewayFunctionRole
+          - Effect: Allow
+            Action: "lambda:*"
+            Resource: "*"
+      Roles:
+        - !Ref ApiGatewayFunctionRole
 
+
+  # --------------------------
+  # Enable CloudWatch Logging for API GW
+  # --------------------------
   ApiGatewayAccount:
     Type: AWS::ApiGateway::Account
     Properties:
       CloudWatchRoleArn: !GetAtt ApiLoggingRole.Arn
 
+
+  # --------------------------
+  # Feedback Nested Application
+  # --------------------------
   Feedback:
     Type: AWS::Serverless::Application
     Properties:
@@ -120,16 +145,15 @@ Resources:
         RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi
 
-  # Onboarding:
-  #   Type: AWS::Serverless::Application
-  #   Properties:
-  #     Location: onboarding.yaml
-  #     Parameters:
-  #       RootResourceId: !GetAtt cammi.RootResourceId
-  #       RestApiId: !Ref cammi
-        
 
 Outputs:
+
   CammiApiId:
     Description: Cammi API ID
     Value: !Ref cammi
+
+  ApiGatewayFunctionRoleArn:
+    Description: API Gateway Invocation Role ARN
+    Value: !GetAtt ApiGatewayFunctionRole.Arn
+    Export:
+      Name: ApiGatewayFunctionRoleArn

@@ -36,7 +36,7 @@ Resources:
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
-        Credentials: !ImportValue ApiGatewayFunctionRoleArn
+        Credentials: !GetAtt ApiGatewayFunctionRole.Arn
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub
@@ -90,7 +90,7 @@ Resources:
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
-        Credentials: !ImportValue ApiGatewayFunctionRoleArn
+        Credentials: !GetAtt ApiGatewayFunctionRole.Arn
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub
@@ -157,10 +157,3 @@ Resources:
             Resource: "*"
       Roles:
         - !Ref ApiGatewayFunctionRole
-
-Outputs:
-  ApiGatewayFunctionRoleArn:
-    Description: API Gateway Invocation Role ARN
-    Value: !GetAtt ApiGatewayFunctionRole.Arn
-    Export:
-      Name: ApiGatewayFunctionRoleArn

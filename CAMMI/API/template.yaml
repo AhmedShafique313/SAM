@@ -94,38 +94,6 @@ Resources:
 
 
   # --------------------------
-  # API Gateway → Lambda Invoke Role
-  # --------------------------
-  ApiGatewayFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - apigateway.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: "/"
-
-
-  ApiGatewayFunctionPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: cammiApiGatewayFunctionPolicy
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action: "lambda:*"
-            Resource: "*"
-      Roles:
-        - !Ref ApiGatewayFunctionRole
-
-
-  # --------------------------
   # Enable CloudWatch Logging for API GW
   # --------------------------
   ApiGatewayAccount:
@@ -152,8 +120,4 @@ Outputs:
     Description: Cammi API ID
     Value: !Ref cammi
 
-  ApiGatewayFunctionRoleArn:
-    Description: API Gateway Invocation Role ARN
-    Value: !GetAtt ApiGatewayFunctionRole.Arn
-    Export:
-      Name: ApiGatewayFunctionRoleArn
+

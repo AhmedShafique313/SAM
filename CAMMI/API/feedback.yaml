@@ -125,3 +125,42 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
+
+
+  # --------------------------
+  # API Gateway → Lambda Invoke Role
+  # --------------------------
+  ApiGatewayFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+
+  ApiGatewayFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: cammiApiGatewayFunctionPolicy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "lambda:*"
+            Resource: "*"
+      Roles:
+        - !Ref ApiGatewayFunctionRole
+
+Outputs:
+  ApiGatewayFunctionRoleArn:
+    Description: API Gateway Invocation Role ARN
+    Value: !GetAtt ApiGatewayFunctionRole.Arn
+    Export:
+      Name: ApiGatewayFunctionRoleArn

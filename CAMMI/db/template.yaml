@@ -15,9 +15,18 @@ Resources:
       AttributeDefinitions:
         - AttributeName: email
           AttributeType: S
+        - AttributeName: session_id
+          AttributeType: S
       KeySchema:
         - AttributeName: email
           KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: session_id-index
+          KeySchema:
+            - AttributeName: session_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   ###################################################
   # Users Feedback Table

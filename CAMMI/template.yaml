@@ -14,6 +14,11 @@ Globals:
     Tracing: Active
 
 Resources:
+  IAMStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: IAM/template.yaml
+
   LayersStack:
     Type: AWS::Serverless::Application
     Properties:
@@ -61,6 +66,7 @@ Resources:
   ApiGatewayFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - FeedbackFeature
       - OnboardingFeature
     Properties:
@@ -193,6 +199,10 @@ Resources:
       Location: profile/template.yaml
 
 Outputs:
+  IAMStackOutput:
+    Description: Outputs from IAM stack
+    Value: !Ref IAMStack
+
   LayersStackOutput:
     Description: Outputs from layers stack
     Value: !Ref LayersStack

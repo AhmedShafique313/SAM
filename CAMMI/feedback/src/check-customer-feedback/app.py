@@ -7,7 +7,7 @@ dynamodb = boto3.resource('dynamodb')
 
 # Table names
 USERS_TABLE = "users-table"
-FEEDBACK_TABLE = "users-table-feedback"
+FEEDBACK_TABLE = "users-feedback-table"
 
 def lambda_handler(event, context):
     # Parse input

@@ -51,8 +51,7 @@ Resources:
           LoggingLevel: INFO
       AccessLogSetting:
         DestinationArn: !GetAtt ApiLogGroup.Arn
-        Format: |
-          {
+        Format: '{
             "request_id": "$context.requestId",
             "extended_request_id": "$context.extendedRequestId",
             "source_ip": "$context.identity.sourceIp",
@@ -69,7 +68,7 @@ Resources:
             "context_error_message": "$context.error.message",
             "integration_latency": "$context.integrationLatency",
             "response_latency": "$context.responseLatency"
-          }
+          }'
 
 
   # --------------------------

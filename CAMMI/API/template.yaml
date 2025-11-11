@@ -75,6 +75,38 @@ Resources:
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 
+  ApiGatewayFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ''
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - 'apigateway.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+    Export:
+      Name: ApiGatewayFunctionRoleArn
+ 
+  ApiGatewayFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "cammiApiGatewayFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        -
+          Effect: 'Allow'
+          Action: 'lambda:*'
+          Resource: '*'
+      Roles: 
+      - 
+        !Ref ApiGatewayFunctionRole
+
   ApiGatewayAccount:
     Type: AWS::ApiGateway::Account
     Properties:

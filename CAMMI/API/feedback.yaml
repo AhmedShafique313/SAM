@@ -36,7 +36,7 @@ Resources:
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
-        Credentials: arn:aws:iam::687088702813:role/cammi-lambda-role
+        Credentials: !ImportValue ApiGatewayFunctionRoleArn
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub

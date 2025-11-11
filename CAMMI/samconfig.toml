@@ -14,4 +14,4 @@ s3_prefix = "cammi-resources"
 capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
 confirm_changeset = true
 fail_on_empty_changeset = false
-image_repositories = []
+image_repositories = []z

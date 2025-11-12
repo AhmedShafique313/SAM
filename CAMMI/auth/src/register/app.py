@@ -79,7 +79,7 @@ def lambda_handler(event, context):
         return {"statusCode": 200, "headers": headers, "body": json.dumps({"message": "CORS ok"})}
  
     # --------- /register ---------
-    if path == "/register" and method == "POST":
+    if path == "/auth/register" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             email = (body.get("email") or "").strip().lower()
@@ -144,7 +144,7 @@ def lambda_handler(event, context):
             return resp(500, headers, {"message": "Server error", "error": str(e)})
  
     # --------- /verify-email ---------
-    if path == "/verify-email" and method == "POST":
+    if path == "/auth/verify-email" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             email = (body.get("email") or "").strip().lower()

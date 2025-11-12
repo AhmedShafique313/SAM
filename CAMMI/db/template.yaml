@@ -233,34 +233,33 @@ Resources:
           KeyType: HASH
 
   ###################################################
-  # Post Questions Table
+  # Post Questions Table (FIXED INDENTATION)
   ###################################################
   PostQuestionsTable:
-  Type: AWS::DynamoDB::Table
-  Properties:
-    TableName: post-questions-table
-    BillingMode: PAY_PER_REQUEST
-    AttributeDefinitions:
-      - AttributeName: id
-        AttributeType: S
-      - AttributeName: organization_id
-        AttributeType: S
-    KeySchema:
-      - AttributeName: id
-        KeyType: HASH
-    GlobalSecondaryIndexes:
-      - IndexName: organization_id-index
-        KeySchema:
-          - AttributeName: organization_id
-            KeyType: HASH
-        Projection:
-          ProjectionType: INCLUDE
-          NonKeyAttributes:
-            - post_answer
-
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: post-questions-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: organization_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: organization_id-index
+          KeySchema:
+            - AttributeName: organization_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - post_answer
 
   ###################################################
-  # LinkedIn User Table (FIXED: removed invalid AWS::Serverless::Table)
+  # LinkedIn User Table
   ###################################################
   LinkedInUserTable:
     Type: AWS::DynamoDB::Table
@@ -275,7 +274,7 @@ Resources:
           KeyType: HASH
 
   ###################################################
-  # claude usage logs Table
+  # Claude Usage Logs Table
   ###################################################
   ClaudeUsageLogsTable:
     Type: AWS::DynamoDB::Table
@@ -386,7 +385,7 @@ Outputs:
       Name: CAMMI-LinkedInUserTableName
 
   ClaudeUsageLogsTableName:
-    Description: claude usage logs table
+    Description: Claude usage logs table
     Value: !Ref ClaudeUsageLogsTable
     Export:
       Name: CAMMI-ClaudeUsageLogsTableName

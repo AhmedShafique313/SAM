@@ -71,6 +71,7 @@ Resources:
       - OnboardingFeature
       - ProfileFeature
       - AIGenerationFeature
+      - AuthFeature
     Properties:
       Location: API/template.yaml
 

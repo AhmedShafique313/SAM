@@ -80,6 +80,8 @@ Outputs:
   RegisterFunctionArn:
     Description: "Arn of user registration function"
     Value: !GetAtt RegisterFunction.Arn
+    Export: 
+      Name: RegisterFunctionArn
 
   ForgotPasswordFunctionArn:
     Description: "Arn of user password management function"

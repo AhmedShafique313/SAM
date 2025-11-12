@@ -23,6 +23,7 @@ Resources:
       - Onboarding
       - Profile
       - AIGeneration
+      - Auth
     Properties:
       RestApiId: !Ref cammi
 
@@ -138,6 +139,14 @@ Resources:
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi
+
+  Auth:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: auth.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi        
 
 
 

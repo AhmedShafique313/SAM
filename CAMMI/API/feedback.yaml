@@ -1,15 +1,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: API Template for CAMMI Feedback
-
+ 
 Parameters:
   RootResourceId:
     Type: String
   RestApiId:
     Type: String
-
+ 
 Resources:
-
+ 
   # Feedback Resource
   FeedbackParentResource:
     Type: AWS::ApiGateway::Resource
@@ -17,7 +17,7 @@ Resources:
       ParentId: !Ref RootResourceId
       PathPart: feedback
       RestApiId: !Ref RestApiId
-
+ 
   # Customer Feedback Resource
   CustomerFeedbackFunctionResource:
     Type: AWS::ApiGateway::Resource
@@ -25,7 +25,7 @@ Resources:
       ParentId: !GetAtt FeedbackParentResource.ResourceId
       PathPart: customer-feedback
       RestApiId: !Ref RestApiId
-
+ 
   # POST Method for /feedback/customer-feedback
   CustomerFeedbackFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
@@ -44,7 +44,7 @@ Resources:
           - CustomerFeedbackFunctionArn: !ImportValue CustomerFeedbackFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
-
+ 
   # OPTIONS Method for /feedback/customer-feedback
   CustomerFeedbackFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
@@ -71,7 +71,7 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
-
+ 
   # Check Customer Feedback Resource
   CheckCustomerFeedbackFunctionResource:
     Type: AWS::ApiGateway::Resource
@@ -79,7 +79,7 @@ Resources:
       ParentId: !GetAtt FeedbackParentResource.ResourceId
       PathPart: check-customer-feedback
       RestApiId: !Ref RestApiId
-
+ 
   # POST Method for /feedback/check-customer-feedback
   CheckCustomerFeedbackFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
@@ -98,7 +98,7 @@ Resources:
           - CheckCustomerFeedbackFunctionArn: !ImportValue CheckCustomerFeedbackFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
-
+ 
   # OPTIONS Method for /feedback/check-customer-feedback
   CheckCustomerFeedbackFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
@@ -125,3 +125,4 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
+ 

@@ -26,9 +26,8 @@ def build_response(status_code, body_dict):
 def get_concatenated_post_answers(organization_id):
     all_answers = []
 
-    # Query instead of scan for better performance
+    # Query directly on the partition key
     response = POST_QUESTIONS_TABLE.query(
-        IndexName="organization_id-index",
         KeyConditionExpression=Key("organization_id").eq(organization_id),
         ProjectionExpression="post_answer"
     )
@@ -38,16 +37,14 @@ def get_concatenated_post_answers(organization_id):
     # Handle pagination
     while "LastEvaluatedKey" in response:
         response = POST_QUESTIONS_TABLE.query(
-            IndexName="organization_id-index",
             KeyConditionExpression=Key("organization_id").eq(organization_id),
             ProjectionExpression="post_answer",
-            ExclusiveStartKey=response["LastEvaluatedKey"],
+            ExclusiveStartKey=response["LastEvaluatedKey"]
         )
         items = response.get("Items", [])
         all_answers.extend(item["post_answer"] for item in items if item.get("post_answer"))
 
     return "\n".join(all_answers).strip()
-
 
 # ✅ Call Groq model to generate posts
 def invoke_groq(prompt: str, answers: str):
@@ -68,7 +65,7 @@ All tables must be real text tables using vertical bars (|) and two columns only
 
 Post 1 — LinkedIn Carousel
 ...
-"""
+"""  # Keep the full instructions as in your original code
 
     response = client.chat.completions.create(
         model="openai/gpt-oss-20b",
@@ -78,7 +75,6 @@ Post 1 — LinkedIn Carousel
         ],
     )
     return response.choices[0].message.content.strip()
-
 
 # ✅ Finalize single LinkedIn post
 def finalized_result(post_prompt: str):
@@ -116,7 +112,6 @@ At the end of the post:
     )
     return response.choices[0].message.content.strip()
 
-
 # ✅ Lambda Handler
 def lambda_handler(event, context):
     if not event.get("body"):
@@ -133,9 +128,11 @@ def lambda_handler(event, context):
     if not prompt:
         return build_response(400, {"error": "Missing 'prompt' in request body"})
 
+    # Fetch answers from DynamoDB
     answers = get_concatenated_post_answers(organization_id)
     print("Concatenated answers length:", len(answers))
 
+    # Generate Groq response
     groq_response = invoke_groq(prompt, answers)
     final_response = finalized_result(groq_response)
 

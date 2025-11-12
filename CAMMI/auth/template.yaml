@@ -90,3 +90,5 @@ Outputs:
   LoginLogoutFunctionArn:
     Description: "Arn of user session management function"
     Value: !GetAtt LoginLogoutFunction.Arn
+    Export: 
+      Name: LoginLogoutFunctionArn    

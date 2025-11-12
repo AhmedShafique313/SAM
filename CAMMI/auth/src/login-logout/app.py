@@ -91,7 +91,7 @@ def lambda_handler(event, context):
         return resp(200, headers, {"message": "CORS ok"})
 
     # --------- /login ---------
-    if path == "/login" and method == "POST":
+    if path == "/auth/login" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             email = (body.get("email") or "").strip().lower()
@@ -198,7 +198,7 @@ def lambda_handler(event, context):
             )
 
     # --------- /logout ---------
-    if path == "/logout" and method == "POST":
+    if path == "/auth/logout" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             token = body.get("token")

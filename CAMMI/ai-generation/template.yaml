@@ -46,6 +46,7 @@ Resources:
       Environment:
         Variables:
           GROQ_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:GROQ_API_KEY}}"
+          POST_QUESTIONS_TABLE: !ImportValue CAMMI-PostQuestionsTableName
 
 Outputs:
   ImageGenerationFunctionArn:

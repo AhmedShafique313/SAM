@@ -12,7 +12,7 @@ client = Groq(api_key=os.environ["GROQ_API_KEY"])
 # ✅ Function that handles all business logic
 def get_concatenated_post_answers(organization_id):
     dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table("PostQuestions")
+    table = dynamodb.Table("post-questions-table")
 
     # ✅ Scan all records where organization_id matches
     all_items = []

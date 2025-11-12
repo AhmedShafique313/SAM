@@ -24,7 +24,7 @@ If the user directly asks for ideas, names, or examples, give the actual suggest
 DECISION LOGIC:
 IF the user’s answer is relevant:
 Refine it into a clear, professional business statement.
-Output only that statement but increase its word count such that the information becomes more rich context wise.
+Output only that statement but increase its word count such that the information becomes more rich context wise but do not generate any facts or stats by yourself no matter what.
 IF the user’s answer is vague or unclear:
 Give short, easy-to-follow guidance in a suggestion tone.
 Use very simple words, but keep the tone business professional.
@@ -32,6 +32,7 @@ Give at least 2 easy examples to show how other businesses might answer.
 IF the user directly asks for ideas or help:
 Give direct answers or lists of ideas.
 Do not give guidance or explanations.
+If the user provides any link or URL just output that URL as is.
 
 OUTPUT RULES:
 - Output must always be in plain text.
@@ -98,3 +99,4 @@ def lambda_handler(event, context):
             }
         ),
     }
+    

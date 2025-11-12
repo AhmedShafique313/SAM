@@ -4,7 +4,7 @@ from boto3.dynamodb.conditions import Key
  
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("project-questions-table")
- 
+
 # Hardcoded questions
 icp  = [
     "What is the name of your business?",

@@ -7,7 +7,7 @@ dynamodb = boto3.resource('dynamodb')
  
 # Table
 project_questions_table = dynamodb.Table('project-questions-table')
- 
+
 # CORS headers
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -94,6 +94,7 @@ gtm = [
     "What are your strengths, weaknesses, opps and threats?",
     "Tell us about your product/solution/service?"
 ]
+
 def lambda_handler(event, context):
     # Handle preflight OPTIONS request
     if event.get('httpMethod') == 'OPTIONS':
@@ -154,7 +155,7 @@ def lambda_handler(event, context):
         "statusCode": 200,
         "headers": CORS_HEADERS,
         "body": json.dumps({
-            "questions": filtered_items,
-            "document_type": document_type
+        "questions": filtered_items,
+        "document_type": document_type
         })
     }

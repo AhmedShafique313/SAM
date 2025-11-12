@@ -5,7 +5,7 @@ import re
 import os
 
 # ---------- Config ----------
-USERS_TABLE = os.environ.get("USERS_TABLE", "Users")
+USERS_TABLE = os.environ.get("USERS_TABLE", "users-table")
 BUCKET_NAME = "cammi-devprod"  # Your actual S3 bucket name
 
 # ---------- AWS Clients ----------

@@ -69,6 +69,7 @@ Resources:
       - IAMStack
       - FeedbackFeature
       - OnboardingFeature
+      - ProfileFeature
     Properties:
       Location: API/template.yaml
 

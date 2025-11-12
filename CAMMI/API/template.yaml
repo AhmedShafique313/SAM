@@ -5,7 +5,7 @@ Description: API Template for CAMMI
 Resources:
 
   # --------------------------
-  # Main API Gateway REST API
+  # Main API Gateway REST API Cloud Formation
   # --------------------------
   cammi:
     Type: AWS::ApiGateway::RestApi
@@ -21,6 +21,7 @@ Resources:
     DependsOn:
       - Feedback
       - Onboarding
+      - Profile
     Properties:
       RestApiId: !Ref cammi
 
@@ -120,6 +121,15 @@ Resources:
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi
+
+  Profile:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: profile.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi
+
 
 
 Outputs:

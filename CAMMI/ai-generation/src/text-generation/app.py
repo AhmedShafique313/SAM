@@ -3,10 +3,6 @@ import os
 import boto3
 from boto3.dynamodb.conditions import Key
 from groq import Groq
-from aws_xray_sdk.core import xray_recorder, patch_all
-
-# Patch all supported libraries (boto3, requests, etc.) for X-Ray
-patch_all()
 
 # ✅ Initialize Groq client using the environment variable
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
@@ -15,7 +11,7 @@ client = Groq(api_key=os.environ["GROQ_API_KEY"])
 dynamodb = boto3.resource("dynamodb")
 POST_QUESTIONS_TABLE = dynamodb.Table("post-questions-table")
 
-# Helper: standard response
+# Helper: standard API response
 def build_response(status_code, body_dict):
     return {
         "statusCode": status_code,
@@ -30,26 +26,25 @@ def build_response(status_code, body_dict):
 def get_concatenated_post_answers(organization_id):
     all_answers = []
 
-    with xray_recorder.in_subsegment("fetch_answers"):
-        # Query instead of scan for better performance
+    # Query instead of scan for better performance
+    response = POST_QUESTIONS_TABLE.query(
+        IndexName="organization_id-index",
+        KeyConditionExpression=Key("organization_id").eq(organization_id),
+        ProjectionExpression="post_answer"
+    )
+    items = response.get("Items", [])
+    all_answers.extend(item["post_answer"] for item in items if item.get("post_answer"))
+
+    # Handle pagination
+    while "LastEvaluatedKey" in response:
         response = POST_QUESTIONS_TABLE.query(
             IndexName="organization_id-index",
             KeyConditionExpression=Key("organization_id").eq(organization_id),
-            ProjectionExpression="post_answer"
+            ProjectionExpression="post_answer",
+            ExclusiveStartKey=response["LastEvaluatedKey"],
         )
         items = response.get("Items", [])
         all_answers.extend(item["post_answer"] for item in items if item.get("post_answer"))
-
-        # Handle pagination
-        while "LastEvaluatedKey" in response:
-            response = POST_QUESTIONS_TABLE.query(
-                IndexName="organization_id-index",
-                KeyConditionExpression=Key("organization_id").eq(organization_id),
-                ProjectionExpression="post_answer",
-                ExclusiveStartKey=response["LastEvaluatedKey"],
-            )
-            items = response.get("Items", [])
-            all_answers.extend(item["post_answer"] for item in items if item.get("post_answer"))
 
     return "\n".join(all_answers).strip()
 
@@ -75,14 +70,13 @@ Post 1 — LinkedIn Carousel
 ...
 """
 
-    with xray_recorder.in_subsegment("invoke_groq"):
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[
-                {"role": "system", "content": instruction},
-                {"role": "user", "content": prompt},
-            ],
-        )
+    response = client.chat.completions.create(
+        model="openai/gpt-oss-20b",
+        messages=[
+            {"role": "system", "content": instruction},
+            {"role": "user", "content": prompt},
+        ],
+    )
     return response.choices[0].message.content.strip()
 
 
@@ -113,44 +107,42 @@ At the end of the post:
 - The output should be a single, polished LinkedIn post — clean, well-formatted, and ready to publish directly on LinkedIn.
 """
 
-    with xray_recorder.in_subsegment("finalize_result"):
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[
-                {"role": "system", "content": instructions},
-                {"role": "user", "content": post_prompt},
-            ],
-        )
+    response = client.chat.completions.create(
+        model="openai/gpt-oss-20b",
+        messages=[
+            {"role": "system", "content": instructions},
+            {"role": "user", "content": post_prompt},
+        ],
+    )
     return response.choices[0].message.content.strip()
 
 
 # ✅ Lambda Handler
 def lambda_handler(event, context):
-    with xray_recorder.in_subsegment("lambda_handler"):
-        if not event.get("body"):
-            return build_response(400, {"error": "Empty body received"})
+    if not event.get("body"):
+        return build_response(400, {"error": "Empty body received"})
 
-        try:
-            body = json.loads(event["body"])
-        except json.JSONDecodeError:
-            return build_response(400, {"error": "Invalid JSON in request body"})
+    try:
+        body = json.loads(event["body"])
+    except json.JSONDecodeError:
+        return build_response(400, {"error": "Invalid JSON in request body"})
 
-        prompt = body.get("prompt", "").strip()
-        organization_id = body.get("organization_id", "").strip()
+    prompt = body.get("prompt", "").strip()
+    organization_id = body.get("organization_id", "").strip()
 
-        if not prompt:
-            return build_response(400, {"error": "Missing 'prompt' in request body"})
+    if not prompt:
+        return build_response(400, {"error": "Missing 'prompt' in request body"})
 
-        answers = get_concatenated_post_answers(organization_id)
-        print("Concatenated answers length:", len(answers))
+    answers = get_concatenated_post_answers(organization_id)
+    print("Concatenated answers length:", len(answers))
 
-        groq_response = invoke_groq(prompt, answers)
-        final_response = finalized_result(groq_response)
+    groq_response = invoke_groq(prompt, answers)
+    final_response = finalized_result(groq_response)
 
-        return build_response(
-            200,
-            {
-                "message": "Response generated successfully",
-                "final_response": final_response,
-            },
-        )
+    return build_response(
+        200,
+        {
+            "message": "Response generated successfully",
+            "final_response": final_response,
+        },
+    )

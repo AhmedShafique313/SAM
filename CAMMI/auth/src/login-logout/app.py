@@ -4,15 +4,23 @@ import uuid
 import boto3
 import hashlib
 import hmac
+from boto3.dynamodb.conditions import Key
+
  
 # ---------- Config ----------
 USERS_TABLE = os.environ.get("USERS_TABLE", "users-table")
 FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "*")  # * allows all origins
+# Count-based onboarding (no backend list of questions)
+ONBOARDING_TABLE = os.environ.get("ONBOARDING_TABLE", "onboarding-questions-table")
+TOTAL_REQUIRED_ONBOARDING_QUESTIONS = int(os.environ.get("TOTAL_REQUIRED_ONBOARDING_QUESTIONS", "7"))
+
  
 # ---------- AWS Clients ----------
+s3 = boto3.client("s3")
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(USERS_TABLE)
-
+onboarding_table = dynamodb.Table(ONBOARDING_TABLE)
+ 
 # ---------- Helpers ----------
 def verify_password(stored_password: str, provided_password: str) -> bool:
     try:
@@ -229,4 +237,3 @@ def lambda_handler(event, context):
 
     # --------- Fallback ---------
     return resp(404, headers, {"message": "Not found"})
-

@@ -71,6 +71,7 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          ONBOARDING_QUESTIONS_TABLE: !ImportValue CAMMI-UserOnboardingQuestionsTableName
 
 Outputs:
   AuthLoginFunctionArn:

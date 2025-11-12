@@ -1,48 +1,65 @@
 import json
 import os
 import boto3
-from boto3.dynamodb.conditions import Attr
+from boto3.dynamodb.conditions import Key
 from groq import Groq
+from aws_xray_sdk.core import xray_recorder, patch_all
 
+# Patch all supported libraries (boto3, requests, etc.) for X-Ray
+patch_all()
 
-# ✅ Initialize Groq client using the environment variable (already resolved from Secrets Manager)
+# ✅ Initialize Groq client using the environment variable
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
+# ✅ DynamoDB resource (reuse across invocations)
+dynamodb = boto3.resource("dynamodb")
+POST_QUESTIONS_TABLE = dynamodb.Table("post-questions-table")
 
-# ✅ Function that handles all business logic
+# Helper: standard response
+def build_response(status_code, body_dict):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json",
+        },
+        "body": json.dumps(body_dict),
+    }
+
+# ✅ Fetch and concatenate all post_answers for organization_id
 def get_concatenated_post_answers(organization_id):
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table("post-questions-table")
+    all_answers = []
 
-    # ✅ Scan all records where organization_id matches
-    all_items = []
-    response = table.scan(
-        FilterExpression=Attr("organization_id").eq(organization_id)
-    )
-    all_items.extend(response.get("Items", []))
-
-    # ✅ Handle pagination (if dataset >1MB)
-    while "LastEvaluatedKey" in response:
-        response = table.scan(
-            FilterExpression=Attr("organization_id").eq(organization_id),
-            ExclusiveStartKey=response["LastEvaluatedKey"],
+    with xray_recorder.in_subsegment("fetch_answers"):
+        # Query instead of scan for better performance
+        response = POST_QUESTIONS_TABLE.query(
+            IndexName="organization_id-index",
+            KeyConditionExpression=Key("organization_id").eq(organization_id),
+            ProjectionExpression="post_answer"
         )
-        all_items.extend(response.get("Items", []))
+        items = response.get("Items", [])
+        all_answers.extend(item["post_answer"] for item in items if item.get("post_answer"))
 
-    # ✅ Concatenate all post_answer values
-    all_answers = "\n".join(
-        item.get("post_answer", "") for item in all_items if item.get("post_answer")
-    ).strip()
+        # Handle pagination
+        while "LastEvaluatedKey" in response:
+            response = POST_QUESTIONS_TABLE.query(
+                IndexName="organization_id-index",
+                KeyConditionExpression=Key("organization_id").eq(organization_id),
+                ProjectionExpression="post_answer",
+                ExclusiveStartKey=response["LastEvaluatedKey"],
+            )
+            items = response.get("Items", [])
+            all_answers.extend(item["post_answer"] for item in items if item.get("post_answer"))
 
-    return all_answers
+    return "\n".join(all_answers).strip()
 
 
-# ✅ Call Groq model for post generation
+# ✅ Call Groq model to generate posts
 def invoke_groq(prompt: str, answers: str):
     instruction = f"""
-    This is contextual information for reference and for user tailored experience.
-    {answers}
-    You are a B2B social strategist for CAMMI — an AI marketing copilot that helps B2B teams plan with clarity, align work, mobilize campaigns faster, and prove ROI with unified dashboards.
+This is contextual information for reference and for user tailored experience.
+{answers}
+You are a B2B social strategist for CAMMI — an AI marketing copilot that helps B2B teams plan with clarity, align work, mobilize campaigns faster, and prove ROI with unified dashboards.
 
 Inputs you can use:
 [goal], [role], [company_size], [industry], [pain_points], [campaign_theme], [hero_message], [proof_points], [landing_URL], [CTA], [tone], [visual_refs].
@@ -58,18 +75,18 @@ Post 1 — LinkedIn Carousel
 ...
 """
 
-    response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[
-            {"role": "system", "content": instruction},
-            {"role": "user", "content": prompt.strip()},
-        ],
-    )
-
+    with xray_recorder.in_subsegment("invoke_groq"):
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {"role": "system", "content": instruction},
+                {"role": "user", "content": prompt},
+            ],
+        )
     return response.choices[0].message.content.strip()
 
 
-# ✅ Finalized post formatter
+# ✅ Finalize single LinkedIn post
 def finalized_result(post_prompt: str):
     instructions = """
 You are a senior B2B social strategist for CAMMI — an AI marketing copilot that helps B2B teams plan with clarity, align work, mobilize campaigns faster, and prove ROI with unified dashboards.
@@ -96,57 +113,44 @@ At the end of the post:
 - The output should be a single, polished LinkedIn post — clean, well-formatted, and ready to publish directly on LinkedIn.
 """
 
-    response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=[
-            {"role": "system", "content": instructions},
-            {"role": "user", "content": post_prompt.strip()},
-        ],
-    )
+    with xray_recorder.in_subsegment("finalize_result"):
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": post_prompt},
+            ],
+        )
     return response.choices[0].message.content.strip()
 
 
 # ✅ Lambda Handler
 def lambda_handler(event, context):
-    if not event.get("body"):
-        return {
-            "statusCode": 400,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Content-Type": "application/json",
-            },
-            "body": json.dumps({"error": "Empty body received"}),
-        }
+    with xray_recorder.in_subsegment("lambda_handler"):
+        if not event.get("body"):
+            return build_response(400, {"error": "Empty body received"})
 
-    body = json.loads(event["body"])
-    prompt = body.get("prompt", "").strip()
-    organization_id = body.get("organization_id", "")
+        try:
+            body = json.loads(event["body"])
+        except json.JSONDecodeError:
+            return build_response(400, {"error": "Invalid JSON in request body"})
 
-    if not prompt:
-        return {
-            "statusCode": 400,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Content-Type": "application/json",
-            },
-            "body": json.dumps({"error": "Missing 'prompt' in request body"}),
-        }
+        prompt = body.get("prompt", "").strip()
+        organization_id = body.get("organization_id", "").strip()
 
-    answers = get_concatenated_post_answers(organization_id)
-    print("these are concatenated answers", answers)
-    groq_response = invoke_groq(prompt, answers)
-    final_response = finalized_result(groq_response)
+        if not prompt:
+            return build_response(400, {"error": "Missing 'prompt' in request body"})
 
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json",
-        },
-        "body": json.dumps(
+        answers = get_concatenated_post_answers(organization_id)
+        print("Concatenated answers length:", len(answers))
+
+        groq_response = invoke_groq(prompt, answers)
+        final_response = finalized_result(groq_response)
+
+        return build_response(
+            200,
             {
                 "message": "Response generated successfully",
                 "final_response": final_response,
-            }
-        ),
-    }
+            },
+        )

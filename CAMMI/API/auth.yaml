@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: API Template for CAMMI Auth
+Description: API Template for CAMMI Auth Purposes
 
 Parameters:
   RootResourceId:
@@ -10,7 +10,7 @@ Parameters:
 
 Resources:
 
-  # Auth Resource
+  # /auth
   AuthParentResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -18,15 +18,15 @@ Resources:
       PathPart: auth
       RestApiId: !Ref RestApiId
 
-  # Customer Auth Resource
+  # /auth/register
   RegisterFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt AuthparentResource.ResourceId
+      ParentId: !GetAtt AuthParentResource.ResourceId
       PathPart: register
       RestApiId: !Ref RestApiId
 
-  # POST Method for /auth/register
+  # POST /auth/register
   RegisterFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -45,7 +45,7 @@ Resources:
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  # OPTIONS Method for /auth/register
+  # OPTIONS /auth/register
   RegisterFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -71,5 +71,3 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
-
- 

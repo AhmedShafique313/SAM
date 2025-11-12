@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: API Template for CAMMI Feedback
+Description: API Template for CAMMI Auth
 
 Parameters:
   RootResourceId:
@@ -15,7 +15,7 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !Ref RootResourceId
-      PathPart: feedback
+      PathPart: auth
       RestApiId: !Ref RestApiId
 
   # Customer Auth Resource

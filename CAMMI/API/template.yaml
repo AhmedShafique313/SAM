@@ -22,6 +22,7 @@ Resources:
       - Feedback
       - Onboarding
       - Profile
+      - AIGeneration
     Properties:
       RestApiId: !Ref cammi
 
@@ -126,6 +127,14 @@ Resources:
     Type: AWS::Serverless::Application
     Properties:
       Location: profile.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi
+
+  AIGeneration:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ai-generation.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi

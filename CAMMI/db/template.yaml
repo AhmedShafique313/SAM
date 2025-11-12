@@ -236,16 +236,28 @@ Resources:
   # Post Questions Table
   ###################################################
   PostQuestionsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: post-questions-table
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: post-questions-table
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      - AttributeName: organization_id
+        AttributeType: S
+    KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    GlobalSecondaryIndexes:
+      - IndexName: organization_id-index
+        KeySchema:
+          - AttributeName: organization_id
+            KeyType: HASH
+        Projection:
+          ProjectionType: INCLUDE
+          NonKeyAttributes:
+            - post_answer
+
 
   ###################################################
   # LinkedIn User Table (FIXED: removed invalid AWS::Serverless::Table)

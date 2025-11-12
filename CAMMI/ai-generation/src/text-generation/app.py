@@ -10,6 +10,7 @@ client = Groq(api_key=os.environ["GROQ_API_KEY"])
 # ✅ DynamoDB resource (reuse across invocations)
 dynamodb = boto3.resource("dynamodb")
 POST_QUESTIONS_TABLE = dynamodb.Table("post-questions-table")
+GSI_NAME = "organization_id-index"  # Name of the GSI
 
 # Helper: standard API response
 def build_response(status_code, body_dict):
@@ -22,12 +23,13 @@ def build_response(status_code, body_dict):
         "body": json.dumps(body_dict),
     }
 
-# ✅ Fetch and concatenate all post_answers for organization_id
+# ✅ Fetch and concatenate all post_answers for organization_id using GSI
 def get_concatenated_post_answers(organization_id):
     all_answers = []
 
-    # Query directly on the partition key
+    # Query using the GSI
     response = POST_QUESTIONS_TABLE.query(
+        IndexName=GSI_NAME,
         KeyConditionExpression=Key("organization_id").eq(organization_id),
         ProjectionExpression="post_answer"
     )
@@ -37,6 +39,7 @@ def get_concatenated_post_answers(organization_id):
     # Handle pagination
     while "LastEvaluatedKey" in response:
         response = POST_QUESTIONS_TABLE.query(
+            IndexName=GSI_NAME,
             KeyConditionExpression=Key("organization_id").eq(organization_id),
             ProjectionExpression="post_answer",
             ExclusiveStartKey=response["LastEvaluatedKey"]
@@ -45,6 +48,7 @@ def get_concatenated_post_answers(organization_id):
         all_answers.extend(item["post_answer"] for item in items if item.get("post_answer"))
 
     return "\n".join(all_answers).strip()
+
 
 # ✅ Call Groq model to generate posts
 def invoke_groq(prompt: str, answers: str):
@@ -75,6 +79,7 @@ Post 1 — LinkedIn Carousel
         ],
     )
     return response.choices[0].message.content.strip()
+
 
 # ✅ Finalize single LinkedIn post
 def finalized_result(post_prompt: str):
@@ -112,23 +117,20 @@ At the end of the post:
     )
     return response.choices[0].message.content.strip()
 
-# ✅ Lambda Handler
+
+# ✅ Lambda Handler (no try/except)
 def lambda_handler(event, context):
     if not event.get("body"):
         return build_response(400, {"error": "Empty body received"})
 
-    try:
-        body = json.loads(event["body"])
-    except json.JSONDecodeError:
-        return build_response(400, {"error": "Invalid JSON in request body"})
-
+    body = json.loads(event["body"])
     prompt = body.get("prompt", "").strip()
     organization_id = body.get("organization_id", "").strip()
 
     if not prompt:
         return build_response(400, {"error": "Missing 'prompt' in request body"})
 
-    # Fetch answers from DynamoDB
+    # Fetch answers from DynamoDB using GSI
     answers = get_concatenated_post_answers(organization_id)
     print("Concatenated answers length:", len(answers))
 

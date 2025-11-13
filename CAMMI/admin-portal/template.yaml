@@ -298,6 +298,8 @@ Outputs:
   AllOrganizationsFunctionArn:
     Description: ARN of AllOrganizationsFunction Lambda
     Value: !GetAtt AllOrganizationsFunction.Arn
+    Export: 
+      Name: AllOrganizationsFunctionArn    
 
   AllProjectsFunctionArn:
     Description: ARN of AllProjectsFunction Lambda

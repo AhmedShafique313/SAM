@@ -88,7 +88,7 @@ def lambda_handler(event, context):
         }
 
     # --------- /forgot-password ---------
-    if path == "/forgot-password" and method == "POST":
+    if path == "/auth/forgot-password" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             email = (body.get("email") or "").strip().lower()
@@ -119,7 +119,7 @@ def lambda_handler(event, context):
             return resp(500, event, {"message": "Server error", "error": str(e)})
 
     # --------- /verify-code ---------
-    if path == "/verify-code" and method == "POST":
+    if path == "/auth/verify-code" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             email = (body.get("email") or "").strip().lower()
@@ -156,7 +156,7 @@ def lambda_handler(event, context):
             return resp(500, event, {"message": "Server error", "error": str(e)})
 
   # --------- /reset-password ---------
-    if path == "/reset-password" and method == "POST":
+    if path == "/auth/reset-password" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             email = (body.get("email") or "").strip().lower()

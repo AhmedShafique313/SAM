@@ -73,7 +73,6 @@ Resources:
       - AIGenerationFeature
       - AuthFeature
       - AdminPortalFeature
-      - DocumentGenerationFeature
     Properties:
       Location: API/template.yaml
 

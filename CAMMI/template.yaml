@@ -72,6 +72,7 @@ Resources:
       - ProfileFeature
       - AIGenerationFeature
       - AuthFeature
+      - AdminPortalFeature
     Properties:
       Location: API/template.yaml
 

@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: API Template for CAMMI Admin Portal
+
+Parameters:
+  RootResourceId:
+    Type: String
+  RestApiId:
+    Type: String
+
+Resources:
+  # Feedback Resource
+  AdminPortalParentResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref RootResourceId
+      PathPart: admin-portal
+      RestApiId: !Ref RestApiId
+
+  # Customer Feedback Resource
+  ShowBalanceFunctionResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt AdminPortalParentResource.ResourceId
+      PathPart: show-balance
+      RestApiId: !Ref RestApiId
+
+  # POST Method for /feedback/customer-feedback
+  ShowBalanceFunctionResourceGETMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: GET
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref ShowBalanceFunctionResource
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ShowBalanceFunctionArn}/invocations
+          - ShowBalanceFunctionArn: !ImportValue ShowBalanceFunctionArn
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        TimeoutInMillis: 29000
+
+  # OPTIONS Method for /feedback/customer-feedback
+  ShowBalanceFunctionResourceOPTIONSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref ShowBalanceFunctionResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{ "statusCode": 200 }'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+ 

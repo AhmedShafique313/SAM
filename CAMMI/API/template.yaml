@@ -24,6 +24,7 @@ Resources:
       - Profile
       - AIGeneration
       - Auth
+      - AdminPortal
     Properties:
       RestApiId: !Ref cammi
 
@@ -146,7 +147,15 @@ Resources:
       Location: auth.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi        
+        RestApiId: !Ref cammi 
+
+  AdminPortal:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: admin-portal.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi       
 
 
 

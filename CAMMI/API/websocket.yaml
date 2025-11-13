@@ -75,7 +75,7 @@ Resources:
       DefaultRouteSettings:
         DataTraceEnabled: true
         LoggingLevel: INFO
-        MetricsEnabled: true
+        DetailedMetricsEnabled: true
 
 Outputs:
   CAMMIWebSocketApiId:

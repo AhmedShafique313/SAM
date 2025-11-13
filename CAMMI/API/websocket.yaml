@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: API Template for CAMMI Websockets
+Description: API Template for CAMMI Websockets with X-Ray Tracing and Access Logging
 
 Resources:
   CAMMIWebSocketApi:
@@ -15,7 +15,9 @@ Resources:
     Properties:
       ApiId: !Ref CAMMIWebSocketApi
       IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UploadTextExtractFunctionArn}/invocations
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UploadTextExtractFunctionArn}/invocations
+        - UploadTextExtractFunctionArn: !ImportValue UploadTextExtractFunctionArn
       CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
       IntegrationMethod: POST
 
@@ -43,6 +45,12 @@ Resources:
       OperationName: DefaultRoute
       Target: !Sub "integrations/${UploadTextExtractFunctionWebSocketLambdaIntegration}"
 
+  WebSocketLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${CAMMIWebSocketApi}-access-logs
+      RetentionInDays: 14
+
   CAMMIWebSocketDeployment:
     Type: AWS::ApiGatewayV2::Deployment
     DependsOn:
@@ -56,9 +64,18 @@ Resources:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
       StageName: dev
-      Description: dev Stage
+      Description: dev Stage with tracing enabled
       ApiId: !Ref CAMMIWebSocketApi
       DeploymentId: !Ref CAMMIWebSocketDeployment
+      AccessLogSettings:
+        DestinationArn: !GetAtt WebSocketLogGroup.Arn
+        Format: |
+          {"requestId":"$context.requestId","ip":"$context.identity.sourceIp","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","connectionId":"$context.connectionId"}
+      DefaultRouteSettings:
+        DataTraceEnabled: true
+        LoggingLevel: INFO
+        MetricsEnabled: true
+      TracingEnabled: true
 
 Outputs:
   CAMMIWebSocketApiId:

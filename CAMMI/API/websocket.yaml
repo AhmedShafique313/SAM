@@ -68,14 +68,14 @@ Resources:
       Description: dev Stage with tracing enabled
       ApiId: !Ref CAMMIWebSocketApi
       DeploymentId: !Ref CAMMIWebSocketDeployment
-      # AccessLogSettings:
-      #   DestinationArn: !Sub "${WebSocketLogGroup.Arn}:*"
-      #   Format: |
-      #     {"requestId":"$context.requestId","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","connectionId":"$context.connectionId"}
-      # DefaultRouteSettings:
-      #   DataTraceEnabled: true
-      #   LoggingLevel: INFO
-      #   MetricsEnabled: true
+      AccessLogSettings:
+        DestinationArn: !Sub "${WebSocketLogGroup.Arn}:*"
+        Format: |
+          {"requestId":"$context.requestId","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","connectionId":"$context.connectionId"}
+      DefaultRouteSettings:
+        DataTraceEnabled: true
+        LoggingLevel: INFO
+        MetricsEnabled: true
       # TracingEnabled: true
 
 Outputs:

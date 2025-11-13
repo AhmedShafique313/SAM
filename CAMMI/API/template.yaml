@@ -25,6 +25,7 @@ Resources:
       - AIGeneration
       - Auth
       - AdminPortal
+      - WebSocket
     Properties:
       RestApiId: !Ref cammi
 
@@ -155,8 +156,12 @@ Resources:
       Location: admin-portal.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi       
+        RestApiId: !Ref cammi 
 
+  WebSocket:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: websocket.yaml      
 
 
 Outputs:

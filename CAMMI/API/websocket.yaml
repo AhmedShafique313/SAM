@@ -62,15 +62,16 @@ Resources:
 
   CAMMIWebSocketStage:
     Type: AWS::ApiGatewayV2::Stage
+    DependsOn: CAMMIWebSocketDeployment
     Properties:
       StageName: dev
       Description: dev Stage with tracing enabled
       ApiId: !Ref CAMMIWebSocketApi
       DeploymentId: !Ref CAMMIWebSocketDeployment
       AccessLogSettings:
-        DestinationArn: !GetAtt WebSocketLogGroup.Arn
+        DestinationArn: !Sub "${WebSocketLogGroup.Arn}:*"
         Format: |
-          {"requestId":"$context.requestId","ip":"$context.identity.sourceIp","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","connectionId":"$context.connectionId"}
+          {"requestId":"$context.requestId","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","connectionId":"$context.connectionId"}
       DefaultRouteSettings:
         DataTraceEnabled: true
         LoggingLevel: INFO

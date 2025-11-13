@@ -87,6 +87,8 @@ Outputs:
   ForgotPasswordFunctionArn:
     Description: "Arn of user password management function"
     Value: !GetAtt ForgotPasswordFunction.Arn
+    Export: 
+      Name: ForgotPasswordFunctionArn    
 
   LoginLogoutFunctionArn:
     Description: "Arn of user session management function"

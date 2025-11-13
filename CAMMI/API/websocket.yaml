@@ -69,7 +69,7 @@ Resources:
       ApiId: !Ref CAMMIWebSocketApi
       DeploymentId: !Ref CAMMIWebSocketDeployment
       AccessLogSettings:
-        DestinationArn: !Sub "${WebSocketLogGroup.Arn}:*"
+        DestinationArn: !GetAtt WebSocketLogGroup.Arn
         Format: |
           {"requestId":"$context.requestId","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","connectionId":"$context.connectionId"}
       # DefaultRouteSettings:

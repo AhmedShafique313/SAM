@@ -278,6 +278,8 @@ Outputs:
   PaymentDataFunctionArn:
     Description: ARN of PaymentDataFunction Lambda
     Value: !GetAtt PaymentDataFunction.Arn
+    Export: 
+      Name: PaymentDataFunctionArn    
 
   PaymentHistoryFunctionArn:
     Description: ARN of PaymentHistoryFunction Lambda

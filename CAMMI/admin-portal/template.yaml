@@ -286,6 +286,8 @@ Outputs:
   AllReviewDocumentsFunctionArn:
     Description: ARN of AllReviewDocumentsFunction Lambda
     Value: !GetAtt AllReviewDocumentsFunction.Arn
+    Export: 
+      Name: AllReviewDocumentsFunctionArn     
 
   SingleReviewDocumentFunctionArn:
     Description: ARN of SingleReviewDocumentFunction Lambda
@@ -294,6 +296,8 @@ Outputs:
   AllUsersFunctionArn:
     Description: ARN of AllUsersFunction Lambda
     Value: !GetAtt AllUsersFunction.Arn
+    Export: 
+      Name: AllUsersFunctionArn     
 
   AllOrganizationsFunctionArn:
     Description: ARN of AllOrganizationsFunction Lambda

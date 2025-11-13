@@ -245,9 +245,12 @@ Resources:
       Tracing: Active
       Description: Fetches the balance of a user from Stripe
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Layers:
+        - !ImportValue StripeLibrariesLayerArn
       Environment:
         Variables:
           STRIPE_TABLE: !ImportValue CAMMI-StripeTableName
+          STRIPE_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:STRIPE_API_KEY}}"
 
   ###################################################
   # Return Review Document

@@ -1,13 +1,8 @@
 import json
-import stripe,os
+import stripe
+import os
 
-secrets_client = boto3.client("secretsmanager")
- 
-def get_secret(secret_name):
-    response = secrets_client.get_secret_value(SecretId=secret_name)
-    return json.loads(response["SecretString"]) if "SecretString" in response else None
- 
-stripe.api_key = get_secret(os.environ["STRIPE_API_KEY"])
+stripe.api_key = os.environ["STRIPE_API_KEY"]
 
 def lambda_handler(event, context):
     balance = stripe.Balance.retrieve()

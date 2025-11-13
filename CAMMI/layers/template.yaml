@@ -53,6 +53,16 @@ Resources:
         - python3.13
       RetentionPolicy: Delete
 
+  StripeLibrariesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: stripe-libraries
+      Description: Shared dependencies for payment gateway feature
+      ContentUri: stripe_layer.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
+
 
 Outputs:
   Google1LibrariesLayerArn:
@@ -84,4 +94,10 @@ Outputs:
     Value: !Ref WebLibrariesLayer
     Export:
       Name: WebLibrariesLayerArn
+
+  StripeLibrariesLayerArn:
+    Description: ARN of the payment gateway stripe libraries
+    Value: !Ref StripeLibrariesLayer
+    Export:
+      Name: StripeLibrariesLayerArn
 

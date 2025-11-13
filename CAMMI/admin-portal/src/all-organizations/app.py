@@ -3,7 +3,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table("Organizations-table")  # Change if your actual table name differs
+table = dynamodb.Table("organizations-table")  # Change if your actual table name differs
 
 
 def lambda_handler(event, context):

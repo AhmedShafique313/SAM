@@ -157,12 +157,12 @@ Resources:
         RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi 
 
-  # WebSocket:
-  #   Type: AWS::Serverless::Application
-  #   DependsOn:
-  #     - DocumentGenerationFeature
-  #   Properties:
-  #     Location: websocket.yaml      
+  WebSocket:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DocumentGenerationFeature
+    Properties:
+      Location: websocket.yaml      
 
 
 Outputs:

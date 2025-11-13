@@ -9,7 +9,7 @@ Parameters:
     Type: String
 
 Resources:
-  # Feedback Resource
+  # /admin-portal
   AdminPortalParentResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -17,7 +17,7 @@ Resources:
       PathPart: admin-portal
       RestApiId: !Ref RestApiId
 
-  # Customer Feedback Resource
+  # /admin-portal/show-balance
   ShowBalanceFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -25,26 +25,26 @@ Resources:
       PathPart: show-balance
       RestApiId: !Ref RestApiId
 
-  # POST Method for /feedback/customer-feedback
+  # GET /admin-portal/show-balance
   ShowBalanceFunctionResourceGETMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      ApiKeyRequired: false
-      AuthorizationType: NONE
-      HttpMethod: GET
       RestApiId: !Ref RestApiId
       ResourceId: !Ref ShowBalanceFunctionResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ApiKeyRequired: false
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Uri: !Sub
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ShowBalanceFunctionArn}/invocations
           - ShowBalanceFunctionArn: !ImportValue ShowBalanceFunctionArn
-        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  # OPTIONS Method for /feedback/customer-feedback
+  # OPTIONS /admin-portal/show-balance
   ShowBalanceFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -70,5 +70,3 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
-
- 

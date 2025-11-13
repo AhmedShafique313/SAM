@@ -319,6 +319,8 @@ Outputs:
   ShowBalanceFunctionArn:
     Description: ARN of ShowBalanceFunction Lambda
     Value: !GetAtt ShowBalanceFunction.Arn
+    Export:
+      Name: ShowBalanceFunctionArn
 
   ReturnReviewDocumentFunctionArn:
     Description: ARN of ReturnReviewDocumentFunction Lambda

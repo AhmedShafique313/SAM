@@ -159,8 +159,6 @@ Resources:
 
   WebSocket:
     Type: AWS::Serverless::Application
-    DependsOn:
-      - DocumentGenerationFeature
     Properties:
       Location: websocket.yaml      
 

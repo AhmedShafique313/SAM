@@ -318,6 +318,8 @@ Outputs:
   CammiAnalyticsFunctionArn:
     Description: ARN of CammiAnalyticsFunction Lambda
     Value: !GetAtt CammiAnalyticsFunction.Arn
+    Export: 
+      Name: CammiAnalyticsFunctionArn    
 
   UserOrganizationProjectFunctionArn:
     Description: ARN of UserOrganizationProjectFunction Lambda

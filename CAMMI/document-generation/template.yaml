@@ -184,8 +184,7 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName
-          WEBSOCKET_API_ENDPOINT: !ImportValue CAMMI-WebSocketApiEndpoint                                   
+          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName                                 
 
 ###################################################
 # Outputs

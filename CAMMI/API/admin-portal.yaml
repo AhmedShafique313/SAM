@@ -562,7 +562,7 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt AuthParentResource.ResourceId
-      PathPart: get-review-document
+      PathPart: single-review-document
       RestApiId: !Ref RestApiId
 
   # POST Method for /admin-portal/get-review-document

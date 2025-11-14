@@ -400,7 +400,7 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt AdminPortalParentResource.ResourceId
-      PathPart: get-organizations-projects
+      PathPart: get-organization-projects
       RestApiId: !Ref RestApiId
 
   # GET /admin-portal/get-organization-projects

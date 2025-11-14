@@ -294,6 +294,8 @@ Outputs:
   SingleReviewDocumentFunctionArn:
     Description: ARN of SingleReviewDocumentFunction Lambda
     Value: !GetAtt SingleReviewDocumentFunction.Arn
+    Export: 
+      Name: SingleReviewDocumentFunctionArn     
 
   AllUsersFunctionArn:
     Description: ARN of AllUsersFunction Lambda
@@ -328,10 +330,14 @@ Outputs:
   UserOrganizationProjectFunctionArn:
     Description: ARN of UserOrganizationProjectFunction Lambda
     Value: !GetAtt UserOrganizationProjectFunction.Arn
+    Export: 
+      Name: UserOrganizationProjectFunctionArn     
 
   RecentActivityFunctionArn:
     Description: ARN of RecentActivityFunction Lambda
     Value: !GetAtt RecentActivityFunction.Arn
+    Export: 
+      Name: RecentActivityFunctionArn    
 
   ShowBalanceFunctionArn:
     Description: ARN of ShowBalanceFunction Lambda
@@ -342,3 +348,5 @@ Outputs:
   ReturnReviewDocumentFunctionArn:
     Description: ARN of ReturnReviewDocumentFunction Lambda
     Value: !GetAtt ReturnReviewDocumentFunction.Arn
+    Export:
+      Name: ReturnReviewDocumentFunctionArn    

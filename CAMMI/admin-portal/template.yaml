@@ -316,6 +316,8 @@ Outputs:
   OrganizationBasedProjectsFunctionArn:
     Description: ARN of OrganizationBasedProjectsFunction Lambda
     Value: !GetAtt OrganizationBasedProjectsFunction.Arn
+    Export: 
+      Name: OrganizationBasedProjectsFunctionArn      
 
   CammiAnalyticsFunctionArn:
     Description: ARN of CammiAnalyticsFunction Lambda

@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS serverless application with a Step Functions state machine for editing flow.
+
+Resources:
+
+  #############################################################
+  # Step Functions IAM Role
+  #############################################################
+  StateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSStepFunctionsFullAccess
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+
+  #############################################################
+  # Step Functions State Machine
+  #############################################################
+  EditUnifiedStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: edit-unified-state-machine
+      Role: !GetAtt StateMachineRole.Arn
+      DefinitionUri: statemachine/definition.json
+      DefinitionSubstitutions:
+        KeyIdentifierLambda: !ImportValue KeyIdentifierFunctionArn
+        StateMachineStarterFunctionLambda: !ImportValue StateMachineStarterFunctionArn
+        DocumentationFunctionLambda: !ImportValue DocumentationFunctionArn
+        GenerationCompleteFunctionLambda: !ImportValue GenerationCompleteFunctionArn
+      Tracing:
+        Enabled: true
+
+Outputs:
+  EditUnifiedStateMachineArn:
+    Description: ARN of the Step Functions state machine
+    Value: !Ref EditUnifiedStateMachine
+    Export:
+      Name: EditUnifiedStateMachineArn

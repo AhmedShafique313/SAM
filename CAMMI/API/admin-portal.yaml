@@ -557,15 +557,15 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
 
- # SingleReviewDocument Resource
+  # SingleReviewDocument Resource
   SingleReviewDocumentFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt AuthParentResource.ResourceId
+      ParentId: !GetAtt AdminPortalParentResource.ResourceId
       PathPart: single-review-document
       RestApiId: !Ref RestApiId
 
-  # POST Method for /admin-portal/get-review-document
+  # POST Method for /admin-portal/single-review-document
   SingleReviewDocumentFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -584,7 +584,7 @@ Resources:
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  # OPTIONS Method for /admin-portal/get-review-document
+  # OPTIONS Method for /admin-portal/single-review-document
   SingleReviewDocumentFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:

@@ -82,10 +82,10 @@ Outputs:
     Description: The ID of the CAMMI WebSocket API
     Value: !Ref CAMMIWebSocketApi
     Export:
-      Name: CAMMI-WebSocketApiId
+      Name: CAMMI-WebSocketApiId-v1
 
   CAMMIWebSocketApiEndpoint:
     Description: The WebSocket API endpoint URL
     Value: !Sub wss://${CAMMIWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/dev
     Export:
-      Name: CAMMI-WebSocketApiEndpoint
+      Name: CAMMI-WebSocketApiEndpoint-v1

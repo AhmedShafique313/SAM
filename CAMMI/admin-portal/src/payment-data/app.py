@@ -4,7 +4,7 @@ from collections import defaultdict
 
 def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('payment_history-table')
+    table = dynamodb.Table('payment-history-table')
 
     # Scan the entire table
     response = table.scan()

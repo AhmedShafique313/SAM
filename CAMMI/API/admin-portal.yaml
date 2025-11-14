@@ -346,7 +346,7 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt AdminPortalParentResource.ResourceId
-      PathPart: cammi-analytics
+      PathPart: payment-data
       RestApiId: !Ref RestApiId
 
   # GET /admin-portal/payment-data

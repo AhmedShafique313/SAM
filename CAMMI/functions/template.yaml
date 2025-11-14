@@ -29,7 +29,7 @@ Resources:
     Properties:
       Name: edit-unified-state-machine
       Role: !GetAtt StateMachineRole.Arn
-      DefinitionUri: statemachine/definition.asl.json
+      DefinitionUri: statemachine/definition.json
       DefinitionSubstitutions:
         KeyIdentifierLambda: !ImportValue KeyIdentifierFunctionArn
         StateMachineStarterFunctionLambda: !ImportValue StateMachineStarterFunctionArn

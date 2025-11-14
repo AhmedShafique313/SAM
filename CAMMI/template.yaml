@@ -74,6 +74,7 @@ Resources:
       - AuthFeature
       - AdminPortalFeature
       - BrandSetupFeature
+      - DashboardFeature
     Properties:
       Location: API/template.yaml
 

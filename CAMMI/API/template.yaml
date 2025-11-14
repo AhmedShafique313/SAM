@@ -26,6 +26,7 @@ Resources:
       - Auth
       - AdminPortal
       - BrandSetup
+      - Dashboard
     Properties:
       RestApiId: !Ref cammi
 
@@ -164,7 +165,15 @@ Resources:
       Location: brand-setup.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi             
+        RestApiId: !Ref cammi 
+
+  Dashboard:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: dashboard.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                      
 
 
 Outputs:

@@ -18,8 +18,8 @@ Resources:
               Service: states.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSStepFunctionsFullAccess
-        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+        - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
+        - arn:aws:iam::aws:policy/AWSLambdaFullAccess
 
   #############################################################
   # Step Functions State Machine

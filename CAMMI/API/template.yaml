@@ -25,6 +25,7 @@ Resources:
       - AIGeneration
       - Auth
       - AdminPortal
+      - BrandSetup
     Properties:
       RestApiId: !Ref cammi
 
@@ -155,7 +156,15 @@ Resources:
       Location: admin-portal.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi     
+        RestApiId: !Ref cammi  
+
+  BrandSetup:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: brand-setup.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi             
 
 
 Outputs:

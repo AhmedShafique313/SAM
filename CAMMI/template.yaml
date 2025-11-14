@@ -73,6 +73,7 @@ Resources:
       - AIGenerationFeature
       - AuthFeature
       - AdminPortalFeature
+      - BrandSetupFeature
     Properties:
       Location: API/template.yaml
 

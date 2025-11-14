@@ -60,6 +60,9 @@ Outputs:
   WebScrappingFunctionArn:
     Description: ARN of web scrapping Lambda
     Value: !GetAtt WebScrappingFunction.Arn
+    Export:
+      Name: WebScrappingFunctionArn    
+    
   PdfExtractionFunctionArn:
     Description: ARN of PDF extraction Lambda
     Value: !GetAtt PdfExtractionFunction.Arn
@@ -69,3 +72,4 @@ Outputs:
     Value: !GetAtt UploadFunction.Arn
     Export:
       Name: UploadFunctionArn
+      

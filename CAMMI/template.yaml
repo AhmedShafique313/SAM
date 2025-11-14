@@ -210,6 +210,14 @@ Resources:
     Properties:
       Location: websocket/template.yaml
 
+  StateMachinesFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - EditStateMachineFeature
+      - LambdaFeature
+    Properties:
+      Location: functions/template.yaml
+
 Outputs:
   IAMStackOutput:
     Description: Outputs from IAM stack
@@ -302,3 +310,7 @@ Outputs:
   WebSocketFeatureOutput:
     Description: Outputs from websocket feature
     Value: !Ref WebSocketFeature
+
+  StateMachinesFeatureOutput:
+    Description: Outputs from state machine functions
+    Value: !Ref StateMachinesFeature

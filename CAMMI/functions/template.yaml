@@ -15,11 +15,32 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: states.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSStepFunctionsFullAccess
-        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+              Service:
+                - states.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  StateMachinePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: cammiStepFunctionsPolicy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource: "*"  # optionally scope to specific Lambda ARNs
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+              - states:StopExecution
+              - states:DescribeExecution
+              - states:ListExecutions
+            Resource: "*"
+      Roles:
+        - !Ref StateMachineRole
 
   #############################################################
   # Step Functions State Machine
@@ -29,7 +50,7 @@ Resources:
     Properties:
       Name: edit-unified-state-machine
       Role: !GetAtt StateMachineRole.Arn
-      DefinitionUri: statemachine/definition.asl.json
+      DefinitionUri: statemachine/definition.json
       DefinitionSubstitutions:
         KeyIdentifierLambda: !ImportValue KeyIdentifierFunctionArn
         StateMachineStarterFunctionLambda: !ImportValue StateMachineStarterFunctionArn

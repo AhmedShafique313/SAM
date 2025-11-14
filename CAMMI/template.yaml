@@ -202,6 +202,13 @@ Resources:
     Properties:
       Location: profile/template.yaml
 
+  WebSocketFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DocumentGenerationFeature
+    Properties:
+      Location: websocket/template.yaml
+
 Outputs:
   IAMStackOutput:
     Description: Outputs from IAM stack
@@ -290,3 +297,7 @@ Outputs:
   ProfileFeatureOutput:
     Description: Outputs from profile feature
     Value: !Ref ProfileFeature
+
+  WebSocketFeatureOutput:
+    Description: Outputs from websocket feature
+    Value: !Ref WebSocketFeature

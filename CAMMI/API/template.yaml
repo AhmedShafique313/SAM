@@ -155,12 +155,7 @@ Resources:
       Location: admin-portal.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi 
-
-  WebSocket:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: websocket.yaml      
+        RestApiId: !Ref cammi     
 
 
 Outputs:

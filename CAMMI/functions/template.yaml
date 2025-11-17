@@ -59,9 +59,35 @@ Resources:
       Tracing:
         Enabled: true
 
+  UnifiedStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: unified-state-machine
+      Role: !GetAtt StateMachineRole.Arn
+      DefinitionUri: statemachine/definition1.json
+      DefinitionSubstitutions:
+        ClientIDRegistrationLambda: !ImportValue ClientIDRegisterationFunctionArn
+        GetNextPendingTierLambda: !ImportValue GetNextPendingTierFunctionArn
+        StateMachineStarterLambda: !ImportValue StateMachineStarterFunctionArn
+        EventCreatorLambda: !ImportValue EventCreatorFunctionArn
+        RealTimeTextFrontendLambda: !ImportValue RealtimeTextFrontEndFunctionArn
+        CreatorEventLambda: !ImportValue CreatorEventFunctionArn
+        UpdateTierStatusLambda: !ImportValue UpdateTierStatusFunctionArn
+        ProgressBarLambda: !ImportValue ProgressBarFunctionArn
+        DocumentationLambda: !ImportValue DocumentationFunctionArn
+        DocumentCompleteEventLambda: !ImportValue DocumentCompleteEventFunctionArn
+      Tracing:
+        Enabled: true
+
 Outputs:
   EditUnifiedStateMachineArn:
     Description: ARN of the Step Functions state machine
     Value: !Ref EditUnifiedStateMachine
     Export:
       Name: EditUnifiedStateMachineArn
+
+  UnifiedStateMachineArn:
+    Description: ARN of the Step Functions state machine Unified
+    Value: !Ref UnifiedStateMachine
+    Export:
+      Name: UnifiedStateMachineArn

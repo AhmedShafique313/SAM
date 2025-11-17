@@ -41,6 +41,8 @@ Outputs:
   PaymentGatewayFunctionArn:
     Description: ARN of payment gateway Lambda
     Value: !GetAtt PaymentGatewayFunction.Arn
+    Export: 
+      Name: PaymentGatewayFunctionArn
 
   StripeUsersFunctionArn:
     Description: ARN of Stripe Users Function Lambda

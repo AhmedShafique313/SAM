@@ -27,6 +27,7 @@ Resources:
       - AdminPortal
       - BrandSetup
       - Dashboard
+      - PaymentGateway
     Properties:
       RestApiId: !Ref cammi
 
@@ -173,7 +174,15 @@ Resources:
       Location: dashboard.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                      
+        RestApiId: !Ref cammi  
+
+  PaymentGateway:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: payment-gateway.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                             
 
 
 Outputs:

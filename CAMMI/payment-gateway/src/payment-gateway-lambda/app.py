@@ -1,210 +1,199 @@
 import json
+import stripe
 import boto3
-import pdfplumber
-import io
-from boto3.dynamodb.conditions import Key, Attr
+import os
 
-s3 = boto3.client('s3')
-dynamodb = boto3.resource('dynamodb')
-bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
+# -------------------------
+# Environment Configuration
+# -------------------------
+stripe.STRIPE_API_KEY = os.environ["STRIPE_API_KEY"]
+FRONTEND_DOMAIN = "https://nonoppressive-undyingly-thatcher.ngrok-free.dev"
 
-# Constants
-BUCKET_NAME = "cammi-devprod"
-USERS_TABLE = "Users-table"
+# DynamoDB setup
+dynamodb = boto3.resource("dynamodb")
+stripe_table = dynamodb.Table("stripe_table")
 
-# 🧠 Bedrock LLM call
-def llm_calling(prompt, model_id, session_id="default-session"):
-    """Call AWS Bedrock LLM. (No try/except — errors will propagate for visibility.)"""
-    conversation = [
-        {
-            "role": "user",
-            "content": [{"text": str(prompt)}]
-        }
-    ]
+# -------------------------
+# Plan Mapping (lookup_key → plan_name, credits)
+# -------------------------
+PLAN_CREDITS = {
+    # Monthly subscription plans
+    "explorer_monthly": {"plan_name": "Explorer", "credits": 500},
+    "starter_monthly": {"plan_name": "Starter", "credits": 5000},
+    "growth_monthly": {"plan_name": "Growth", "credits": 20000},
+    "pro_monthly": {"plan_name": "Pro", "credits": 50000},
+    "scale_enterprise_monthly": {"plan_name": "Scale/Enterprise", "credits": 150000},
+    # Annually subscription plans
+    "explorer_annually": {"plan_name": "Explorer", "credits": 6000},
+    "starter_annually": {"plan_name": "Starter", "credits": 60000},
+    "growth_annually": {"plan_name": "Growth", "credits": 240000},
+    "pro_annually": {"plan_name": "Pro", "credits": 600000},
+    "scale_enterprise_annually": {"plan_name": "Scale/Enterprise", "credits": 1800000},
 
-    response = bedrock_runtime.converse(
-        modelId=model_id,
-        messages=conversation,
-        inferenceConfig={
-            "temperature": 0.7,
-            "topP": 0.9
-        },
-        requestMetadata={
-            "sessionId": session_id
-        }
-    )
+    # Custom / one-time plan
+    "agency_custom": {"plan_name": "Agency/Custom", "credits": 1000},
+}
 
-    response_text = response["output"]["message"]["content"][0]["text"]
-    return response_text.strip()
 
-# 🧾 Prompt builder for business profile extraction
-def call_llm_extract_profile(all_content: str) -> str:
-    prompt_relevancy = f"""
-You are an expert business and marketing analyst specializing in B2B brand strategy.
- 
-You are given structured company information (scraped and pre-organized in JSON or markdown):
-{str(all_content)}
- 
-Your task:
-1. Extract all key information relevant to building a detailed and personalized business profile.
-2. Use only factual data found in the input. Do not infer or invent data.
-3. Return the response in the exact format below using the same headings and order.
-4. If any field cannot be determined confidently, leave it blank (do not make assumptions).
- 
-Return your answer in this format exactly:
- 
-Business Name:
-Industry / Sector:
-Mission:
-Vision:
-Objective / Purpose Statement:
-Business Concept:
-Products or Services Offered:
-Target Market:
-Who They Currently Sell To:
-Value Proposition:
-Top Business Goals:
-Challenges:
-Company Overview / About Summary:
-Core Values / Brand Personality:
-Unique Selling Points (USPs):
-Competitive Advantage / What Sets Them Apart:
-Market Positioning Statement:
-Customer Segments:
-Proof Points / Case Studies / Testimonials Summary:
-Key Differentiators:
-Tone of Voice / Brand Personality Keywords:
-Core Features / Capabilities:
-Business Model:
-Technology Stack / Tools / Platform:
-Geographic Presence:
-Leadership / Founder Info:
-Company Values / Culture:
-Strategic Initiatives / Future Plans:
-Awards / Recognition / Partnerships:
-Press Mentions or Achievements:
-Client or Industry Verticals Served:
- 
-Notes:
-- Keep responses concise and factual.
-- Avoid any assumptions or generation of new data.
-- Use sentence form, not bullet lists, except where lists are explicitly more natural.
-    """.strip()
 
-    return llm_calling(prompt_relevancy, model_id="us.anthropic.claude-sonnet-4-20250514-v1:0")
-
-# 🧩 Lambda entrypoint (triggered by S3 PUT event)
+# -------------------------
+# Lambda Handler
+# -------------------------
 def lambda_handler(event, context):
-    print("Received S3 event:", json.dumps(event))
+    path = event.get("path", "")
+    method = event.get("httpMethod", "GET")
 
-    # Extract bucket and object key from event
-    record = event["Records"][0]
-    bucket_name = record["s3"]["bucket"]["name"]
-    object_key = record["s3"]["object"]["key"]
+    # ------------------------
+    # 1️⃣ Create Checkout Session
+    # ------------------------
+    if path.endswith("/checkout-plans") and method == "POST":
+        body = parse_body(event)
+        lookup_key = body.get("lookup_key")
 
-    # Ensure correct bucket
-    if bucket_name != BUCKET_NAME:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"message": f"Unexpected bucket: {bucket_name}"})
-        }
+        if not lookup_key:
+            return response_json({"error": "lookup_key required"}, 400)
 
-    # ✅ Extract project_id and session_id from object_key
-    # Expected pattern: pdf_files/{project_id}/{session_id}/{file_name}
-    parts = object_key.split("/")
-    if len(parts) < 4 or parts[0] != "pdf_files":
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"message": f"Invalid S3 key structure: {object_key}"})
-        }
+        prices = stripe.Price.list(lookup_keys=[lookup_key], expand=["data.product"])
+        if not prices.data:
+            return response_json({"error": "Invalid lookup_key"}, 400)
 
-    project_id = parts[1]
-    session_id = parts[2]
-    file_name = parts[3]
-
-    print(f"Extracted project_id: {project_id}, session_id: {session_id}, file_name: {file_name}")
-
-    # ✅ Fetch PDF file from S3
-    pdf_obj = s3.get_object(Bucket=bucket_name, Key=object_key)
-    pdf_bytes = pdf_obj["Body"].read()
-
-    print(f"Reading file from S3: {object_key}")
-    print(f"File size: {len(pdf_bytes)} bytes")
-
-    # ✅ Extract text from PDF
-    all_text = ""
-    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        print(f"Total pages: {len(pdf.pages)}")
-        for i, page in enumerate(pdf.pages):
-            print(f"Extracting page {i + 1} ...")
-            text = page.extract_text()
-            if text:
-                all_text += text + "\n" + "-" * 80 + "\n"
-
-    # 🧠 Call Bedrock LLM
-    print("Calling Bedrock LLM to generate structured business profile...")
-    parsed_profile = call_llm_extract_profile(all_text)
-    print("LLM processing completed.")
-
-    # ✅ Get user_id from DynamoDB
-    table = dynamodb.Table(USERS_TABLE)
-    try:
-        response = table.query(
-            IndexName="session_id-index",
-            KeyConditionExpression=Key("session_id").eq(session_id)
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[{"price": prices.data[0].id, "quantity": 1}],
+            mode="subscription",
+            # discounts=[{"promotion_code": "promo_1SFwsN1LHsiGbvuai4RHkxRb"}],
+            success_url=f"{FRONTEND_DOMAIN}/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{FRONTEND_DOMAIN}/cancel",
+            metadata={"lookup_key": lookup_key},  # store lookup_key for webhook
         )
-        if not response.get("Items"):
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"message": f"No user found for session_id {session_id}"})
-            }
-        user_id = response["Items"][0]["id"]
-        print(f"User found via GSI: {user_id}")
-    except Exception as e:
-        print(f"GSI not found or query failed, fallback to scan: {e}")
-        response = table.scan(
-            FilterExpression=Attr("session_id").eq(session_id)
+
+        return response_json({"checkout_url": checkout_session.url})
+
+    # ------------------------
+    # 2️⃣ Create Customer Portal
+    # ------------------------
+    elif path.endswith("/create-portal-session") and method == "POST":
+        body = parse_body(event)
+        session_id = body.get("session_id")
+
+        if not session_id:
+            return response_json({"error": "session_id required"}, 400)
+
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+        if not checkout_session.customer:
+            return response_json({"error": "No customer found for this session"}, 400)
+
+        portal_session = stripe.billing_portal.Session.create(
+            customer=checkout_session.customer,
+            return_url=FRONTEND_DOMAIN,
         )
-        if not response.get("Items"):
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"message": f"No user found for session_id {session_id}"})
+
+        return response_json({"portal_url": portal_session.url})
+
+    # ------------------------
+    # 3️⃣ Handle Webhook (Stripe → Lambda)
+    # ------------------------
+    elif path.endswith("/payments") and method == "POST":
+        webhook_secret = "whsec_lUfZEYFvE2yNQUTjaRPoETYRFytxXK45"
+        payload = event.get("body", "")
+        sig_header = event["headers"].get("Stripe-Signature")
+
+        # ⚠️ No try/except — directly parse webhook
+        stripe_event = stripe.Webhook.construct_event(
+            payload=payload,
+            sig_header=sig_header,
+            secret=webhook_secret
+        )
+
+        event_type = stripe_event["type"]
+        data = stripe_event["data"]["object"]
+
+        # ✅ Process only successful events
+        if event_type in ("checkout.session.completed", "payment_intent.succeeded"):
+            customer_email = (
+                data.get("customer_details", {}).get("email")
+                or data.get("receipt_email")
+                or data.get("metadata", {}).get("email")
+            )
+
+            if not customer_email:
+                print("⚠️ No email found in webhook payload")
+                return response_json({"status": "ignored", "reason": "no email"}, 200)
+
+            # Detect lookup_key
+            lookup_key = None
+            if data.get("metadata") and "lookup_key" in data["metadata"]:
+                lookup_key = data["metadata"]["lookup_key"]
+            elif data.get("subscription"):
+                subscription = stripe.Subscription.retrieve(data["subscription"])
+                if subscription["items"]["data"]:
+                    lookup_key = subscription["items"]["data"][0]["price"].get("lookup_key")
+
+            # Fallback if lookup_key not found
+            plan_info = PLAN_CREDITS.get(lookup_key, {"plan_name": "Agency/Custom", "credits": 1000})
+
+            # Build DynamoDB record
+            db_item = {
+                "email": customer_email,
+                "delivery_status": "success",
+                "stripe_event_type": event_type,
+                "payment_id": stripe_event.get("id"),
+                "payment_at": data.get("created"),
+                "amount_subtotal": data.get("amount_subtotal"),
+                "amount_total": data.get("amount_total"),
+                "currency": data.get("currency"),
+                "customer_id": data.get("customer"),
+                "country": data.get("customer_details", {}).get("address", {}).get("country") if data.get("customer_details") else None,
+                "business_name": data.get("customer_details", {}).get("business_name") if data.get("customer_details") else None,
+                "name": data.get("customer_details", {}).get("name") if data.get("customer_details") else None,
+                "phone": data.get("customer_details", {}).get("phone") if data.get("customer_details") else None,
+                "invoice_id": data.get("invoice"),
+                "package_mode": data.get("mode"),
+                "payment_status": data.get("payment_status", "succeeded"),
+                "subscription_id": data.get("subscription"),
+                "lookup_key": lookup_key,
+                "success_url": f"{FRONTEND_DOMAIN}/success?session_id={data.get('id')}",
+                "plan_name": plan_info["plan_name"],
+                "credits": plan_info["credits"],
+                "body": payload,
             }
-        user_id = response["Items"][0]["id"]
-        print(f"User found via scan: {user_id}")
 
-    # ✅ Upload extracted + parsed text to S3 (append if exists)
-    s3_key = f"url_parsing/{project_id}/{user_id}/web_scraping.txt"
+            # ✅ Write to DynamoDB
+            stripe_table.put_item(Item=db_item)
+            print(f"✅ Payment recorded for {customer_email} ({plan_info['plan_name']})")
 
-    try:
-        existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
-        existing_content = existing_obj["Body"].read().decode("utf-8")
-        print("Existing file found. Appending new content...")
-    except s3.exceptions.NoSuchKey:
-        existing_content = ""
-        print("No existing file found. Creating a new one...")
+            return response_json({"status": "success", "event_type": event_type}, 200)
 
-    final_output = (
-        existing_content + "\n\n--- NEW PDF EXTRACT ---\n\n" + parsed_profile
-        if existing_content
-        else parsed_profile
-    )
+        # 💤 Ignore other events but respond 200
+        print(f"ℹ️ Ignored event type: {event_type}")
+        return response_json({"status": "ignored", "event_type": event_type}, 200)
 
-    s3.put_object(
-        Bucket=BUCKET_NAME,
-        Key=s3_key,
-        Body=final_output.encode("utf-8"),
-        ContentType="text/plain"
-    )
+    # ------------------------
+    # 4️⃣ Fallback for unknown routes
+    # ------------------------
+    return response_json({"error": f"Route {path} not found"}, 404)
 
-    s3_url = f"s3://{BUCKET_NAME}/{s3_key}"
 
+# ------------------------
+# Helper Functions
+# ------------------------
+def parse_body(event):
+    """Parse JSON body from API Gateway event"""
+    if event.get("body"):
+        try:
+            return json.loads(event["body"])
+        except json.JSONDecodeError:
+            return {}
+    return {}
+
+def response_json(body, status=200):
+    """Return JSON response with CORS headers"""
     return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "Triggered by S3: PDF processed successfully and profile saved.",
-            "project_id": project_id,
-            "session_id": session_id,
-            "url": s3_url
-        })
+        "statusCode": status,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": FRONTEND_DOMAIN,
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        },
+        "body": json.dumps(body),
     }

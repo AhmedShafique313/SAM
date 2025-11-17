@@ -75,6 +75,7 @@ Resources:
       - AdminPortalFeature
       - BrandSetupFeature
       - DashboardFeature
+      - PaymentGatewayFeature
     Properties:
       Location: API/template.yaml
 

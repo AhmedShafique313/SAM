@@ -6,7 +6,7 @@ import os
 # -------------------------
 # Environment Configuration
 # -------------------------
-stripe.STRIPE_API_KEY = os.environ["STRIPE_API_KEY"]
+stripe.api_key = os.environ["STRIPE_API_KEY"]
 FRONTEND_DOMAIN = "https://nonoppressive-undyingly-thatcher.ngrok-free.dev"
 
 # DynamoDB setup

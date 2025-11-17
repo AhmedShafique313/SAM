@@ -98,6 +98,8 @@ Outputs:
   CreateProjectFunctionArn:
     Description: ARN of CreateProjectFunction Lambda
     Value: !GetAtt CreateProjectFunction.Arn
+    Export: 
+      Name: CreateProjectFunctionArn    
 
   OrganizationsAgainstUserFunctionArn:
     Description: ARN of OrganizationsAgainstUserFunction Lambda

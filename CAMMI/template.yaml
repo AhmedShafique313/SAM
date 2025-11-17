@@ -76,6 +76,7 @@ Resources:
       - BrandSetupFeature
       - DashboardFeature
       - PaymentGatewayFeature
+      - ProjectOrganizationFeature
     Properties:
       Location: API/template.yaml
 

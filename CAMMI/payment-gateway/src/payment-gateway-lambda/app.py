@@ -46,7 +46,7 @@ def lambda_handler(event, context):
     # ------------------------
     # 1️⃣ Create Checkout Session
     # ------------------------
-    if path.endswith("/checkout-plans") and method == "POST":
+    if path.endswith("/payment-gateway/checkout-plans") and method == "POST":
         body = parse_body(event)
         lookup_key = body.get("lookup_key")
 
@@ -71,7 +71,7 @@ def lambda_handler(event, context):
     # ------------------------
     # 2️⃣ Create Customer Portal
     # ------------------------
-    elif path.endswith("/create-portal-session") and method == "POST":
+    elif path.endswith("/payment-gateway/create-portal-session") and method == "POST":
         body = parse_body(event)
         session_id = body.get("session_id")
 
@@ -92,7 +92,7 @@ def lambda_handler(event, context):
     # ------------------------
     # 3️⃣ Handle Webhook (Stripe → Lambda)
     # ------------------------
-    elif path.endswith("/payments") and method == "POST":
+    elif path.endswith("/payment-gateway/payments") and method == "POST":
         webhook_secret = "whsec_lUfZEYFvE2yNQUTjaRPoETYRFytxXK45"
         payload = event.get("body", "")
         sig_header = event["headers"].get("Stripe-Signature")

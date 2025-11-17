@@ -21,7 +21,7 @@ Resources:
   CheckoutPlansFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt DashboardResource.ResourceId
+      ParentId: !Ref PaymentGatewayParentResource.ResourceId
       PathPart: checkout-plans
       RestApiId: !Ref RestApiId
 
@@ -75,7 +75,7 @@ Resources:
   CreatePortalSessionFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt DashboardResource.ResourceId
+      ParentId: !Ref PaymentGatewayParentResource.ResourceId
       PathPart: create-portal-session
       RestApiId: !Ref RestApiId
 
@@ -129,7 +129,7 @@ Resources:
   PaymentsFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt DashboardResource.ResourceId
+      ParentId: !Ref PaymentGatewayParentResource.ResourceId
       PathPart: payments
       RestApiId: !Ref RestApiId
 

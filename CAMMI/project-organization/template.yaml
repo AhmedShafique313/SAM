@@ -104,15 +104,24 @@ Outputs:
   OrganizationsAgainstUserFunctionArn:
     Description: ARN of OrganizationsAgainstUserFunction Lambda
     Value: !GetAtt OrganizationsAgainstUserFunction.Arn
+    Export: 
+      Name: OrganizationsAgainstUserFunctionArn    
+
 
   ProjectsAgainstUserFunctionArn:
     Description: ARN of ProjectsAgainstUserFunction Lambda
     Value: !GetAtt ProjectsAgainstUserFunction.Arn
+    Export: 
+      Name: ProjectsAgainstUserFunctionArn      
 
   SpecificOrganizationsFunctionArn:
     Description: ARN of SpecificOrganizationsFunction Lambda
     Value: !GetAtt SpecificOrganizationsFunction.Arn
+    Export: 
+      Name: SpecificOrganizationsFunctionArn     
 
   SpecificProjectsFunctionArn:
     Description: ARN of SpecificProjectsFunction Lambda
     Value: !GetAtt SpecificProjectsFunction.Arn
+    Export: 
+      Name: SpecificProjectsFunctionArn       

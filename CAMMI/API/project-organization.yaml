@@ -17,14 +17,15 @@ Resources:
       PathPart: project-organization
       RestApiId: !Ref RestApiId
 
-  # /project-organization/checkout-plans
+  # /project-organization/projects
   ProjectsFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: projects
-      RestApiId: !Ref RestApiId
+      ParentId: !GetAtt ProjectOrganizationParentResource.ResourceId
+      PathPart: projects
+      RestApiId: !Ref RestApiId      
 
-  # POST /project-organization/checkout-plans
+  # POST /project-organization/projects
   ProjectsFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -43,7 +44,7 @@ Resources:
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  # OPTIONS /project-organization/checkout-plans
+  # OPTIONS /project-organization/projects
   ProjectsFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:

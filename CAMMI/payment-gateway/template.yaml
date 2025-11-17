@@ -15,6 +15,8 @@ Resources:
       Tracing: Active
       Description: Handles payment processing for CAMMI
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Layers:
+        - !ImportValue StripeLibrariesLayerArn
       Environment:
         Variables:
           STRIPE_API_KEY: !Sub "{{resolve:secretsmanager:cammi-secrets:SecretString:STRIPE_API_KEY}}"

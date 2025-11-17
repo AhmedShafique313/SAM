@@ -21,6 +21,28 @@ Resources:
       CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
       IntegrationMethod: POST
 
+  EditHeadingLambdaWebSocketIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EditHeadingFunctionArn}/invocations
+        - EditHeadingFunctionArn: !ImportValue EditHeadingFunctionArn
+      CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+      IntegrationMethod: POST
+
+  RealtimeTextFrontendLambdaWebSocketIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RealtimeTextFrontEndFunctionArn}/invocations
+        - RealtimeTextFrontEndFunctionArn: !ImportValue RealtimeTextFrontEndFunctionArn
+      CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+      IntegrationMethod: POST
+
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -45,6 +67,21 @@ Resources:
       OperationName: DefaultRoute
       Target: !Sub "integrations/${UploadTextExtractFunctionWebSocketLambdaIntegration}"
 
+  EditHeadingRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      RouteKey: "editHeading"
+      Target: !Sub "integrations/${EditHeadingLambdaWebSocketIntegration}"
+
+  RealtimeTextFrontendRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      RouteKey: "realtimeText"
+      Target: !Sub "integrations/${RealtimeTextFrontendLambdaWebSocketIntegration}"
+
+
   WebSocketLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -57,6 +94,8 @@ Resources:
       - ConnectRoute
       - DisconnectRoute
       - DefaultRoute
+      - EditHeadingRoute
+      - RealtimeTextFrontendRoute
     Properties:
       ApiId: !Ref CAMMIWebSocketApi
 

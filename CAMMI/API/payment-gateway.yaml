@@ -21,23 +21,23 @@ Resources:
   CheckoutPlansFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt PaymentGatewayParentResource.ResourceId
+      ParentId: !GetAtt DashboardResource.ResourceId
       PathPart: checkout-plans
       RestApiId: !Ref RestApiId
 
-  # GET /payment-gateway/checkout-plans
-  CheckoutPlansFunctionResourceGETMethod:
+  # POST /payment-gateway/checkout-plans
+  CheckoutPlansFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref CheckoutPlansFunctionResource
-      HttpMethod: GET
+      HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Uri: !Sub
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PaymentGatewayFunctionArn}/invocations
           - PaymentGatewayFunctionArn: !ImportValue PaymentGatewayFunctionArn
@@ -60,7 +60,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: "{}"
@@ -75,23 +75,23 @@ Resources:
   CreatePortalSessionFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt PaymentGatewayParentResource.ResourceId
+      ParentId: !GetAtt DashboardResource.ResourceId
       PathPart: create-portal-session
       RestApiId: !Ref RestApiId
 
-  # GET /payment-gateway/create-portal-session
-  CreatePortalSessionFunctionResourceGETMethod:
+  # POST /payment-gateway/create-portal-session
+  CreatePortalSessionFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref CreatePortalSessionFunctionResource
-      HttpMethod: GET
+      HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Uri: !Sub
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PaymentGatewayFunctionArn}/invocations
           - PaymentGatewayFunctionArn: !ImportValue PaymentGatewayFunctionArn
@@ -114,7 +114,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: "{}"
@@ -123,29 +123,29 @@ Resources:
           ResponseParameters:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
-            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Origin: true   
 
   # /payment-gateway/payments
   PaymentsFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt PaymentGatewayParentResource.ResourceId
+      ParentId: !GetAtt DashboardResource.ResourceId
       PathPart: payments
       RestApiId: !Ref RestApiId
 
-  # GET /payment-gateway/payments
-  PaymentsFunctionResourceGETMethod:
+  # POST /payment-gateway/payments
+  PaymentsFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref PaymentsFunctionResource
-      HttpMethod: GET
+      HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Uri: !Sub
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PaymentGatewayFunctionArn}/invocations
           - PaymentGatewayFunctionArn: !ImportValue PaymentGatewayFunctionArn
@@ -168,7 +168,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: "{}"
@@ -177,4 +177,4 @@ Resources:
           ResponseParameters:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
-            method.response.header.Access-Control-Allow-Origin: true                        
+            method.response.header.Access-Control-Allow-Origin: true                     

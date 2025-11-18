@@ -1,17 +1,12 @@
 import json, os
 import urllib3, boto3
 from urllib.parse import urlencode
-
-secrets_client = boto3.client("secretsmanager")
-def get_secret(secret_name):
-    response = secrets_client.get_secret_value(SecretId=secret_name)
-    return json.loads(response["SecretString"]) if "SecretString" in response else None
  
 http = urllib3.PoolManager()
 
-L_CLIENT_ID = get_secret(os.environ["L_CLIENT_ID"])
-L_CLIENT_SECRET = get_secret(os.environ["L_CLIENT_SECRET"])
-REDIRECT_URI = "https://o3uzr46ro5.execute-api.us-east-1.amazonaws.com/cammi-dev/callback"
+L_CLIENT_ID = os.environ["L_CLIENT_ID"]
+L_CLIENT_SECRET = os.environ["L_CLIENT_SECRET"]
+REDIRECT_URI = "https://v2dkswnkyg.execute-api.us-east-1.amazonaws.com/dev/LinkedIn/Callback"
  
 AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
@@ -44,7 +39,7 @@ def lambda_handler(event, context):
             <a href="/login"><button>Login with LinkedIn</button></a>
         """)
  
-    elif path == "/linkedinlogin":
+    elif path == "/linkedInLogin":
         params = {
             "response_type": "code",
             "client_id": L_CLIENT_ID,
@@ -58,7 +53,7 @@ def lambda_handler(event, context):
             "body": json.dumps({"login_url": login_url})
         }
  
-    elif path == "/callback":
+    elif path == "/Callback":
         code = query.get("code")
         if not code:
             return response_html("<h3>Error: No code provided</h3>", 400)

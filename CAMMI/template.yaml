@@ -78,6 +78,7 @@ Resources:
       - PaymentGatewayFeature
       - ProjectOrganizationFeature
       - LinkedInFeature
+      - SchedulerFeature
     Properties:
       Location: API/template.yaml
 

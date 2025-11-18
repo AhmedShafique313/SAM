@@ -30,6 +30,7 @@ Resources:
       - PaymentGateway
       - ProjectOrganization
       - LinkedIn
+      - Schedular
     Properties:
       RestApiId: !Ref cammi
 
@@ -200,7 +201,15 @@ Resources:
       Location: linkedIn.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                            
+        RestApiId: !Ref cammi 
+
+  Schedular:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: schedular.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                                    
 
 
 Outputs:

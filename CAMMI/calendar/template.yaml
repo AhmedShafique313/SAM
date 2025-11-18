@@ -81,14 +81,20 @@ Outputs:
   LinkedInCalendarViewFunctionArn:
     Description: ARN of LinkedInCalendarViewFunction Lambda
     Value: !GetAtt LinkedInCalendarViewFunction.Arn
+    Export:
+      Name: LinkedInCalendarViewFunctionArn
 
   FetchPostLinkedInFunctionArn:
     Description: ARN of FetchPostLinkedInFunction Lambda
-    Value: !GetAtt FetchPostLinkedInFunction.Arn    
+    Value: !GetAtt FetchPostLinkedInFunction.Arn  
+    Export:
+      Name: FetchPostLinkedInFunctionArn  
 
   LinkedInPostEditDeleteFunctionArn:
     Description: ARN of LinkedInPostEditDeleteFunction Lambda
     Value: !GetAtt LinkedInPostEditDeleteFunction.Arn
+    Export:
+      Name: LinkedInPostEditDeleteFunctionArn
 
   WordpressCalendarViewFunctionArn:
     Description: ARN of WordpressCalendarViewFunction Lambda

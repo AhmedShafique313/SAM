@@ -79,6 +79,7 @@ Resources:
       - ProjectOrganizationFeature
       - LinkedInFeature
       - SchedulerFeature
+      - CalendarFeature
     Properties:
       Location: API/template.yaml
 

@@ -31,6 +31,7 @@ Resources:
       - ProjectOrganization
       - LinkedIn
       - Schedular
+      - Calendar
     Properties:
       RestApiId: !Ref cammi
 
@@ -209,7 +210,15 @@ Resources:
       Location: schedular.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                                    
+        RestApiId: !Ref cammi  
+
+  Calendar:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: calendar.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                                  
 
 
 Outputs:

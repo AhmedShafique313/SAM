@@ -10,17 +10,11 @@ from google.oauth2 import id_token
 import google.auth.transport.requests
 from urllib.parse import urlencode
 
-secrets_client = boto3.client("secretsmanager")
+CLIENT_ID = os.environ["CLIENT_ID"]
+CLIENT_SECRET = os.environ["CLIENT_SECRET"]
+ZOHO_APP_PASSWORD = os.environ["ZOHO_APP_PASSWORD"]
 
-def get_secret(secret_name):
-    response = secrets_client.get_secret_value(SecretId=secret_name)
-    return json.loads(response["SecretString"]) if "SecretString" in response else None
-
-CLIENT_ID = get_secret(os.environ["CLIENT_ID"])
-CLIENT_SECRET = get_secret(os.environ["CLIENT_SECRET"])
-ZOHO_APP_PASSWORD = get_secret(os.environ["ZOHO_APP_PASSWORD"])
-
-REDIRECT_URI = "https://o3uzr46ro5.execute-api.us-east-1.amazonaws.com/cammi-dev/google-callback"
+REDIRECT_URI = "https://v2dkswnkyg.execute-api.us-east-1.amazonaws.com/dev/auth/google-callback"
 ZOHO_EMAIL = "info@cammi.ai"
 USERS_TABLE = "Users"
 

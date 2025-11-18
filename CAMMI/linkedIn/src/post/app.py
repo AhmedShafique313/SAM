@@ -9,7 +9,7 @@ http = urllib3.PoolManager()
  
 # DynamoDB tables
 dynamodb = boto3.resource("dynamodb")
-user_table = dynamodb.Table("linkedin_user_table")
+user_table = dynamodb.Table("linkedin-user-table")
 post_table = dynamodb.Table("linkedin-posts-table") 
  
  

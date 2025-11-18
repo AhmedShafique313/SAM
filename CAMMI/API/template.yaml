@@ -29,6 +29,7 @@ Resources:
       - Dashboard
       - PaymentGateway
       - ProjectOrganization
+      - LinkedIn
     Properties:
       RestApiId: !Ref cammi
 
@@ -191,7 +192,15 @@ Resources:
       Location: project-organization.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                                 
+        RestApiId: !Ref cammi      
+
+  LinkedIn:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: linkedIn.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                            
 
 
 Outputs:

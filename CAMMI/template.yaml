@@ -80,6 +80,7 @@ Resources:
       - LinkedInFeature
       - SchedulerFeature
       - CalendarFeature
+      - WordpressFeature
     Properties:
       Location: API/template.yaml
 

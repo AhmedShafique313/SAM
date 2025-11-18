@@ -73,6 +73,8 @@ Outputs:
   WordpressRegistrationOnCammiFunctionArn:
     Description: ARN of WordpressRegistrationOnCammiFunction Lambda
     Value: !GetAtt WordpressRegistrationOnCammiFunction.Arn
+    Export:
+      Name: WordpressRegistrationOnCammiFunctionArn
 
   WordpressSchedularCammiFunctionArn:
     Description: ARN of WordpressSchedularCammiFunction Lambda

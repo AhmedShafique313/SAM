@@ -32,6 +32,7 @@ Resources:
       - LinkedIn
       - Schedular
       - Calendar
+      - WordPress
     Properties:
       RestApiId: !Ref cammi
 
@@ -218,7 +219,15 @@ Resources:
       Location: calendar.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                                  
+        RestApiId: !Ref cammi  
+
+  WordPress:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: wordpress.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                                 
 
 
 Outputs:

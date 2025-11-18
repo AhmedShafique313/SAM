@@ -33,6 +33,7 @@ Resources:
       - Schedular
       - Calendar
       - WordPress
+      - Lambda
     Properties:
       RestApiId: !Ref cammi
 
@@ -227,7 +228,15 @@ Resources:
       Location: wordpress.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                                 
+        RestApiId: !Ref cammi  
+
+  Lambda:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: common.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                               
 
 
 Outputs:

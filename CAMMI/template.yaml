@@ -81,6 +81,7 @@ Resources:
       - SchedulerFeature
       - CalendarFeature
       - WordpressFeature
+      - LambdaFeature
     Properties:
       Location: API/template.yaml
 

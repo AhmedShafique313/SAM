@@ -95,6 +95,8 @@ gtm = [
     "Tell us about your product/solution/service?"
 ]
 
+
+
 def lambda_handler(event, context):
     # Handle preflight OPTIONS request
     if event.get('httpMethod') == 'OPTIONS':
@@ -159,3 +161,5 @@ def lambda_handler(event, context):
         "document_type": document_type
         })
     }
+
+

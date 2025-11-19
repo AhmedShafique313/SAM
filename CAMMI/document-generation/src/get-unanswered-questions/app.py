@@ -84,6 +84,8 @@ gtm = [
     "What are your strengths, weaknesses, opps and threats?",
     "Tell us about your product/solution/service?"
 ]
+
+
  
 def lambda_handler(event, context):
     try:
@@ -166,3 +168,4 @@ def lambda_handler(event, context):
             },
             "body": json.dumps({"error": str(e)})
         }
+

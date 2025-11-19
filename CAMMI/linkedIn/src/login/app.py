@@ -39,10 +39,10 @@ def lambda_handler(event, context):
             <a href="/login"><button>Login with LinkedIn</button></a>
         """)
  
-    elif path == "/linkedInLogin":
+    elif path == "/linkedinlogin":
         params = {
             "response_type": "code",
-            "client_id": L_CLIENT_ID,
+            "client_id": CLIENT_ID,
             "redirect_uri": REDIRECT_URI,
             "scope": "openid profile email w_member_social",
         }
@@ -53,7 +53,7 @@ def lambda_handler(event, context):
             "body": json.dumps({"login_url": login_url})
         }
  
-    elif path == "/Callback":
+    elif path == "/callback":
         code = query.get("code")
         if not code:
             return response_html("<h3>Error: No code provided</h3>", 400)
@@ -62,8 +62,8 @@ def lambda_handler(event, context):
             "grant_type": "authorization_code",
             "code": code,
             "redirect_uri": REDIRECT_URI,
-            "client_id": L_CLIENT_ID,
-            "client_secret": L_CLIENT_SECRET,
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
         }
         encoded_data = urlencode(token_data)
  
@@ -100,7 +100,7 @@ def lambda_handler(event, context):
         """
 
         # redirect_url = f"https://cammi-yot6.vercel.app/dashboard?sub={userinfo.get('sub')}"
-        redirect_url = f"https://cammi-frontend-3kx5.vercel.app/dashboard/scheduler/linkedin?sub={userinfo.get('sub')}"
+        redirect_url = f"https://cammi-frontend.vercel.app/dashboard/scheduler/linkedin?sub={userinfo.get('sub')}"
         return {
             "statusCode": 302,
             "headers": {

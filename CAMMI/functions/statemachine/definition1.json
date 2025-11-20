@@ -4,10 +4,11 @@
   "States": {
     "clientIDSelect": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${ClientIDRegistrationLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {
@@ -25,12 +26,14 @@
       ],
       "Next": "getNextTier"
     },
+
     "getNextTier": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${GetNextPendingTierLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {
@@ -48,21 +51,21 @@
       ],
       "Next": "processMap"
     },
+
     "processMap": {
       "Type": "Map",
       "ItemsPath": "$.items",
       "ItemProcessor": {
-        "ProcessorConfig": {
-          "Mode": "INLINE"
-        },
+        "ProcessorConfig": { "Mode": "INLINE" },
         "StartAt": "bedrockCore",
         "States": {
           "bedrockCore": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::lambda:invoke.sync",
+            "Resource": "arn:aws:states:::lambda:invoke",
             "Parameters": {
               "FunctionName": "${StateMachineStarterLambda}",
-              "Payload.$": "$"
+              "Payload.$": "$",
+              "InvocationType": "RequestResponse"
             },
             "Retry": [
               {
@@ -84,12 +87,14 @@
       },
       "Next": "eventCreator"
     },
+
     "eventCreator": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${EventCreatorLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {
@@ -107,12 +112,14 @@
       ],
       "Next": "textToFrontEnd"
     },
+
     "textToFrontEnd": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${RealTimeTextFrontendLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {
@@ -130,12 +137,14 @@
       ],
       "Next": "creatorEvent"
     },
+
     "creatorEvent": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${CreatorEventLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {
@@ -153,12 +162,14 @@
       ],
       "Next": "tierStatusUpdate"
     },
+
     "tierStatusUpdate": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${UpdateTierStatusLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {
@@ -176,12 +187,14 @@
       ],
       "Next": "progressBarStatus"
     },
+
     "progressBarStatus": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${ProgressBarLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {
@@ -199,6 +212,7 @@
       ],
       "Next": "isFinalIteration"
     },
+
     "isFinalIteration": {
       "Type": "Choice",
       "Choices": [
@@ -210,12 +224,14 @@
       ],
       "Default": "finalDocumentCreation"
     },
+
     "finalDocumentCreation": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${DocumentationLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {
@@ -233,12 +249,14 @@
       ],
       "Next": "docCompleteEvent"
     },
+
     "docCompleteEvent": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke.sync",
+      "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${DocumentCompleteEventLambda}",
-        "Payload.$": "$"
+        "Payload.$": "$",
+        "InvocationType": "RequestResponse"
       },
       "Retry": [
         {

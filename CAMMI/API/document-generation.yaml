@@ -30,6 +30,7 @@ Resources:
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref GetUnansweredQuestionsFunctionResource
+      HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
@@ -188,6 +189,7 @@ Resources:
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref GetQuestionsAgainstDocTypeFunctionResource
+      HttpMethod: GET
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:

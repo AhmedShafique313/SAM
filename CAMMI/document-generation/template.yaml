@@ -220,7 +220,9 @@ Outputs:
 
   AnswersFileUploadToS3FunctionArn:
     Description: ARN of AnswersFileUploadToS3Function Lambda
-    Value: !GetAtt AnswersFileUploadToS3Function.Arn  
+    Value: !GetAtt AnswersFileUploadToS3Function.Arn
+    Export:
+      Name: AnswersFileUploadToS3FunctionArn  
 
   S3LambdaTriggerFunctionArn:
     Description: ARN of S3LambdaTriggerFunction Lambda

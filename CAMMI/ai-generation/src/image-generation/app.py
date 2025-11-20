@@ -13,14 +13,6 @@ def get_secret(secret_name):
 def normalize_private_key(pk: str) -> str:
     if pk is None:
         return None
-    pk = pk.strip()
-    if (pk.startswith('"') and pk.endswith('"')) or (pk.startswith("'") and pk.endswith("'")):
-        pk = pk[1:-1]
-    return pk.replace("\\n", "\n")
-
-def build_client():
-    # Load service account info securely from AWS Secrets Manager
-    secret_name = os.environ.get("GCP_SERVICE_SECRET_NAME")  # Update with your actual secret name
     service_account_info = get_secret(secret_name)
     if not service_account_info:
         raise Exception(f"Failed to load secret: {secret_name}")

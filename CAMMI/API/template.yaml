@@ -34,6 +34,7 @@ Resources:
       - Calendar
       - WordPress
       - Lambda
+      - DocumentGeneration
     Properties:
       RestApiId: !Ref cammi
 
@@ -236,7 +237,15 @@ Resources:
       Location: common.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                               
+        RestApiId: !Ref cammi  
+
+  DocumentGeneration:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: document-generation.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                             
 
 
 Outputs:

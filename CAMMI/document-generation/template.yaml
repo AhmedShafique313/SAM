@@ -193,18 +193,26 @@ Outputs:
   GetUnansweredQuestionsFunctionArn:
     Description: ARN of GetUnansweredQuestionsFunction Lambda
     Value: !GetAtt GetUnansweredQuestionsFunction.Arn
+    Export:
+      Name: GetUnansweredQuestionsFunctionArn
 
   UserInputEnhancementFunctionArn:
     Description: ARN of UserInputEnhancementFunction Lambda
     Value: !GetAtt UserInputEnhancementFunction.Arn
+    Export:
+      Name: UserInputEnhancementFunctionArn
 
   AddQuestionsInDBFunctionArn:
     Description: ARN of AddQuestionsInDBFunction Lambda
     Value: !GetAtt AddQuestionsInDBFunction.Arn
+    Export:
+      Name: AddQuestionsInDBFunctionArn
 
   GetQuestionsAgainstDocTypeFunctionArn:
     Description: ARN of GetQuestionsAgainstDocTypeFunction Lambda
-    Value: !GetAtt GetQuestionsAgainstDocTypeFunction.Arn    
+    Value: !GetAtt GetQuestionsAgainstDocTypeFunction.Arn
+    Export:
+      Name: GetQuestionsAgainstDocTypeFunctionArn    
 
   EditQuestionAnswerFunctionArn:
     Description: ARN of EditQuestionAnswerFunction Lambda

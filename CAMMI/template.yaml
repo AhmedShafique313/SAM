@@ -82,6 +82,7 @@ Resources:
       - CalendarFeature
       - WordpressFeature
       - LambdaFeature
+      - DocumentGenerationFeature
     Properties:
       Location: API/template.yaml
 

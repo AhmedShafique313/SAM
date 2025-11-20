@@ -13,7 +13,7 @@ TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 USERINFO_URL = "https://api.linkedin.com/v2/userinfo"
 
 dynamodb = boto3.resource("dynamodb")
-user_table = dynamodb.Table("linkedin-user-table")
+user_table = dynamodb.Table("linkedin_user_table")
  
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
     elif path == "/linkedinlogin":
         params = {
             "response_type": "code",
-            "client_id": CLIENT_ID,
+            "client_id": L_CLIENT_ID,
             "redirect_uri": REDIRECT_URI,
             "scope": "openid profile email w_member_social",
         }
@@ -62,8 +62,8 @@ def lambda_handler(event, context):
             "grant_type": "authorization_code",
             "code": code,
             "redirect_uri": REDIRECT_URI,
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
+            "client_id": L_CLIENT_ID,
+            "client_secret": L_CLIENT_SECRET,
         }
         encoded_data = urlencode(token_data)
  

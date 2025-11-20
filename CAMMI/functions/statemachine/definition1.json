@@ -10,6 +10,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -35,6 +36,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -67,6 +69,7 @@
               "Payload.$": "$",
               "InvocationType": "RequestResponse"
             },
+            "OutputPath": "$.Payload",
             "Retry": [
               {
                 "ErrorEquals": [
@@ -96,6 +99,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -121,6 +125,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -146,6 +151,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -171,6 +177,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -196,6 +203,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -233,6 +241,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -258,6 +267,7 @@
         "Payload.$": "$",
         "InvocationType": "RequestResponse"
       },
+      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [

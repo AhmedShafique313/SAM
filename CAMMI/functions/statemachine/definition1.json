@@ -5,12 +5,11 @@
     "clientIDSelect": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
         "FunctionName": "${ClientIDRegistrationLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
+        "Payload.$": "$"
       },
-      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -31,12 +30,11 @@
     "getNextTier": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
         "FunctionName": "${GetNextPendingTierLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
+        "Payload.$": "$"
       },
-      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -56,7 +54,6 @@
 
     "processMap": {
       "Type": "Map",
-      "ItemsPath": "$.items",
       "ItemProcessor": {
         "ProcessorConfig": { "Mode": "INLINE" },
         "StartAt": "bedrockCore",
@@ -64,12 +61,11 @@
           "bedrockCore": {
             "Type": "Task",
             "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
             "Parameters": {
               "FunctionName": "${StateMachineStarterLambda}",
-              "Payload.$": "$",
-              "InvocationType": "RequestResponse"
+              "Payload.$": "$"
             },
-            "OutputPath": "$.Payload",
             "Retry": [
               {
                 "ErrorEquals": [
@@ -94,12 +90,11 @@
     "eventCreator": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "FunctionName": "${EventCreatorLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
-      },
       "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${EventCreatorLambda}"
+      },
       "Retry": [
         {
           "ErrorEquals": [
@@ -120,12 +115,11 @@
     "textToFrontEnd": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "FunctionName": "${RealTimeTextFrontendLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
-      },
       "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${RealTimeTextFrontendLambda}"
+      },
       "Retry": [
         {
           "ErrorEquals": [
@@ -146,12 +140,11 @@
     "creatorEvent": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "FunctionName": "${CreatorEventLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
-      },
       "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${CreatorEventLambda}"
+      },
       "Retry": [
         {
           "ErrorEquals": [
@@ -172,12 +165,12 @@
     "tierStatusUpdate": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
         "FunctionName": "${UpdateTierStatusLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
+        "Payload.$": "$"
+        
       },
-      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -198,12 +191,11 @@
     "progressBarStatus": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "FunctionName": "${ProgressBarLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
-      },
       "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${ProgressBarLambda}"
+      },
       "Retry": [
         {
           "ErrorEquals": [
@@ -225,9 +217,9 @@
       "Type": "Choice",
       "Choices": [
         {
+          "Next": "getNextTier",
           "Variable": "$.next_iteration",
-          "BooleanEquals": false,
-          "Next": "getNextTier"
+          "BooleanEquals": false
         }
       ],
       "Default": "finalDocumentCreation"
@@ -236,12 +228,11 @@
     "finalDocumentCreation": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
         "FunctionName": "${DocumentationLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
+        "Payload.$": "$"
       },
-      "OutputPath": "$.Payload",
       "Retry": [
         {
           "ErrorEquals": [
@@ -262,12 +253,11 @@
     "docCompleteEvent": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "FunctionName": "${DocumentCompleteEventLambda}",
-        "Payload.$": "$",
-        "InvocationType": "RequestResponse"
-      },
       "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "${DocumentCompleteEventLambda}"
+      },
       "Retry": [
         {
           "ErrorEquals": [

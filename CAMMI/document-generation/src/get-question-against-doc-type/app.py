@@ -78,8 +78,8 @@ bs = [
     "Can you provide links to approved customer logos or other visual assets?",
     "What brag points or achievements would you like to highlight?",
     "Who will act as the spokesperson for your business?",
-    "What is the spokesperson’s title or role?",
-    "Can you provide links to your brand’s visual assets (e.g., logo, product screenshots)?"
+    "What is the spokesperson's title or role?",
+    "Can you provide links to your brand's visual assets (e.g., logo, product screenshots)?"
 ]
 
 gtm = [

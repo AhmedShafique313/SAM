@@ -5,12 +5,10 @@
     "EditKeyIdentifier": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
         "FunctionName": "${KeyIdentifierLambda}",
         "Payload.$": "$"
-      },
-      "ResultSelector": {
-        "Payload.$": "$.Payload"
       },
       "Retry": [
         {
@@ -31,12 +29,10 @@
     "BedrockAPIRequest": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
         "FunctionName": "${StateMachineStarterFunctionLambda}",
         "Payload.$": "$"
-      },
-      "ResultSelector": {
-        "Payload.$": "$.Payload"
       },
       "Retry": [
         {
@@ -57,12 +53,10 @@
     "DocumentGeneration": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
         "FunctionName": "${DocumentationFunctionLambda}",
         "Payload.$": "$"
-      },
-      "ResultSelector": {
-        "Payload.$": "$.Payload"
       },
       "Retry": [
         {
@@ -83,12 +77,10 @@
     "SuccessfulMessagetoFrontend": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
       "Parameters": {
         "FunctionName": "${GenerationCompleteFunctionLambda}",
         "Payload.$": "$"
-      },
-      "ResultSelector": {
-        "Payload.$": "$.Payload"
       },
       "Retry": [
         {

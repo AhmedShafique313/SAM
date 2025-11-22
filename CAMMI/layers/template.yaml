@@ -63,12 +63,12 @@ Resources:
         - python3.13
       RetentionPolicy: Delete
 
-  DocLibrariesLayer1:
+  DocLibrariesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: doc-layer-or-not
+      LayerName: layer-docx
       Description: Shared dependencies for document generation
-      ContentUri: doc-layer-or-not.zip
+      ContentUri: layer_docx.zip
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete
@@ -111,8 +111,8 @@ Outputs:
     Export:
       Name: StripeLibrariesLayerArn
 
-  DocLibrariesLayer1Arn:
-    Description: ARN of the doc generation or not libraries
-    Value: !Ref DocLibrariesLayer1
+  DocLibrariesLayerArn:
+    Description: ARN of the doc generation libraries
+    Value: !Ref DocLibrariesLayer
     Export:
-      Name: DocLibrariesLayer1Arn
+      Name: DocLibrariesLayerArn

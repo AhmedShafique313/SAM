@@ -475,7 +475,7 @@ ok
         run: |
           REST_API_NAME="cammi-endpoints"
           REGION="us-east-1"
-          REST_API_ID="v2dkswnkyg"
+          REST_API_ID="3gd0sb22ah"
           echo "Deploying REST API: $REST_API_ID"
           aws apigateway create-deployment \
             --rest-api-id $REST_API_ID \

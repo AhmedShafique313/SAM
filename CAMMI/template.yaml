@@ -221,9 +221,6 @@ Resources:
 
   StateMachinesFeature:
     Type: AWS::Serverless::Application
-    # DependsOn:
-    #   - EditStateMachineFeature
-    #   - LambdaFeature
     Properties:
       Location: functions/template.yaml
 

@@ -63,28 +63,28 @@ Resources:
     Properties:
       Location: project-organization/template.yaml
 
-  # ApiGatewayFeature:
-  #   Type: AWS::Serverless::Application
-  #   DependsOn:
-  #     - IAMStack
-  #     - FeedbackFeature
-  #     - OnboardingFeature
-  #     - ProfileFeature
-  #     - AIGenerationFeature
-  #     - AuthFeature
-  #     - AdminPortalFeature
-  #     - BrandSetupFeature
-  #     - DashboardFeature
-  #     - PaymentGatewayFeature
-  #     - ProjectOrganizationFeature
-  #     - LinkedInFeature
-  #     - SchedulerFeature
-  #     - CalendarFeature
-  #     - WordpressFeature
-  #     - LambdaFeature
-  #     - DocumentGenerationFeature
-  #   Properties:
-  #     Location: API/template.yaml
+  ApiGatewayFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - IAMStack
+      - FeedbackFeature
+      - OnboardingFeature
+      - ProfileFeature
+      - AIGenerationFeature
+      - AuthFeature
+      - AdminPortalFeature
+      - BrandSetupFeature
+      - DashboardFeature
+      - PaymentGatewayFeature
+      - ProjectOrganizationFeature
+      - LinkedInFeature
+      - SchedulerFeature
+      - CalendarFeature
+      - WordpressFeature
+      - LambdaFeature
+      - DocumentGenerationFeature
+    Properties:
+      Location: API/template.yaml
 
   BrandSetupFeature:
     Type: AWS::Serverless::Application
@@ -257,9 +257,9 @@ Outputs:
     Description: Outputs from Project Organization feature
     Value: !Ref ProjectOrganizationFeature
 
-  # ApiGatewayFeatureOutput:
-  #   Description: Outputs from API Gateway feature
-  #   Value: !Ref ApiGatewayFeature
+  ApiGatewayFeatureOutput:
+    Description: Outputs from API Gateway feature
+    Value: !Ref ApiGatewayFeature
 
   AdminPortalFeatureOutput:
     Description: Outputs from Admin Portal feature

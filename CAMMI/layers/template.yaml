@@ -63,7 +63,7 @@ Resources:
         - python3.13
       RetentionPolicy: Delete
 
-  DocLibrariesLayer:
+  DocLibrariesLayer1:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: layer-docx
@@ -111,8 +111,8 @@ Outputs:
     Export:
       Name: StripeLibrariesLayerArn
 
-  DocLibrariesLayerArn:
+  DocLibrariesLayer1Arn:
     Description: ARN of the doc generation libraries
-    Value: !Ref DocLibrariesLayer
+    Value: !Ref DocLibrariesLayer1
     Export:
-      Name: DocLibrariesLayerArn
+      Name: DocLibrariesLayer1Arn

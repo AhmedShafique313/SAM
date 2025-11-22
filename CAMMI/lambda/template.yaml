@@ -87,7 +87,7 @@ Resources:
       Description: Handles marketing_strategy_doc_generation
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Layers:
-        - !ImportValue DocLibrariesLayerArn
+        - !ImportValue DocLibrariesLayer1Arn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName

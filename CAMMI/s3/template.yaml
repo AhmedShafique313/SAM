@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: S3 bucket stack for CAMMI app
 
+Parameters:
+  TriggerLambdaArn:
+    Type: String
+    Description: ARN of Lambda to trigger on S3 Put event
+
 Resources:
 
   CammiS3Bucket:
@@ -19,7 +24,7 @@ Resources:
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:Put
-            Function: !ImportValue S3LambdaTriggerFunctionArn
+            Function: !Ref TriggerLambdaArn
             Filter:
               S3Key:
                 Rules:
@@ -28,15 +33,14 @@ Resources:
                   - Name: suffix
                     Value: businessidea.txt
 
-  # Allow S3 to invoke the Lambda
+  # Allow S3 bucket to invoke the Lambda
   CammiBucketInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !ImportValue S3LambdaTriggerFunctionArn
+      FunctionName: !Ref TriggerLambdaArn
       Principal: s3.amazonaws.com
       SourceArn: !GetAtt CammiS3Bucket.Arn
-
 
 Outputs:
   CammiBucketName:

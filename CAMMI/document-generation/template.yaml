@@ -6,6 +6,9 @@ Parameters:
   S3BucketName:
     Type: String
     Description: S3 bucket name imported from parent stack
+  S3LambdaTriggerFunctionArn:  
+    Type: String
+    Description: S3 trigger lambda function ARN
 
 Resources:
 

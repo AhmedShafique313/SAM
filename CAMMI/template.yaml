@@ -28,24 +28,11 @@ Resources:
     Type: AWS::Serverless::Application
     Properties:
       Location: db/template.yaml
-      
-  DocumentGenerationFeature:
-    Type: AWS::Serverless::Application
-    DependsOn:
-      - DynamoDBStack
-      - S3Stack
-    Properties:
-      Location: document-generation/template.yaml
-      Parameters:
-        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
-        
+
   S3Stack:
     Type: AWS::Serverless::Application
     Properties:
       Location: s3/template.yaml
-      Parameters:
-        S3LambdaTriggerFunctionArn: !GetAtt DocumentGenerationFeature.Outputs.S3LambdaTriggerFunctionArn
-
 
   FeedbackFeature:
     Type: AWS::Serverless::Application
@@ -135,6 +122,16 @@ Resources:
       - S3Stack
     Properties:
       Location: dashboard/template.yaml
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
+  DocumentGenerationFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+      - S3Stack
+    Properties:
+      Location: document-generation/template.yaml
       Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
 
@@ -239,10 +236,6 @@ Outputs:
   DynamoDBStackOutput:
     Description: Outputs from DynamoDB stack
     Value: !Ref DynamoDBStack
-    
-  DocumentGenerationFeatureOutput:
-    Description: Outputs from Document Generation feature
-    Value: !Ref DocumentGenerationFeature
 
   S3StackOutput:
     Description: Outputs from S3 stack
@@ -284,6 +277,10 @@ Outputs:
     Description: Outputs from Dashboard feature
     Value: !Ref DashboardFeature
 
+  DocumentGenerationFeatureOutput:
+    Description: Outputs from Document Generation feature
+    Value: !Ref DocumentGenerationFeature
+
   AIGenerationFeatureOutput:
     Description: Outputs from AI Generation feature
     Value: !Ref AIGenerationFeature
@@ -323,9 +320,3 @@ Outputs:
   StateMachinesFeatureOutput:
     Description: Outputs from state machine functions
     Value: !Ref StateMachinesFeature
-    
-  S3LambdaTriggerFunctionArn:
-    Description: ARN of the S3 Trigger Lambda from DocumentGenerationFeature
-    Value: !GetAtt DocumentGenerationFeature.Outputs.S3LambdaTriggerFunctionArn
-    Export:
-      Name: S3LambdaTriggerFunctionArn    

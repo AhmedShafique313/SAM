@@ -144,7 +144,7 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName
-          
+
   ###################################################
   # Edit heading Function
   ###################################################

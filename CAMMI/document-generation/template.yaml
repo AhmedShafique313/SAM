@@ -227,6 +227,8 @@ Outputs:
   S3LambdaTriggerFunctionArn:
     Description: ARN of S3LambdaTriggerFunction Lambda
     Value: !GetAtt S3LambdaTriggerFunction.Arn
+    Export:
+      Name: S3LambdaTriggerFunctionArn
 
   EditHeadingFunctionArn:
     Description: ARN of EditHeadingFunction Lambda

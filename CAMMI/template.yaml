@@ -43,6 +43,9 @@ Resources:
     Type: AWS::Serverless::Application
     Properties:
       Location: s3/template.yaml
+      Parameters:
+        S3LambdaTriggerFunctionArn: !GetAtt DocumentGenerationFeature.Outputs.S3LambdaTriggerFunctionArn
+
 
   FeedbackFeature:
     Type: AWS::Serverless::Application

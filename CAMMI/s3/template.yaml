@@ -15,15 +15,15 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
-  Outputs:
-    S3BucketName:
-      Description: Name of the CAMMI S3 bucket
-      Value: !Ref CammiS3Bucket
-      Export:
-        Name: S3BucketName
+Outputs:
+  S3BucketName:
+    Description: Name of the CAMMI S3 bucket
+    Value: !Ref CammiS3Bucket
+    Export:
+      Name: S3BucketName
   
-    S3BucketArn:
-      Description: ARN of the CAMMI S3 bucket
-      Value: !GetAtt CammiS3Bucket.Arn
-      Export:
-        Name: S3BucketArn
+  S3BucketArn:
+    Description: ARN of the CAMMI S3 bucket
+    Value: !GetAtt CammiS3Bucket.Arn
+    Export:
+      Name: S3BucketArn

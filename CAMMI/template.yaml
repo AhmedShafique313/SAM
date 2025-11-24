@@ -134,7 +134,6 @@ Resources:
       Location: document-generation/template.yaml
       Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
-        S3LambdaTriggerFunctionArn: !GetAtt LambdaFeature.Outputs.S3LambdaTriggerFunctionArn
 
   PaymentGatewayFeature:
     Type: AWS::Serverless::Application

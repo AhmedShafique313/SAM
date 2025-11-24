@@ -144,12 +144,28 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName
-      Events:
-        BusinessIdeaUpload:
-          Type: S3
-          Properties:
-            Bucket: !Ref S3BucketName
-            Events: s3:ObjectCreated:Put
+
+  ###################################################
+  # Lambda permission for S3
+  ###################################################
+  S3InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt S3LambdaTriggerFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !ImportValue CammiBucketArn   # Make sure this is exported from your S3 stack
+
+  ###################################################
+  # S3 Notification configuration
+  ###################################################
+  S3BucketNotification:
+    Type: AWS::S3::Bucket
+    Properties:
+      Bucket: !ImportValue S3BucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
             Filter:
               S3Key:
                 Rules:
@@ -157,6 +173,7 @@ Resources:
                     Value: prompt/businessidea/businessidea/
                   - Name: suffix
                     Value: businessidea.txt
+            Function: !GetAtt S3LambdaTriggerFunction.Arn
 
   ###################################################
   # Edit heading Function

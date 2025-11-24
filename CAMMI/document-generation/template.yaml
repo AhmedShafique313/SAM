@@ -144,23 +144,24 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName
-      Events:
-        BusinessIdeaTrigger:        # Event name
-          Type: S3
-          Properties:
-            Bucket: !Ref S3BucketName
-            Events:
-              - s3:ObjectCreated:Put
-              - s3:ObjectCreated:Post
-              - s3:ObjectCreated:Copy
-              - s3:ObjectCreated:CompleteMultipartUpload
+
+  S3LambdaTriggerNotification:
+    Type: AWS::S3::BucketNotification
+    Properties:
+      Bucket: !Ref S3BucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
             Filter:
               S3Key:
                 Rules:
                   - Name: prefix
                     Value: prompt/businessidea/businessidea/
                   - Name: suffix
-                    Value: businessidea.txt          
+                    Value: businessidea.txt
+            Function: !GetAtt S3LambdaTriggerFunction.Arn
+    DependsOn:
+      - S3LambdaTriggerFunction       
 
   ###################################################
   # Edit heading Function

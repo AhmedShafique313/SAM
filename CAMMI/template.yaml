@@ -322,3 +322,9 @@ Outputs:
   StateMachinesFeatureOutput:
     Description: Outputs from state machine functions
     Value: !Ref StateMachinesFeature
+    
+  S3LambdaTriggerFunctionArn:
+    Description: ARN of the S3 Trigger Lambda from DocumentGenerationFeature
+    Value: !GetAtt DocumentGenerationFeature.Outputs.S3LambdaTriggerFunctionArn
+    Export:
+      Name: S3LambdaTriggerFunctionArn    

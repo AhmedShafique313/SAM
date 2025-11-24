@@ -3,6 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: S3 bucket stack for CAMMI app
 
 Resources:
+
   CammiS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -14,6 +15,28 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Function: !ImportValue S3LambdaTriggerFunctionArn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: prompt/businessidea/businessidea/
+                  - Name: suffix
+                    Value: businessidea.txt
+
+  # Allow S3 to invoke the Lambda
+  CammiBucketInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !ImportValue S3LambdaTriggerFunctionArn
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt CammiS3Bucket.Arn
+
 
 Outputs:
   CammiBucketName:

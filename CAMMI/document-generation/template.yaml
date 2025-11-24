@@ -143,21 +143,7 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          S3_BUCKET_NAME: !Ref S3BucketName
-    Events:
-      BusinessIdeaTrigger:
-        Type: S3
-        Properties:
-          Bucket: !Ref S3BucketName
-          Events: 
-            - s3:ObjectCreated:Put
-          Filter:
-            S3Key:
-              Rules:
-                - Name: prefix
-                  Value: prompt/businessidea/businessidea/
-                - Name: suffix
-                  Value: businessidea.txt          
+          S3_BUCKET_NAME: !Ref S3BucketName       
 
   ###################################################
   # Edit heading Function

@@ -143,7 +143,7 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          S3_BUCKET_NAME: !Ref S3BucketName
+          S3_BUCKET_NAME: !Ref CammiBucketName
 
   ###################################################
   # Lambda permission for S3
@@ -162,7 +162,7 @@ Resources:
   S3BucketNotification:
     Type: AWS::S3::Bucket
     Properties:
-      Bucket: !ImportValue S3BucketName
+      Bucket: !ImportValue CammiBucketName
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:Put

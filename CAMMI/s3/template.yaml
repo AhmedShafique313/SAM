@@ -22,8 +22,8 @@ Outputs:
     Export:
       Name: CammiBucketName
   
-  S3BucketArn:
+  CammiBucketArn:
     Description: ARN of the CAMMI S3 bucket
     Value: !GetAtt CammiS3Bucket.Arn
     Export:
-      Name: S3BucketArn
+      Name: CammiBucketArn

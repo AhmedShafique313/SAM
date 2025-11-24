@@ -16,11 +16,11 @@ Resources:
         RestrictPublicBuckets: true
 
 Outputs:
-  S3BucketName:
+  CammiBucketName:
     Description: Name of the CAMMI S3 bucket
     Value: !Ref CammiS3Bucket
     Export:
-      Name: S3BucketName
+      Name: CammiBucketName
   
   S3BucketArn:
     Description: ARN of the CAMMI S3 bucket

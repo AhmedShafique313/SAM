@@ -145,24 +145,6 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName
 
-  S3LambdaTriggerNotification:
-    Type: AWS::S3::BucketNotification
-    Properties:
-      Bucket: !Ref S3BucketName
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:Put
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: prefix
-                    Value: prompt/businessidea/businessidea/
-                  - Name: suffix
-                    Value: businessidea.txt
-            Function: !GetAtt S3LambdaTriggerFunction.Arn
-    DependsOn:
-      - S3LambdaTriggerFunction       
-
   ###################################################
   # Edit heading Function
   ###################################################

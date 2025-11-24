@@ -38,13 +38,11 @@ Resources:
       Location: document-generation/template.yaml
       Parameters:
         S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
-
+        
   S3Stack:
     Type: AWS::Serverless::Application
     Properties:
       Location: s3/template.yaml
-      Parameters:
-        S3LambdaTriggerFunctionArn: !ImportValue S3LambdaTriggerFunctionArn
 
   FeedbackFeature:
     Type: AWS::Serverless::Application

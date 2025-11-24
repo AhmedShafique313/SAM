@@ -2,15 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: S3 bucket stack for CAMMI app
 
-Parameters:
-  S3LambdaTriggerFunctionArn:
-    Type: String
-    Description: ARN of the Lambda function to trigger on S3 events
-
 Resources:
-  ###################################################
-  # CAMMI S3 Bucket
-  ###################################################
   CammiS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -22,21 +14,6 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: "s3:ObjectCreated:*"
-            Function: !Ref S3LambdaTriggerFunctionArn
-
-  ###################################################
-  # Permission for Lambda to be triggered by S3
-  ###################################################
-  S3LambdaTriggerPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref S3LambdaTriggerFunctionArn
-      Action: lambda:InvokeFunction
-      Principal: s3.amazonaws.com
-      SourceArn: !GetAtt CammiS3Bucket.Arn
 
 Outputs:
   CammiBucketName:

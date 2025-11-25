@@ -165,6 +165,27 @@ Resources:
                 Action: '*'
                 Resource: '*'
 
+  S3EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: S3EventRule
+      EventPattern:
+        source:
+          - aws.s3
+        detail-type:
+          - Object Created
+        detail:
+          bucket:
+            name:
+              - !Ref S3BucketName
+          object:
+            key:
+              - wildcard: '*/*/prompt/businessidea/businessidea/businessidea.txt'
+      Targets:
+        - Id: "S3LambdaTriggerEvent"
+          RoleArn: !GetAtt S3EventRuleRole.Arn
+          Arn: !GetAtt  S3LambdaTriggerFunction
+
   ###################################################
   # Edit heading Function
   ###################################################

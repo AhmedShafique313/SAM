@@ -125,37 +125,37 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName   
 
-  ###################################################
-  # S3 Lambda Trigger
-  ###################################################
-  S3LambdaTriggerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: s3-lambda-trigger
-      Handler: app.lambda_handler
-      CodeUri: src/s3-lambda-trigger/
-      Runtime: python3.13
-      Timeout: 900
-      MemorySize: 128
-      Tracing: Active
-      Description: This lambda triggers a state machine.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Environment:
-        Variables:
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          S3_BUCKET_NAME: !Ref S3BucketName
-    # -------- S3 Event Trigger (SAM Standard Way) --------
-      Events:
-        S3UploadEvent:
-          Type: S3
-          Properties:
-            Bucket: !Ref S3BucketName
-            Events: s3:ObjectCreated:* 
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: prefix
-                    Value: prompt/businessidea/businessidea/businessidea.txt       
+  # ###################################################
+  # # S3 Lambda Trigger
+  # ###################################################
+  # S3LambdaTriggerFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     FunctionName: s3-lambda-trigger
+  #     Handler: app.lambda_handler
+  #     CodeUri: src/s3-lambda-trigger/
+  #     Runtime: python3.13
+  #     Timeout: 900
+  #     MemorySize: 128
+  #     Tracing: Active
+  #     Description: This lambda triggers a state machine.
+  #     Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+  #     Environment:
+  #       Variables:
+  #         USERS_TABLE: !ImportValue CAMMI-UsersTableName
+  #         S3_BUCKET_NAME: !Ref S3BucketName
+  #   # -------- S3 Event Trigger (SAM Standard Way) --------
+  #     Events:
+  #       S3UploadEvent:
+  #         Type: S3
+  #         Properties:
+  #           Bucket: !Ref S3BucketName
+  #           Events: s3:ObjectCreated:* 
+  #           Filter:
+  #             S3Key:
+  #               Rules:
+  #                 - Name: prefix
+  #                   Value: prompt/businessidea/businessidea/businessidea.txt       
 
   ###################################################
   # Edit heading Function
@@ -236,11 +236,11 @@ Outputs:
     Export:
       Name: AnswersFileUploadToS3FunctionArn  
 
-  S3LambdaTriggerFunctionArn:
-    Description: ARN of S3LambdaTriggerFunction Lambda
-    Value: !GetAtt S3LambdaTriggerFunction.Arn
-    Export:
-      Name: S3LambdaTriggerFunctionArn    
+  # S3LambdaTriggerFunctionArn:
+  #   Description: ARN of S3LambdaTriggerFunction Lambda
+  #   Value: !GetAtt S3LambdaTriggerFunction.Arn
+  #   Export:
+  #     Name: S3LambdaTriggerFunctionArn    
 
   EditHeadingFunctionArn:
     Description: ARN of EditHeadingFunction Lambda

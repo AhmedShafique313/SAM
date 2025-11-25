@@ -7,7 +7,7 @@ stepfunctions = boto3.client('stepfunctions')
 dynamodb = boto3.client('dynamodb')
 
 # Replace with your Step Function ARN
-STATE_MACHINE_ARN = 'arn:aws:states:us-east-1:468943998235:stateMachine:cammi-msd-orchestration-flow'
+STATE_MACHINE_ARN = 'arn:aws:states:us-east-1:687088702813:stateMachine:unified-state-machine'
 
 # Replace with your DynamoDB table name
 USERS_TABLE_NAME = 'users-table'

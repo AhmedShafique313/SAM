@@ -144,6 +144,13 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName
+
+  S3LambdaTriggerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: S3LambdaTriggerFunction
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref S3LambdaTriggerFunction]]
   
   S3EventRuleRole:
     Type: AWS::IAM::Role

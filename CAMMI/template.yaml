@@ -31,6 +31,8 @@ Resources:
 
   S3Stack:
     Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
     Properties:
       Location: s3/template.yaml
 

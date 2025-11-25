@@ -128,22 +128,22 @@ Resources:
   ###################################################
   # S3 Lambda Trigger
   ###################################################
-  S3LambdaTriggerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: s3-lambda-trigger
-      Handler: app.lambda_handler
-      CodeUri: src/s3-lambda-trigger/
-      Runtime: python3.13
-      Timeout: 900
-      MemorySize: 128
-      Tracing: Active
-      Description: This lambda triggers a state machine.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
-      Environment:
-        Variables:
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          S3_BUCKET_NAME: !Ref S3BucketName
+  # S3LambdaTriggerFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     FunctionName: s3-lambda-trigger
+  #     Handler: app.lambda_handler
+  #     CodeUri: src/s3-lambda-trigger/
+  #     Runtime: python3.13
+  #     Timeout: 900
+  #     MemorySize: 128
+  #     Tracing: Active
+  #     Description: This lambda triggers a state machine.
+  #     Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+  #     Environment:
+  #       Variables:
+  #         USERS_TABLE: !ImportValue CAMMI-UsersTableName
+  #         S3_BUCKET_NAME: !Ref S3BucketName
 
   ###################################################
   # Edit heading Function

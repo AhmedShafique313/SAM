@@ -37,17 +37,17 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref CammiS3Bucket
     # -------- S3 Event Trigger (SAM Standard Way) --------
-      # Events:
-      #   S3UploadEvent:
-      #     Type: S3
-      #     Properties:
-      #       Bucket: !Ref CammiS3Bucket
-      #       Events: s3:ObjectCreated:* 
-      #       Filter:
-      #         S3Key:
-      #           Rules:
-      #             - Name: prefix
-      #               Value: prompt/businessidea/businessidea/businessidea.txt       
+      Events:
+        S3UploadEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref CammiS3Bucket
+            Events: s3:ObjectCreated:* 
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: prompt/businessidea/businessidea/businessidea.txt       
 
 
 Outputs:

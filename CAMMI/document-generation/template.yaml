@@ -145,26 +145,6 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName
 
-  # S3EventRuleRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     RoleName: S3EventRuleRole
-  #     AssumeRolePolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service: events.amazonaws.com
-  #           Action: sts:AssumeRole
-  #     Policies:
-  #       - PolicyName: S3EventRulePolicy
-  #         PolicyDocument:
-  #           Version: "2012-10-17"
-  #           Statement:
-  #             - Effect: Allow
-  #               Action: '*'
-  #               Resource: '*'
-
   ###################################################
   # Edit heading Function
   ###################################################

@@ -16,15 +16,6 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
-  # Permission required for S3 to invoke Lambda
-  AllowS3InvokeS3LambdaTrigger:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !ImportValue S3LambdaTriggerFunctionArn
-      Action: lambda:InvokeFunction
-      Principal: s3.amazonaws.com
-      SourceArn: !GetAtt CammiS3Bucket.Arn
-
 Outputs:
   CammiBucketName:
     Description: Name of the CAMMI S3 bucket

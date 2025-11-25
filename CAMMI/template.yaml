@@ -31,8 +31,6 @@ Resources:
 
   S3Stack:
     Type: AWS::Serverless::Application
-    DependsOn:
-      - DynamoDBStack
     Properties:
       Location: s3/template.yaml
 
@@ -131,7 +129,7 @@ Resources:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
-      #- S3Stack
+      - S3Stack
     Properties:
       Location: document-generation/template.yaml
       Parameters:

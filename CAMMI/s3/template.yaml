@@ -56,8 +56,8 @@ Outputs:
     Value: !Ref CammiS3Bucket
   
   
-  S3LambdaTriggerFunctionArn:
-    Description: ARN of S3LambdaTriggerFunction Lambda
-    Value: !GetAtt S3LambdaTriggerFunction.Arn
-    Export:
-      Name: S3LambdaTriggerFunctionArn    
+  # S3LambdaTriggerFunctionArn:
+  #   Description: ARN of S3LambdaTriggerFunction Lambda
+  #   Value: !GetAtt S3LambdaTriggerFunction.Arn
+  #   Export:
+  #     Name: S3LambdaTriggerFunctionArn    

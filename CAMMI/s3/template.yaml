@@ -25,7 +25,7 @@ Resources:
     Properties:
       FunctionName: s3-lambda-trigger
       Handler: app.lambda_handler
-      CodeUri: document-generation/src/s3-lambda-trigger/
+      CodeUri: ../document-generation/src/s3-lambda-trigger/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128

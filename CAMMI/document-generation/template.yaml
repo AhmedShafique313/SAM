@@ -185,9 +185,9 @@ Resources:
           bucket:
             name:
               - !Ref S3BucketName
-          # object:
-          #   key:
-          #     - wildcard: '*/*/prompt/businessidea/businessidea/businessidea.txt'
+          object:
+            key:
+              - wildcard: '*/*/prompt/businessidea/businessidea/businessidea.txt'
       Targets:
         - Id: "S3LambdaTriggerEvent"
           RoleArn: !GetAtt S3EventRuleRole.Arn

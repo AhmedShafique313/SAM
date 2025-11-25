@@ -184,7 +184,7 @@ Resources:
       Targets:
         - Id: "S3LambdaTriggerEvent"
           RoleArn: !GetAtt S3EventRuleRole.Arn
-          Arn: !GetAtt  S3LambdaTriggerFunction
+          Arn: !GetAtt  S3LambdaTriggerFunction.Arn
 
   ###################################################
   # Edit heading Function

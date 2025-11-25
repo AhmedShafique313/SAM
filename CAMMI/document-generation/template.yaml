@@ -224,9 +224,9 @@ Outputs:
     Export:
       Name: AnswersFileUploadToS3FunctionArn  
 
-  S3LambdaTriggerFunctionArn:
-    Description: ARN of S3LambdaTriggerFunction Lambda
-    Value: !GetAtt S3LambdaTriggerFunction.Arn
+  # S3LambdaTriggerFunctionArn:
+  #   Description: ARN of S3LambdaTriggerFunction Lambda
+  #   Value: !GetAtt S3LambdaTriggerFunction.Arn
 
   EditHeadingFunctionArn:
     Description: ARN of EditHeadingFunction Lambda

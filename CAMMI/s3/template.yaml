@@ -35,13 +35,13 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          S3_BUCKET_NAME: !Ref S3BucketName
+          S3_BUCKET_NAME: !Ref CammiS3Bucket
     # -------- S3 Event Trigger (SAM Standard Way) --------
       Events:
         S3UploadEvent:
           Type: S3
           Properties:
-            Bucket: !Ref S3BucketName
+            Bucket: !Ref CammiS3Bucket
             Events: s3:ObjectCreated:* 
             Filter:
               S3Key:

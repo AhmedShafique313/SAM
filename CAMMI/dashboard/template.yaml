@@ -92,17 +92,17 @@ Resources:
   ###################################################
   # Delete Documents Lambda
   ###################################################
-  DeleteDocumentsFunction:
+  DeleteDocumentFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: delete-documents
+      FunctionName: delete-document
       Handler: app.lambda_handler
-      CodeUri: src/delete-documents/
+      CodeUri: src/delete-document/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
       Tracing: Active
-      Description: Handles delete documents against user
+      Description: Handles delete document against user
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
@@ -140,7 +140,7 @@ Resources:
     Properties:
       FunctionName: edit-document-name
       Handler: app.lambda_handler
-      CodeUri: src/dedit-document-name/
+      CodeUri: src/edit-document-name/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
@@ -177,11 +177,11 @@ Outputs:
     Export:
       Name: ViewSpecificDocumentsFunctionArn
 
-  DeleteDocumentsFunctionArn:
-    Description: ARN of DeleteDocumentsFunction Lambda
-    Value: !GetAtt DeleteDocumentsFunction.Arn
+  DeleteDocumentFunctionArn:
+    Description: ARN of DeleteDocumentFunction Lambda
+    Value: !GetAtt DeleteDocumentFunction.Arn
     Export:
-      Name: DeleteDocumentsFunctionArn   
+      Name: DeleteDocumentFunctionArn   
 
   DocumentInfoFunctionArn:
     Description: ARN of DocumentInfoFunction Lambda

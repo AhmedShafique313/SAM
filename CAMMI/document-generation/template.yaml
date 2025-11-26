@@ -268,7 +268,9 @@ Outputs:
 
   EditQuestionAnswerFunctionArn:
     Description: ARN of EditQuestionAnswerFunction Lambda
-    Value: !GetAtt EditQuestionAnswerFunction.Arn     
+    Value: !GetAtt EditQuestionAnswerFunction.Arn    
+    Export:
+      Name: EditQuestionAnswerFunctionArn      
 
   AnswersFileUploadToS3FunctionArn:
     Description: ARN of AnswersFileUploadToS3Function Lambda

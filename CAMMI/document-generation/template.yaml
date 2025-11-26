@@ -28,6 +28,13 @@ Resources:
         Variables:
           PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName
 
+  GetUnansweredQuestionsFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: GetUnansweredQuestionsFunction
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref GetUnansweredQuestionsFunction]]          
+
   ###################################################
   # User Input Enhancement
   ###################################################
@@ -45,6 +52,15 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Layers:
         - !ImportValue GroqLibrariesLayerArn
+
+  UserInputEnhancementFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: UserInputEnhancementFunction
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref UserInputEnhancementFunction]]         
+
+        
 
   ###################################################
   # Add Questions in DB
@@ -67,6 +83,13 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName
 
+  AddQuestionsInDBFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: AddQuestionsInDBFunction
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref AddQuestionsInDBFunction]]           
+
   ###################################################
   # Get Questions Against Document Type
   ###################################################
@@ -84,7 +107,14 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName    
+          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName  
+
+  GetQuestionsAgainstDocTypeFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: GetQuestionsAgainstDocTypeFunction
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref GetQuestionsAgainstDocTypeFunction]]             
 
   ###################################################
   # Edit Question Answer Lambda
@@ -103,7 +133,14 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName    
+          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName  
+
+  EditQuestionAnswerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: EditQuestionAnswerFunction
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref EditQuestionAnswerFunction]]              
 
   ###################################################
   # Answers File Upload to S3 Lambda
@@ -124,6 +161,13 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           S3_BUCKET_NAME: !Ref S3BucketName   
+
+  AnswersFileUploadToS3FunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: AnswersFileUploadToS3Function
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref AnswersFileUploadToS3Function]]           
 
   ###################################################
   # S3 Lambda Trigger
@@ -213,6 +257,13 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
+  EditHeadingFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: EditHeadingFunction
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref EditHeadingFunction]]          
+
   ###################################################
   # Upload Text Extract Function
   ###################################################
@@ -232,7 +283,14 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
-          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName                                 
+          PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName  
+
+  UploadTextExtractFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: UploadTextExtractFunction
+    Properties:
+      RetentionInDays: 180
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref UploadTextExtractFunction]]                                           
 
 ###################################################
 # Outputs

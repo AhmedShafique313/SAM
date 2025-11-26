@@ -89,6 +89,69 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
 
+  ###################################################
+  # Delete Documents Lambda
+  ###################################################
+  DeleteDocumentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: delete-documents
+      Handler: app.lambda_handler
+      CodeUri: src/delete-documents/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles delete documents against user
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName 
+
+  ###################################################
+  # Documents Info Lambda
+  ###################################################
+  DocumentInfoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: document-info
+      Handler: app.lambda_handler
+      CodeUri: src/document-info/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles get document info against
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName 
+          ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName          
+
+  ###################################################
+  # Edit Document Name Lambda
+  ###################################################
+  EditDocumentNameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: edit-document-name
+      Handler: app.lambda_handler
+      CodeUri: src/dedit-document-name/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles edit document name
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName                              
+
 Outputs:
   CreditsStatusFunctionArn:
     Description: ARN of CreditsStatusFunction Lambda
@@ -113,3 +176,21 @@ Outputs:
     Value: !GetAtt ViewSpecificDocumentsFunction.Arn
     Export:
       Name: ViewSpecificDocumentsFunctionArn
+
+  DeleteDocumentsFunctionArn:
+    Description: ARN of DeleteDocumentsFunction Lambda
+    Value: !GetAtt DeleteDocumentsFunction.Arn
+    Export:
+      Name: DeleteDocumentsFunctionArn   
+
+  DocumentInfoFunctionArn:
+    Description: ARN of DocumentInfoFunction Lambda
+    Value: !GetAtt DocumentInfoFunction.Arn
+    Export:
+      Name: DocumentInfoFunctionArn    
+
+  EditDocumentNameFunctionArn:
+    Description: ARN of EditDocumentNameFunction Lambda
+    Value: !GetAtt EditDocumentNameFunction.Arn
+    Export:
+      Name: EditDocumentNameFunctionArn              

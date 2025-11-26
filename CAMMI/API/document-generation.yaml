@@ -281,3 +281,57 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
+
+  # /dashboard/edit-document-name
+  EditDocumentNameFunctionResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt DashboardResource.ResourceId
+      PathPart: edit-document-name
+      RestApiId: !Ref RestApiId
+
+  # PUT /dashboard/edit-document-name
+  EditDocumentNameFunctionResourcePUTMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref EditDocumentNameFunctionResource
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EditDocumentNameFunctionArn}/invocations
+          - EditDocumentNameFunctionArn: !ImportValue EditDocumentNameFunctionArn
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        TimeoutInMillis: 29000
+
+  # OPTIONS /dashboard/edit-document-name
+  EditDocumentNameFunctionResourceOPTIONSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref EditDocumentNameFunctionResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{ "statusCode": 200 }'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true

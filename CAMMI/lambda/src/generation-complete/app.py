@@ -1,4 +1,4 @@
-import boto3
+import boto3, os
 import json
 from boto3.dynamodb.conditions import Attr
  
@@ -9,9 +9,7 @@ users_table = dynamodb.Table("users-table")  # change to your actual table name
 # WebSocket API Gateway client
 apigw = boto3.client(
     "apigatewaymanagementapi",
-    endpoint_url="https://ybkbmzlbbd.execute-api.us-east-1.amazonaws.com/prod"
-    
-    
+    endpoint_url=os.environ["WEBSOCKET_ENDPOINT"]
 )
  
  

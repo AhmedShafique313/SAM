@@ -111,6 +111,7 @@ Resources:
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          WEBSOCKET_ENDPOINT: "{{resolve:secretsmanager:cammi-secrets:SecretString:WEBSOCKET_ENDPOINT}}" 
 
 ###################################################
 # Outputs

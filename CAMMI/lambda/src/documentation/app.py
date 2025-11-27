@@ -427,7 +427,7 @@ def lambda_handler(event, context):
             subheading = format_heading(subsection.get("subheading", ""))
             s3_path = subsection.get("s3_path", "")
             if not s3_path.startswith("s3://"):
-                s3_path = f"s3://cammi/{project_id}/{document_type}/{s3_path}"
+                s3_path = f"s3://cammi-devprod/{project_id}/{document_type}/{s3_path}"
             content_text = read_text_file_from_s3(s3_path)
 
             # spacing before heading

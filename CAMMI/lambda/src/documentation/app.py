@@ -473,7 +473,7 @@ def lambda_handler(event, context):
 
 
     # Reset execution plan statuses
-    update_status_to_false(bucket_name='cammi', object_key=object_key)
+    update_status_to_false(bucket_name='cammi-devprod', object_key=object_key)
 
     return {
         'statusCode': 200,

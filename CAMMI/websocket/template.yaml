@@ -1,86 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: API Template for CAMMI Websockets with X-Ray Tracing and Access Logging
+Description: Main WebSocket API for CAMMI (Shared Stage + Log Group)
 
 Resources:
   CAMMIWebSocketApi:
     Type: AWS::ApiGatewayV2::Api
     Properties:
-      Name: CAMMIWebSocketApi
+      Name: CAMMI-WebSocket
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.action"
-
-  UploadTextExtractFunctionWebSocketLambdaIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties:
-      ApiId: !Ref CAMMIWebSocketApi
-      IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub
-        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UploadTextExtractFunctionArn}/invocations
-        - UploadTextExtractFunctionArn: !ImportValue UploadTextExtractFunctionArn
-      CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
-      IntegrationMethod: POST
-
-  EditHeadingLambdaWebSocketIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties:
-      ApiId: !Ref CAMMIWebSocketApi
-      IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub
-        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EditHeadingFunctionArn}/invocations
-        - EditHeadingFunctionArn: !ImportValue EditHeadingFunctionArn
-      CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
-      IntegrationMethod: POST
-
-  RealtimeTextFrontendLambdaWebSocketIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties:
-      ApiId: !Ref CAMMIWebSocketApi
-      IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub
-        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RealtimeTextFrontEndFunctionArn}/invocations
-        - RealtimeTextFrontEndFunctionArn: !ImportValue RealtimeTextFrontEndFunctionArn
-      CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
-      IntegrationMethod: POST
-
-  ConnectRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref CAMMIWebSocketApi
-      RouteKey: "$connect"
-      OperationName: ConnectRoute
-      Target: !Sub "integrations/${UploadTextExtractFunctionWebSocketLambdaIntegration}"
-
-  DisconnectRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref CAMMIWebSocketApi
-      RouteKey: "$disconnect"
-      OperationName: DisconnectRoute
-      Target: !Sub "integrations/${UploadTextExtractFunctionWebSocketLambdaIntegration}"
-
-  DefaultRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref CAMMIWebSocketApi
-      RouteKey: "$default"
-      OperationName: DefaultRoute
-      Target: !Sub "integrations/${UploadTextExtractFunctionWebSocketLambdaIntegration}"
-
-  EditHeadingRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref CAMMIWebSocketApi
-      RouteKey: "editHeading"
-      Target: !Sub "integrations/${EditHeadingLambdaWebSocketIntegration}"
-
-  RealtimeTextFrontendRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref CAMMIWebSocketApi
-      RouteKey: "realtimeText"
-      Target: !Sub "integrations/${RealtimeTextFrontendLambdaWebSocketIntegration}"
-
 
   WebSocketLogGroup:
     Type: AWS::Logs::LogGroup
@@ -88,18 +16,14 @@ Resources:
       LogGroupName: !Sub /aws/apigateway/${CAMMIWebSocketApi}-access-logs
       RetentionInDays: 14
 
-  CAMMIWebSocketDeployment:
+  WebSocketDeployment:
     Type: AWS::ApiGatewayV2::Deployment
     DependsOn:
-      - ConnectRoute
-      - DisconnectRoute
-      - DefaultRoute
-      - EditHeadingRoute
-      - RealtimeTextFrontendRoute
+      - EditHeadingNestedStack  # add more stacks later
     Properties:
       ApiId: !Ref CAMMIWebSocketApi
 
-  CAMMIWebSocketStage:
+  WebSocketStage:
     Type: AWS::ApiGatewayV2::Stage
     DependsOn: CAMMIWebSocketDeployment
     Properties:
@@ -116,15 +40,24 @@ Resources:
         LoggingLevel: INFO
         DetailedMetricsEnabled: true
 
+  EditHeadingNestedStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: edit-heading.yaml
+      Parameters:
+        WebSocketApiId: !Ref CAMMIWebSocketApi
+        ApiGatewayRoleArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        EditHeadingFunctionArn: !ImportValue EditHeadingFunctionArn
+
 Outputs:
   CAMMIWebSocketApiId:
-    Description: The ID of the CAMMI WebSocket API
+    Description: Main API ID
     Value: !Ref CAMMIWebSocketApi
     Export:
-      Name: CAMMI-WebSocketApiId-v1
+      Name: CAMMI-WebSocketApiId
 
-  CAMMIWebSocketApiEndpoint:
-    Description: The WebSocket API endpoint URL
-    Value: !Sub wss://${CAMMIWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/dev
+  CAMMIWebSocketEndpoint:
+    Description: Shared WebSocket Endpoint
+    Value: !Sub "wss://${CAMMIWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/dev"
     Export:
-      Name: CAMMI-WebSocketApiEndpoint-v1
+      Name: CAMMI-WebSocketEndpoint

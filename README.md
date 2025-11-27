@@ -481,3 +481,114 @@ ok
             --rest-api-id $REST_API_ID \
             --region $REGION \
             --stage-name dev
+
+
+### OLD Websocket
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: API Template for CAMMI Websockets with X-Ray Tracing and Access Logging
+
+Resources:
+  EditHeadingWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: EditHeading
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  EditHeadingLambdaWebSocketIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref EditHeadingWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EditHeadingFunctionArn}/invocations
+        - EditHeadingFunctionArn: !ImportValue EditHeadingFunctionArn
+      CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+      IntegrationMethod: POST
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      RouteKey: "$connect"
+      OperationName: ConnectRoute
+      Target: !Sub "integrations/${UploadTextExtractFunctionWebSocketLambdaIntegration}"
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      RouteKey: "$disconnect"
+      OperationName: DisconnectRoute
+      Target: !Sub "integrations/${UploadTextExtractFunctionWebSocketLambdaIntegration}"
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      RouteKey: "$default"
+      OperationName: DefaultRoute
+      Target: !Sub "integrations/${UploadTextExtractFunctionWebSocketLambdaIntegration}"
+
+  EditHeadingRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      RouteKey: "editHeading"
+      Target: !Sub "integrations/${EditHeadingLambdaWebSocketIntegration}"
+
+  RealtimeTextFrontendRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+      RouteKey: "realtimeText"
+      Target: !Sub "integrations/${RealtimeTextFrontendLambdaWebSocketIntegration}"
+
+
+  WebSocketLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${CAMMIWebSocketApi}-access-logs
+      RetentionInDays: 14
+
+  CAMMIWebSocketDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DisconnectRoute
+      - DefaultRoute
+      - EditHeadingRoute
+      - RealtimeTextFrontendRoute
+    Properties:
+      ApiId: !Ref CAMMIWebSocketApi
+
+  CAMMIWebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    DependsOn: CAMMIWebSocketDeployment
+    Properties:
+      StageName: dev
+      Description: dev Stage with tracing enabled
+      ApiId: !Ref CAMMIWebSocketApi
+      DeploymentId: !Ref CAMMIWebSocketDeployment
+      AccessLogSettings:
+        DestinationArn: !GetAtt WebSocketLogGroup.Arn
+        Format: |
+          {"requestId":"$context.requestId","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","connectionId":"$context.connectionId"}
+      DefaultRouteSettings:
+        DataTraceEnabled: true
+        LoggingLevel: INFO
+        DetailedMetricsEnabled: true
+
+Outputs:
+  CAMMIWebSocketApiId:
+    Description: The ID of the CAMMI WebSocket API
+    Value: !Ref CAMMIWebSocketApi
+    Export:
+      Name: CAMMI-WebSocketApiId-v1
+
+  CAMMIWebSocketApiEndpoint:
+    Description: The WebSocket API endpoint URL
+    Value: !Sub wss://${CAMMIWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/dev
+    Export:
+      Name: CAMMI-WebSocketApiEndpoint-v1

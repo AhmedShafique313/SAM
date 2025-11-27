@@ -9,7 +9,7 @@ USERS_TABLE = os.environ.get('USERS_TABLE', 'users')
 users_table = dynamodb.Table(USERS_TABLE)
 stepfunctions = boto3.client('stepfunctions')
 
-STATE_MACHINE_ARN = "arn:aws:states:us-east-1:468943998235:stateMachine:cammi-msd-doc-edit"
+STATE_MACHINE_ARN = os.environ["STATE_MACHINE_ARN"]
 
 def lambda_handler(event, context):
     try:

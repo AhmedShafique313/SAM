@@ -214,7 +214,8 @@ Resources:
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
       Environment:
         Variables:
-          USERS_TABLE: !ImportValue CAMMI-UsersTableName       
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          STATE_MACHINE_ARN: "{{resolve:secretsmanager:cammi-secrets:SecretString:STATE_MACHINE_ARN}}"        
 
   ###################################################
   # Upload Text Extract Function

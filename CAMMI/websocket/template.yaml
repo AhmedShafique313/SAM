@@ -25,12 +25,12 @@ Resources:
 
   WebSocketStage:
     Type: AWS::ApiGatewayV2::Stage
-    DependsOn: CAMMIWebSocketDeployment
+    DependsOn: WebSocketDeployment
     Properties:
       StageName: dev
       Description: dev Stage with tracing enabled
       ApiId: !Ref CAMMIWebSocketApi
-      DeploymentId: !Ref CAMMIWebSocketDeployment
+      DeploymentId: !Ref WebSocketDeployment
       AccessLogSettings:
         DestinationArn: !GetAtt WebSocketLogGroup.Arn
         Format: |

@@ -212,12 +212,12 @@ Resources:
     Properties:
       Location: profile/template.yaml
 
-  WebSocketFeature:
-    Type: AWS::Serverless::Application
-    DependsOn:
-      - DocumentGenerationFeature
-    Properties:
-      Location: websocket/template.yaml
+  # WebSocketFeature:
+  #   Type: AWS::Serverless::Application
+  #   DependsOn:
+  #     - DocumentGenerationFeature
+  #   Properties:
+  #     Location: websocket/template.yaml
 
   StateMachinesFeature:
     Type: AWS::Serverless::Application
@@ -313,9 +313,9 @@ Outputs:
     Description: Outputs from profile feature
     Value: !Ref ProfileFeature
 
-  WebSocketFeatureOutput:
-    Description: Outputs from websocket feature
-    Value: !Ref WebSocketFeature
+  # WebSocketFeatureOutput:
+  #   Description: Outputs from websocket feature
+  #   Value: !Ref WebSocketFeature
 
   StateMachinesFeatureOutput:
     Description: Outputs from state machine functions

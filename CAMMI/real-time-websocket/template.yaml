@@ -2,6 +2,14 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Edit Heading WebSocket Module
 
+Parameters:
+  RealtimeTextFrontEndFunctionArn:
+    Type: String
+    Description: Lambda function ARN for real-time text frontend
+  ApiGatewayRoleArn:
+    Type: String
+    Description: IAM Role ARN for API Gateway to invoke Lambda
+
 Resources:
   RealTimeWebSocketApi:
     Type: AWS::ApiGatewayV2::Api
@@ -45,7 +53,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref WebSocketApiId
-      RouteKey: "editHeading"
+      RouteKey: "realtimetext"
       Target: !Sub "integrations/${RealTimeIntegration}"
 
   WebSocketDeployment:
@@ -72,10 +80,6 @@ Resources:
         DataTraceEnabled: true
         LoggingLevel: INFO
         DetailedMetricsEnabled: true
-
-Parameters:
-  RealtimeTextFrontEndFunctionArn:
-    Type: String
 
 Outputs:
   RealTimeWebSocketApiId:

@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Upload Document WebSocket Module
+
+Resources:
+  UploadWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: UploadDocument-WebSocket
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  WebSocketLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${UploadWebSocketApi}-access-logs
+      RetentionInDays: 14
+  
+  UploadIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref UploadWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UploadTextExtractFunctionArn}/invocations
+        - UploadTextExtractFunctionArn: !ImportValue UploadTextExtractFunctionArn
+      CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+      IntegrationMethod: POST
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref UploadWebSocketApi
+      RouteKey: "$connect"
+      Target: !Sub "integrations/${UploadIntegration}"
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref UploadWebSocketApi
+      RouteKey: "$disconnect"
+      Target: !Sub "integrations/${UploadIntegration}"
+
+  UploadRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref UploadWebSocketApi
+      RouteKey: "startProcessing"
+      Target: !Sub "integrations/${UploadIntegration}"
+
+  WebSocketDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DisconnectRoute
+      - UploadRoute
+    Properties:
+      ApiId: !Ref UploadWebSocketApi
+
+  WebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    DependsOn: WebSocketDeployment
+    Properties:
+      StageName: dev
+      ApiId: !Ref UploadWebSocketApi
+      DeploymentId: !Ref WebSocketDeployment
+      AccessLogSettings:
+        DestinationArn: !GetAtt WebSocketLogGroup.Arn
+        Format: |
+          {"requestId":"$context.requestId","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","connectionId":"$context.connectionId"}
+      DefaultRouteSettings:
+        DataTraceEnabled: true
+        LoggingLevel: INFO
+        DetailedMetricsEnabled: true
+
+Outputs:
+  UploadWebSocketApiId:
+    Description: Upload Document WebSocket API ID
+    Value: !Ref UploadWebSocketApi
+    Export:
+      Name: UploadDocument-WebSocketApiId
+
+  UploadWebSocketEndpoint:
+    Description: Upload-Document WebSocket Endpoint
+    Value: !Sub "wss://${UploadWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/dev"
+    Export:
+      Name: UploadDocument-WebSocketEndpoint

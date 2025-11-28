@@ -226,6 +226,13 @@ Resources:
     Properties:
       Location: real-time-websocket/template.yaml
 
+  UploadWebSocketFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DocumentGenerationFeature
+    Properties:
+      Location: upload-document/template.yaml
+
   StateMachinesFeature:
     Type: AWS::Serverless::Application
     Properties:
@@ -327,6 +334,10 @@ Outputs:
   RealTimeWebSocketFeatureOutput:
     Description: Outputs from Real time websocket feature
     Value: !Ref RealTimeWebSocketFeature
+
+  UploadWebSocketFeatureOutput:
+    Description: Outputs from upload document websocket feature
+    Value: !Ref UploadWebSocketFeature
 
   StateMachinesFeatureOutput:
     Description: Outputs from state machine functions

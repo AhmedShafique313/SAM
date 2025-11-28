@@ -84,6 +84,7 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          WEBSOCKET_ENDPOINT1: "{{resolve:secretsmanager:cammi-secrets:SecretString:WEBSOCKET_ENDPOINT1}}"
 
   ###################################################
   # Creative Event Lambda

@@ -1,14 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Edit Heading WebSocket Module
-
-Parameters:
-  RealtimeTextFrontEndFunctionArn:
-    Type: String
-    Description: Lambda function ARN for real-time text frontend
-  ApiGatewayRoleArn:
-    Type: String
-    Description: IAM Role ARN for API Gateway to invoke Lambda
+Description: Real-Time Text WebSocket Module
 
 Resources:
   RealTimeWebSocketApi:
@@ -27,32 +19,32 @@ Resources:
   RealTimeIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
-      ApiId: !Ref WebSocketApiId
+      ApiId: !Ref RealTimeWebSocketApi
       IntegrationType: AWS_PROXY
       IntegrationUri: !Sub
         - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RealtimeTextFrontEndFunctionArn}/invocations
         - RealtimeTextFrontEndFunctionArn: !ImportValue RealtimeTextFrontEndFunctionArn
-      CredentialsArn: !Ref ApiGatewayRoleArn
+      CredentialsArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
       IntegrationMethod: POST
 
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
-      ApiId: !Ref WebSocketApiId
+      ApiId: !Ref RealTimeWebSocketApi
       RouteKey: "$connect"
       Target: !Sub "integrations/${RealTimeIntegration}"
 
   DisconnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
-      ApiId: !Ref WebSocketApiId
+      ApiId: !Ref RealTimeWebSocketApi
       RouteKey: "$disconnect"
       Target: !Sub "integrations/${RealTimeIntegration}"
 
   RealTimeRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
-      ApiId: !Ref WebSocketApiId
+      ApiId: !Ref RealTimeWebSocketApi
       RouteKey: "realtimetext"
       Target: !Sub "integrations/${RealTimeIntegration}"
 

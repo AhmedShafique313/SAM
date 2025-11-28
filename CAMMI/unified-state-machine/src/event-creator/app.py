@@ -60,7 +60,7 @@ def lambda_handler(event, context):
 
         "requestContext": {
 
-            "routeKey": "sendMessage",
+            "routeKey": "realtimetext",
 
             "connectionId": connection_id,
 

@@ -231,7 +231,7 @@ Resources:
     DependsOn:
       - DocumentGenerationFeature
     Properties:
-      Location: upload-document/template.yaml
+      Location: upload-document-websocket/template.yaml
 
   StateMachinesFeature:
     Type: AWS::Serverless::Application

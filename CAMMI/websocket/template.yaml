@@ -19,7 +19,8 @@ Resources:
   WebSocketDeployment:
     Type: AWS::ApiGatewayV2::Deployment
     DependsOn:
-      - EditHeadingNestedStack  # add more stacks later
+      - EditHeadingNestedStack
+      - RealTimeTextFrontendNestedStack
     Properties:
       ApiId: !Ref CAMMIWebSocketApi
 
@@ -48,6 +49,15 @@ Resources:
         WebSocketApiId: !Ref CAMMIWebSocketApi
         ApiGatewayRoleArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         EditHeadingFunctionArn: !ImportValue EditHeadingFunctionArn
+
+  RealTimeTextFrontendNestedStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: real-time-text-frontend.yaml
+      Parameters:
+        WebSocketApiId: !Ref CAMMIWebSocketApi
+        ApiGatewayRoleArn: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        RealtimeTextFrontEndFunctionArn: !ImportValue RealtimeTextFrontEndFunctionArn
 
 Outputs:
   CAMMIWebSocketApiId:

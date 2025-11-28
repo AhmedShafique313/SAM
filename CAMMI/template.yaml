@@ -219,6 +219,13 @@ Resources:
     Properties:
       Location: websocket/template.yaml
 
+  RealTimeWebSocketFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - LambdaFeature
+    Properties:
+      Location: websocket/real-time-text-frontend.yaml
+
   StateMachinesFeature:
     Type: AWS::Serverless::Application
     Properties:
@@ -316,6 +323,10 @@ Outputs:
   WebSocketFeatureOutput:
     Description: Outputs from websocket feature
     Value: !Ref WebSocketFeature
+
+  RealTimeWebSocketFeatureOutput:
+    Description: Outputs from Real time websocket feature
+    Value: !Ref RealTimeWebSocketFeature
 
   StateMachinesFeatureOutput:
     Description: Outputs from state machine functions

@@ -14,13 +14,13 @@ bucket_name = "cammi-devprod"
 
 def format_event(event):
     return {
-        "action": "sendMessage",
+        "action": "realtimetext",
         "data": event
     }
 
 def lambda_handler(event, context):
     """
-    Unified handler for all WebSocket routes: $connect, $disconnect, sendMessage
+    Unified handler for all WebSocket routes: $connect, $disconnect, realtimetext
     """
     # event = format_event(event)
     try:
@@ -33,7 +33,7 @@ def lambda_handler(event, context):
             return handle_connect(event, connection_id)
         elif route_key == '$disconnect':
             return handle_disconnect(event, connection_id)
-        elif route_key == 'sendMessage':
+        elif route_key == 'realtimetext':
             return handle_send_message(event, connection_id)
         else:
             return {

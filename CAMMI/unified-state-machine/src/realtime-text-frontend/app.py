@@ -39,13 +39,13 @@ apigateway = boto3.client(
 
 def format_event(event):
     return {
-        "action": "sendMessage",
+        "action": "realtimetext",
         "data": event
     }
 
 def lambda_handler(event, context):
     """
-    Unified handler for all WebSocket routes: $connect, $disconnect, sendMessage
+    Unified handler for all WebSocket routes: $connect, $disconnect, realtimetext
     """
     # event = format_event(event)
     try:
@@ -58,7 +58,7 @@ def lambda_handler(event, context):
             return handle_connect(event, connection_id)
         elif route_key == '$disconnect':
             return handle_disconnect(event, connection_id)
-        elif route_key == 'sendMessage':
+        elif route_key == 'realtimetext':
             return handle_send_message(event, connection_id)
         else:
             return {
@@ -179,7 +179,7 @@ def handle_disconnect(event, connection_id):
 
 def handle_send_message(event, connection_id):
     """
-    Handle sendMessage route - process tier completion data and send to client
+    Handle realtimetext route - process tier completion data and send to client
     This will receive the tier completion data from Step Function
     """
     try:

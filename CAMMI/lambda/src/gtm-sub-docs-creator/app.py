@@ -7,6 +7,7 @@ AWS Lambda: Build marketing DOCX from S3 template + content
 """
 import uuid 
 import boto3
+import base64
 from boto3.dynamodb.conditions import Key
 import json
 from io import BytesIO
@@ -494,14 +495,40 @@ def lambda_handler(event, context):
         document_name=document_name,
         document_url=document_url
     )
+    
+	# Folder path for the user
+    FOLDER_PREFIX = f"project/{project_id}/{document_type}/marketing_strategy_document/"
+	# List objects in S3 folder
+    response = s3.list_objects_v2(Bucket=output_bucket, Prefix=FOLDER_PREFIX)
+	# Filter only .docx files
+    docx_files = [
+		obj for obj in response.get("Contents", [])
+		if obj["Key"].endswith(".docx")
+    ]
+    if not docx_files:
+	    return {
+			"statusCode": 404,
+			"body": json.dumps({"error": "No .docx files found in the folder"}),
+			"headers": CORS_HEADERS
+	    }
+	# Get latest file
+    latest_file = max(docx_files, key=lambda x: x["LastModified"])
+    latest_key = latest_file["Key"]
+	# Read and encode file
+    s3_response = s3.get_object(Bucket=output_bucket, Key=latest_key)
+    file_data = s3_response["Body"].read()
+    encoded_data = base64.b64encode(file_data).decode("utf-8")
+
 
 
     # Reset execution plan statuses
     # update_status_to_false(bucket_name='cammi', object_key=object_key)
 
     return {
-        'statusCode': 200,
-        'session_id': session_id,
-        'project_id': project_id,
-        'message': f"DOCX document created at s3://{output_bucket}/{output_key}"
+		"statusCode": 200,
+		"body": json.dumps({
+			"message": "Latest .docx file fetched successfully",
+			"fileName": latest_key.split("/")[-1],
+			"docxBase64": encoded_data
+		})
     }

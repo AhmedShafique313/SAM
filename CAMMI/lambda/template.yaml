@@ -113,6 +113,24 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           WEBSOCKET_ENDPOINT: "{{resolve:secretsmanager:cammi-secrets:SecretString:WEBSOCKET_ENDPOINT}}" 
 
+  GtmSubDocsCreatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: gtm-sub-docs-creator
+      Handler: app.lambda_handler
+      CodeUri: src/gtm-sub-docs-creator/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles doc_edit_complete with multiple small docs
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+          S3_BUCKET_NAME: !Ref S3BucketName
+
 ###################################################
 # Outputs
 ###################################################
@@ -146,3 +164,9 @@ Outputs:
     Value: !GetAtt GenerationCompleteFunction.Arn
     Export:
       Name: GenerationCompleteFunctionArn
+
+  GtmSubDocsCreatorFunctionArn:
+    Description: ARN of GtmSubDocsCreatorFunction lambda
+    Value: !GetAtt GtmSubDocsCreatorFunction.Arn
+    Export:
+      Name: GtmSubDocsCreatorFunctionArn

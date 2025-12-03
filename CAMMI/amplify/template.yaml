@@ -6,10 +6,18 @@ Parameters:
   Stage:
     Type: String
     Default: dev
-  GitHubToken:
+  PublicRestApiBaseUrl:
     Type: String
-  PublicApiBaseUrl:
+    Default: https://3gd0sb22ah.execute-api.us-east-1.amazonaws.com/dev
+  PublicEditHeadingWebsocketUrl:
     Type: String
+    Default: wss://4t9bd7kb0i.execute-api.us-east-1.amazonaws.com/dev/
+  PublicRealTimeWebsocketUrl:
+    Type: String
+    Default: wss://5h8awbc6bi.execute-api.us-east-1.amazonaws.com/dev/
+  PublicUploadWebsocketUrl:
+    Type: String
+    Default: wss://b8tp13pv97.execute-api.us-east-1.amazonaws.com/dev/
 
 Conditions:
   IsProd: !Equals [!Ref Stage, prod]
@@ -53,10 +61,8 @@ Resources:
       Description: CAMMI app UI hosted in Amplify
       Platform: WEB_COMPUTE
       IAMServiceRole: !GetAtt CAMMIAmplifyRole.Arn
-      Repository: https://github.com/hamid408/Rainbow
-      # AccessToken: !Ref GitHubToken
-      # AccessToken: !Sub "{{resolve:secretsmanager:frontend/dev/github/token:SecretString}}"
-      AccessToken: !Sub "{{resolve:secretsmanager:${GitHubToken}:SecretString}}"
+      Repository: https://github.com/Yasir-Mahmood-124/cammi-frontend
+      AccessToken: !Sub "{{resolve:secretsmanager:cammi-secrets:SecretString:GITHUB_TOKEN}}"
       CustomRules:
         - Source: "/<*>"
           Status: "404-200"
@@ -65,7 +71,13 @@ Resources:
         - Name: NEXT_PUBLIC_STAGE
           Value: !Ref Stage
         - Name: NEXT_PUBLIC_BASE_URL
-          Value: !Ref PublicApiBaseUrl
+          Value: !Ref PublicRestApiBaseUrl
+        - Name: NEXT_PUBLIC_EDIT_HEADING_WEBSOCKET_URL
+          Value: !Ref PublicEditHeadingWebsocketUrl
+        - Name: NEXT_PUBLIC_REALTIME_WEBSOCKET_URL
+          Value: !Ref PublicRealTimeWebsocketUrl
+        - Name: NEXT_PUBLIC_UPLOAD_WEBSOCKET_URL
+          Value: !Ref PublicUploadWebsocketUrl
       BuildSpec: |
         version: 1
         frontend:

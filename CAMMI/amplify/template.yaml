@@ -101,7 +101,7 @@ Resources:
     Type: AWS::Amplify::Branch
     Properties:
       AppId: !GetAtt CAMMIAmplify.AppId
-      BranchName: !If [IsProd, main, stage]
+      BranchName: !If [IsProd, main, dev]
       Stage: !If [IsProd, PRODUCTION, EXPERIMENTAL]
       EnableAutoBuild: true
       Framework: Next.js - SSR

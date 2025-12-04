@@ -102,6 +102,6 @@ Resources:
     Properties:
       AppId: !GetAtt CAMMIAmplify.AppId
       BranchName: !If [IsProd, main, dev]
-      Stage: !If [IsProd, prod, dev]
+      Stage: !If [IsProd, PRODUCTION, EXPERIMENTAL]
       EnableAutoBuild: true
       Framework: Next.js - SSR

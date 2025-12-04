@@ -61,7 +61,7 @@ Resources:
       Description: CAMMI app UI hosted in Amplify
       Platform: WEB_COMPUTE
       IAMServiceRole: !GetAtt CAMMIAmplifyRole.Arn
-      Repository: https://github.com/Yasir-Mahmood-124/cammi-frontend
+      Repository: https://github.com/Yasir-Mahmood-124/cammi-marketing
       AccessToken: !Sub "{{resolve:secretsmanager:cammi-secrets:SecretString:GITHUB_TOKEN}}"
       CustomRules:
         - Source: "/<*>"
@@ -102,6 +102,6 @@ Resources:
     Properties:
       AppId: !GetAtt CAMMIAmplify.AppId
       BranchName: !If [IsProd, main, dev]
-      Stage: !If [IsProd, PRODUCTION, EXPERIMENTAL]
+      Stage: !If [IsProd, prod, dev]
       EnableAutoBuild: true
       Framework: Next.js - SSR

@@ -238,10 +238,10 @@ Resources:
     Properties:
       Location: functions/template.yaml
 
-  AmplifyStack:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: amplify/template.yaml
+  # AmplifyStack:
+  #   Type: AWS::Serverless::Application
+  #   Properties:
+  #     Location: amplify/template.yaml
 
 Outputs:
   IAMStackOutput:
@@ -348,6 +348,6 @@ Outputs:
     Description: Outputs from state machine functions
     Value: !Ref StateMachinesFeature
 
-  AmplifyStackOutput:
-    Description: Outputs from the amplify stack
-    Value: !Ref AmplifyStack
+  # AmplifyStackOutput:
+  #   Description: Outputs from the amplify stack
+  #   Value: !Ref AmplifyStack

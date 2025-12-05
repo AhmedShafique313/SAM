@@ -20,6 +20,8 @@ Resources:
       Tracing: Active
       Description: Handles web scrapping for brand setup
       Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Layers:
+        - !ImportValue WebLibrariesLayerArn
       Environment:
         Variables:
           HYPERBROWSER_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:HYPERBROWSER_API_KEY}}"

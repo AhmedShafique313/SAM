@@ -18,29 +18,22 @@ def lambda_handler(event, context):
         # Log the event for debugging
         print("Event:", json.dumps(event))
 
-        # Extract bucket and key from S3 event
-        record = event['Records'][0]
-        bucket = record['s3']['bucket']['name']
-        key = record['s3']['object']['key']
+        # Extract bucket and key from EventBridge S3 event
+        if "detail" not in event or "bucket" not in event["detail"] or "object" not in event["detail"]:
+            raise Exception("Invalid EventBridge S3 event: missing detail.bucket.object")
 
-        # ✅ Retrieve metadata from S3 object
+        bucket = event["detail"]["bucket"]["name"]
+        key = event["detail"]["object"]["key"]
+
+        # Retrieve metadata from S3 object
         obj_head = s3.head_object(Bucket=bucket, Key=key)
-        
-        # Retrieve "token" as session_id from metadata
-        session_id = obj_head['Metadata'].get('token', None)
+        metadata = obj_head.get("Metadata", {})
 
-        # Retrieve "project_id" from metadata
-        project_id = obj_head['Metadata'].get('project_id', None)  
-        document_type = obj_head['Metadata'].get('document_type', None) 
-        if not project_id:
-            print("Warning: project_id not found in S3 metadata")
-            project_id = "unknown"              
+        session_id = metadata.get("token", "unknown")
+        project_id = metadata.get("project_id", "unknown")
+        document_type = metadata.get("document_type", None)
 
-        if not session_id:
-            print("Warning: session_id (token) not found in S3 metadata")
-            session_id = "unknown"
-
-        # ✅ Get "id" from DynamoDB using session_id via GSI
+        # Get user_id from DynamoDB using session_id via GSI
         user_id = None
         if session_id != "unknown":
             try:
@@ -64,7 +57,7 @@ def lambda_handler(event, context):
             "key": key,
             "session_id": session_id,
             "user_id": user_id,
-            "project_id":project_id,
+            "project_id": project_id,
             "document_type": document_type
         }
 
@@ -75,15 +68,16 @@ def lambda_handler(event, context):
         )
 
         print("Step Function started:", response['executionArn'])
+
         return {
-            'statusCode': 200,
-            'body': json.dumps('Step Function execution started successfully.'),
-            'event_input': step_input
+            "statusCode": 200,
+            "body": json.dumps("Step Function execution started successfully."),
+            "event_input": step_input
         }
 
     except Exception as e:
         print("Error starting Step Function:", str(e))
         return {
-            'statusCode': 500,
-            'body': json.dumps(f"Error: {str(e)}")
+            "statusCode": 500,
+            "body": json.dumps(f"Error: {str(e)}")
         }

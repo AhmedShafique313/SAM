@@ -1,18 +1,8 @@
-import json, boto3,os
+import json, boto3, os
 from boto3.dynamodb.conditions import Attr
 from hyperbrowser import Hyperbrowser
 from hyperbrowser.models import StartScrapeJobParams, ScrapeOptions
 
-secrets_client = boto3.client("secretsmanager")
- 
-def get_secret(secret_name):
-    response = secrets_client.get_secret_value(SecretId=secret_name)
-    return json.loads(response["SecretString"]) if "SecretString" in response else None
- 
-
-
-
-# --- AWS Clients ---
 dynamodb = boto3.resource("dynamodb")
 s3 = boto3.client("s3")
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
@@ -20,7 +10,7 @@ bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 # --- Configuration ---
 BUCKET_NAME = "cammi-devprod"
 users_table = dynamodb.Table("users-table")
-client_scraper = get_secret(os.environ["HYPERBROWSER_API_KEY"])
+client_scraper = os.environ["HYPERBROWSER_API_KEY"]
 
 
 def scrape_links(url):
@@ -58,13 +48,11 @@ def llm_calling(prompt, model_id, session_id="default-session"):
         modelId=model_id,
         messages=conversation,
         inferenceConfig={
-            "maxTokens": 60000,  # increased for long inputs
+            "maxTokens": 60000,
             "temperature": 0.7,
             "topP": 0.9
         },
-        requestMetadata={
-            "sessionId": session_id
-        }
+        requestMetadata={"sessionId": session_id}
     )
 
     response_text = response["output"]["message"]["content"][0]["text"]
@@ -84,27 +72,19 @@ def lambda_handler(event, context):
     if method == "OPTIONS":
         return build_response(200, {"message": "CORS preflight OK"})
 
-    # -------------------------------------------------------------------------
-    # >>> CHANGED: Background worker branch. This is invoked asynchronously
-    #              by the same Lambda with action="process" and does the long
-    #              scraping + LLM work. No HTTP response to the browser here.
-    # -------------------------------------------------------------------------
+    # Background worker
     if event.get("action") == "process":
         session_id = event["session_id"]
         website = event["website"]
         project_id = event["project_id"]
         model_id = event.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
 
-        # --- original long-running logic begins (unchanged) ---
-
-        # Only get `id` (user_id) from Users table using session_id
         user_resp = users_table.scan(
             ProjectionExpression="id, email",
             FilterExpression=Attr("session_id").eq(session_id)
         )
         user_items = user_resp.get("Items", [])
         if not user_items:
-            # No browser response path here—this returns to AWS only
             return {"ok": False, "reason": "User not found"}
 
         user = user_items[0]
@@ -138,7 +118,7 @@ Your task:
 1. Extract all key information relevant to building a detailed and personalized business profile.
 2. Use only factual data found in the input. Do not infer or invent data.
 3. Return the response in the exact format below using the same headings and order.
-4. If any field cannot be determined confidently, leave it blank (do not make assumptions).
+4. If any field cannot be determined confidently, leave it blank.
 
 Return your answer in this format exactly:
 
@@ -173,11 +153,6 @@ Strategic Initiatives / Future Plans:
 Awards / Recognition / Partnerships:
 Press Mentions or Achievements:
 Client or Industry Verticals Served:
-
-Notes:
-- Keep responses concise and factual.
-- Avoid any assumptions or generation of new data.
-- Use sentence form, not bullet lists, except where lists are explicitly more natural.
 """
 
         structured_info = llm_calling(prompt_structuring, model_id, session_id)
@@ -206,17 +181,14 @@ Please return the response in plain text format. Do not use markdown.
 
         s3_key = f"url_parsing/{project_id}/{user_id}/web_scraping.txt"
 
-        # ✅ Check if file exists and append content
         try:
             existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
             existing_content = existing_obj["Body"].read().decode("utf-8")
         except s3.exceptions.NoSuchKey:
             existing_content = ""
 
-        # Concatenate existing + new content
         combined_content = existing_content + "\n\n" + finalize_info
 
-        # Save back to S3
         s3.put_object(
             Bucket=BUCKET_NAME,
             Key=s3_key,
@@ -224,40 +196,33 @@ Please return the response in plain text format. Do not use markdown.
             ContentType="text/plain"
         )
 
-        # Background branch ends here
         return {"ok": True}
 
-    # -------------------------------------------------------------------------
-    # >>> CHANGED: Immediate-response branch. We DO NOT do heavy work here.
-    #              We self-invoke asynchronously and return right away with
-    #              your custom message.
-    # -------------------------------------------------------------------------
     if method == "POST":
         body = json.loads(event.get("body", "{}"))
         session_id = body.get("session_id")
         website = body.get("website")
         project_id = body.get("project_id")
-        model_id = event.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")  # dynamic model_id with default
+        model_id = event.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
 
         if not session_id or not website or not project_id:
             return build_response(400, {"error": "Missing required fields: session_id, project_id, or website"})
 
-        # Fire-and-forget the long work (this lambda invokes itself)
         payload = {
-            "action": "process",                 # >>> CHANGED: signals background worker branch
+            "action": "process",
             "session_id": session_id,
             "website": website,
             "project_id": project_id,
             "model_id": model_id
         }
+
         lambda_client.invoke(
-            FunctionName=context.invoked_function_arn,  # this same function
-            InvocationType="Event",                     # >>> CHANGED: async
+            FunctionName=context.invoked_function_arn,
+            InvocationType="Event",
             Payload=json.dumps(payload).encode("utf-8")
         )
 
-        # Return immediately with your exact message
-        return build_response(202, {  # >>> CHANGED: 202 Accepted for "started"
+        return build_response(202, {
             "message": "Scraping started — Cammi has got your data."
         })
 
@@ -271,7 +236,7 @@ def build_response(status, body):
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",  # if you add GET later, include it here
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type",
         },
         "body": json.dumps(body)

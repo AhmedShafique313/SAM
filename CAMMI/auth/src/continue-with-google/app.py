@@ -168,7 +168,6 @@ def callback_lambda(event, context):
             send_welcome_email(user_info)
             frontend_onboarding_status = "true"
 
-        # Redirect to dashboard
         dashboard_url = "http://localhost:3000/callback"
         query_params = {
             "token": credentials.token,

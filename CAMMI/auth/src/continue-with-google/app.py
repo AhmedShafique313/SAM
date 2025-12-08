@@ -14,7 +14,7 @@ CLIENT_ID = os.environ["CLIENT_ID"]
 CLIENT_SECRET = os.environ["CLIENT_SECRET"]
 ZOHO_APP_PASSWORD = os.environ["ZOHO_APP_PASSWORD"]
 
-REDIRECT_URI = "https://v2dkswnkyg.execute-api.us-east-1.amazonaws.com/dev/auth/google-callback"
+REDIRECT_URI = "https://3gd0sb22ah.execute-api.us-east-1.amazonaws.com/dev/auth/google-callback"
 ZOHO_EMAIL = "info@cammi.ai"
 USERS_TABLE = "Users"
 
@@ -168,7 +168,7 @@ def callback_lambda(event, context):
             send_welcome_email(user_info)
             frontend_onboarding_status = "true"
 
-        dashboard_url = "http://localhost:3000/callback"
+        dashboard_url = "https://dev.d58o9xmomxg8r.amplifyapp.com/callback"
         query_params = {
             "token": credentials.token,
             "name": id_info.get("name"),

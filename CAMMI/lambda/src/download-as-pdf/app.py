@@ -26,10 +26,11 @@ CORS_HEADERS = {
 # DynamoDB table reference
 users_table = dynamodb.Table(USERS_TABLE)
 
-
 def lambda_handler(event, context):
-    # Extract headers
-    body = event.get("body", {})
+    # Parse the JSON body (event["body"] is a string in API Gateway POST)
+    body_str = event.get("body", "{}")
+    body = json.loads(body_str)
+
     session_id = body.get("session_id")
     project_id = body.get("project_id")
     document_type = body.get("document_type")
@@ -77,7 +78,7 @@ def lambda_handler(event, context):
 
     # Build multipart/form-data for ConvertAPI
     boundary = "----LambdaBoundary"
-    body = (
+    body_multipart = (
         f"--{boundary}\r\n"
         f'Content-Disposition: form-data; name="File"; filename="{docx_key}"\r\n'
         f"Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n"
@@ -86,7 +87,7 @@ def lambda_handler(event, context):
     headers_req = {"Content-Type": f"multipart/form-data; boundary={boundary}"}
 
     # Call ConvertAPI
-    response = http.request("POST", CONVERTAPI_URL, body=body, headers=headers_req)
+    response = http.request("POST", CONVERTAPI_URL, body=body_multipart, headers=headers_req)
     result = json.loads(response.data.decode("utf-8"))
 
     # Return PDF as base64
@@ -108,4 +109,3 @@ def lambda_handler(event, context):
         "body": json.dumps({"error": "Conversion failed", "details": result}),
         "headers": CORS_HEADERS,
     }
-

@@ -193,4 +193,4 @@ Outputs:
     Description: ARN of DownloadAsPDFFunction lambda
     Value: !GetAtt DownloadAsPDFFunction.Arn
     Export:
-      Name: DocumentationFunctionArn
+      Name: DownloadAsPDFFunctionArn

@@ -197,8 +197,8 @@ Resources:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub
-          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DocumentationFunctionArn}/invocations
-          - DocumentationFunctionArn: !ImportValue DocumentationFunctionArn
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DownloadAsPDFFunctionArn}/invocations
+          - DownloadAsPDFFunctionArn: !ImportValue DownloadAsPDFFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 

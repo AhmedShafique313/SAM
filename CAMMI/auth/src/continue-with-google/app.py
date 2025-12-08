@@ -167,8 +167,8 @@ def callback_lambda(event, context):
             users_table.put_item(Item=user_info)
             send_welcome_email(user_info)
             frontend_onboarding_status = "true"
-
-        dashboard_url = "https://dev.d58o9xmomxg8r.amplifyapp.com/callback"
+        dashboard_url = "http://localhost:3000/callback"
+        # dashboard_url = "https://dev.d58o9xmomxg8r.amplifyapp.com/callback"
         query_params = {
             "token": credentials.token,
             "name": id_info.get("name"),

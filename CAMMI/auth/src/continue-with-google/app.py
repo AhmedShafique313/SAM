@@ -207,9 +207,9 @@ def lambda_handler(event, context):
 
     print("EVENT PATH:", path)
 
-    if path.endswith("/google-login"):
+    if path.endswith("/auth/google-login"):
         return login_lambda(event, context)
-    elif path.endswith("/google-callback"):
+    elif path.endswith("/auth/google-callback"):
         return callback_lambda(event, context)
     else:
         return {

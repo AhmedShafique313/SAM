@@ -29,10 +29,10 @@ users_table = dynamodb.Table(USERS_TABLE)
 
 def lambda_handler(event, context):
     # Extract headers
-    headers = event.get("headers", {})
-    session_id = headers.get("session_id")
-    project_id = headers.get("project_id")
-    document_type = headers.get("document_type")
+    body = event.get("body", {})
+    session_id = body.get("session_id")
+    project_id = body.get("project_id")
+    document_type = body.get("document_type")
 
     if not session_id or not project_id or not document_type:
         return {

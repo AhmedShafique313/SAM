@@ -39,7 +39,7 @@ def lambda_handler(event, context):
             <a href="/login"><button>Login with LinkedIn</button></a>
         """)
  
-    elif path == "/LinkedIn/linkedInLogin":
+    elif path == "/dev/LinkedIn/linkedInLogin":
         params = {
             "response_type": "code",
             "client_id": L_CLIENT_ID,
@@ -53,7 +53,7 @@ def lambda_handler(event, context):
             "body": json.dumps({"login_url": login_url})
         }
  
-    elif path == "/LinkedIn/callback":
+    elif path == "/dev/LinkedIn/Callback":
         code = query.get("code")
         if not code:
             return response_html("<h3>Error: No code provided</h3>", 400)

@@ -131,6 +131,24 @@ Resources:
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
           S3_BUCKET_NAME: !Ref S3BucketName
 
+  DownloadAsPDFFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: download-as-pdf
+      Handler: app.lambda_handler
+      CodeUri: src/download-as-pdf/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles s3_to_gateway_pdf
+      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          CONVERTAPI_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:CONVERTAPI_KEY}}" 
+
 ###################################################
 # Outputs
 ###################################################
@@ -170,3 +188,9 @@ Outputs:
     Value: !GetAtt GtmSubDocsCreatorFunction.Arn
     Export:
       Name: GtmSubDocsCreatorFunctionArn
+
+  DownloadAsPDFFunctionArn:
+    Description: ARN of DownloadAsPDFFunction lambda
+    Value: !GetAtt DownloadAsPDFFunction.Arn
+    Export:
+      Name: DocumentationFunctionArn

@@ -3,9 +3,9 @@ import urllib3, boto3
 from urllib.parse import urlencode
  
 http = urllib3.PoolManager()
-
-L_CLIENT_ID = os.environ["L_CLIENT_ID"]
-L_CLIENT_SECRET = os.environ["L_CLIENT_SECRET"]
+ 
+CLIENT_ID = os.environ["L_CLIENT_ID"]
+CLIENT_SECRET = os.environ["L_CLIENT_SECRET"]
 REDIRECT_URI = "https://3gd0sb22ah.execute-api.us-east-1.amazonaws.com/dev/LinkedIn/Callback"
  
 AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
     elif path == "/dev/LinkedIn/linkedInLogin":
         params = {
             "response_type": "code",
-            "client_id": L_CLIENT_ID,
+            "client_id": CLIENT_ID,
             "redirect_uri": REDIRECT_URI,
             "scope": "openid profile email w_member_social",
         }
@@ -62,8 +62,8 @@ def lambda_handler(event, context):
             "grant_type": "authorization_code",
             "code": code,
             "redirect_uri": REDIRECT_URI,
-            "client_id": L_CLIENT_ID,
-            "client_secret": L_CLIENT_SECRET,
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
         }
         encoded_data = urlencode(token_data)
  

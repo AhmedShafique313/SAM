@@ -19,7 +19,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Description: Handles linkedin_oauth
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           L_CLIENT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:L_CLIENT_ID}}"
@@ -37,7 +37,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Description: Handles direct_text_post
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
@@ -54,7 +54,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Description: Handles schedule_functionality_creator
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
@@ -72,7 +72,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Description: Handles post_status_check
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName

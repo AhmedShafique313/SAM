@@ -37,6 +37,7 @@ Resources:
   FeedbackFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
     Properties:
       Location: feedback/template.yaml
@@ -52,6 +53,7 @@ Resources:
   OnboardingFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
     Properties:
       Location: onboarding/template.yaml
@@ -59,6 +61,7 @@ Resources:
   ProjectOrganizationFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
     Properties:
       Location: project-organization/template.yaml
@@ -139,6 +142,7 @@ Resources:
   PaymentGatewayFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
     Properties:
       Location: payment-gateway/template.yaml
@@ -174,6 +178,7 @@ Resources:
   SchedulerFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
     Properties:
       Location: scheduler/template.yaml
@@ -181,6 +186,7 @@ Resources:
   LinkedInFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
       - S3Stack
     Properties:
@@ -210,6 +216,7 @@ Resources:
   ProfileFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
     Properties:
       Location: profile/template.yaml

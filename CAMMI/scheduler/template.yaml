@@ -14,7 +14,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles insert_post_questions lambda
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
@@ -31,7 +31,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles get_post_questions lambda
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName

@@ -15,7 +15,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles project creation
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -34,7 +34,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles user-based organizations
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -53,7 +53,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles user-based projects
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -71,7 +71,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles specific organizations
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -89,7 +89,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles specific projects
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName

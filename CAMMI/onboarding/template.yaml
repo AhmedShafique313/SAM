@@ -15,7 +15,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles user onboarding questions on sign-up
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName

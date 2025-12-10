@@ -14,7 +14,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles payment processing for CAMMI
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Layers:
         - !ImportValue StripeLibrariesLayerArn
       Environment:
@@ -33,7 +33,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles Stripe Users for CAMMI
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName

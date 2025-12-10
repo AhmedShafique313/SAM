@@ -14,7 +14,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles edit_profile
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName

@@ -33,9 +33,41 @@ Resources:
       Roles:
         - !Ref ApiGatewayFunctionRole
 
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lambda-role-for-cammi
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::aws:policy/AmazonEventBridgeSchedulerFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+        - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
+
+
+
 Outputs:
   ApiGatewayFunctionRoleArn:
     Description: "ARN of the API Gateway Lambda Invoke Role"
     Value: !GetAtt ApiGatewayFunctionRole.Arn
     Export:
       Name: CAMMI-ApiGatewayFunctionRoleArn
+
+  LambdaRoleArn:
+    Description: "ARN of the Lambda role for cammi"
+    Value: !GetAtt LambdaRole.Arn
+    Export:
+      Name: CAMMI-LambdaRoleArn

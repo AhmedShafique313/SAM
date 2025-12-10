@@ -18,7 +18,7 @@ Resources:
       Timeout: 900
       MemorySize: 10240
       Description: Handles Image Generation Lambda
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Layers:
         - !ImportValue GeminiLibrariesLayerArn
       Environment:
@@ -40,7 +40,7 @@ Resources:
       Timeout: 900
       MemorySize: 128
       Description: Handles AI Text Post Generator Lambda
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Layers:
         - !ImportValue GroqLibrariesLayerArn
       Environment:

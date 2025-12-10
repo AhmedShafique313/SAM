@@ -23,7 +23,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles total credits update lambda
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -42,7 +42,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles get all documents against user
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -62,7 +62,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles get specific review documents
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -82,7 +82,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles get specific documents against user
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
@@ -103,7 +103,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles delete document against user
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
@@ -123,7 +123,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles get document info against
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
@@ -146,7 +146,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles edit document name
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName

@@ -23,7 +23,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Returns all questions against a document that are not answered.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName        
@@ -42,7 +42,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: This lambda enhances the user input.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Layers:
         - !ImportValue GroqLibrariesLayerArn
       
@@ -61,7 +61,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Stores all the answered questions in DB.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
@@ -82,7 +82,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Returns questions against Document type to front end.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName            
@@ -101,7 +101,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Edits answer of a question and saves it in DB.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           PROJECT_QUESTIONS_TABLE: !ImportValue CAMMI-ProjectQuestionsTableName  
@@ -121,7 +121,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: This lambda uploads answers to S3 as a text file.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -142,7 +142,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: This lambda triggers a state machine.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -211,7 +211,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles edit heading function
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -232,7 +232,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: WebSocket handler for document text processing. Connects clients, processes uploaded documents through Bedrock AI, extracts Q&A data, saves to ProjectQuestions table, and streams results via WebSocket.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName

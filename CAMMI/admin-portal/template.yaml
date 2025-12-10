@@ -22,7 +22,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles payment data on super admin panel
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -43,7 +43,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches payment history details on super admin panel
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -64,7 +64,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches all documents sent for review
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
@@ -83,7 +83,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches a single document that is for review
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName
@@ -102,7 +102,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches all users
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -121,7 +121,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles all organizations of user
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
@@ -140,7 +140,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles user projects
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
@@ -159,7 +159,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles organization and project mapping
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
@@ -179,7 +179,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches CAMMI analytics on super admin panel
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -201,7 +201,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches all organizations and projects of user
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
@@ -222,7 +222,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches all recent activity of a user
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           ORGANIZATIONS_TABLE: !ImportValue CAMMI-OrganizationsTableName
@@ -244,7 +244,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches the balance of a user from Stripe
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Layers:
         - !ImportValue StripeLibrariesLayerArn
       Environment:
@@ -266,7 +266,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Fetches document that has been reviewed and returns to the user. Also sends email notification.
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           REVIEW_DOCUMENTS_TABLE: !ImportValue CAMMI-ReviewDocumentsTableName

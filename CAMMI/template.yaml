@@ -45,6 +45,7 @@ Resources:
   AuthFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
       - LayersStack
     Properties:
@@ -92,6 +93,7 @@ Resources:
   BrandSetupFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - S3Stack
     Properties:
       Location: brand-setup/template.yaml
@@ -101,6 +103,7 @@ Resources:
   AdminPortalFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
       - S3Stack
     Properties:
@@ -122,6 +125,7 @@ Resources:
   DashboardFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
       - S3Stack
     Properties:
@@ -132,6 +136,7 @@ Resources:
   DocumentGenerationFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
       - S3Stack
     Properties:
@@ -150,6 +155,7 @@ Resources:
   AIGenerationFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
       - LayersStack
     Properties:
@@ -158,6 +164,7 @@ Resources:
   CalendarFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
     Properties:
       Location: calendar/template.yaml

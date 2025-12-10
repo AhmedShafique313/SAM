@@ -22,7 +22,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Registers WordPress sites in DynamoDB (WordpressSites table)
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           WORDPRESS_SITES_TABLE: !ImportValue CAMMI-WordpressSitesTableName  
@@ -41,7 +41,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Schedules posts, uploads images to S3, creates EventBridge schedules
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           WORDPRESS_SITES_TABLE: !ImportValue CAMMI-WordpressSitesTableName
@@ -62,7 +62,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Executes scheduled posts, downloads images from S3, uploads to Wordpress
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           WORDPRESS_SITES_TABLE: !ImportValue CAMMI-WordpressSitesTableName

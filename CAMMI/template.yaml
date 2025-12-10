@@ -163,6 +163,7 @@ Resources:
   WordpressFeature:
     Type: AWS::Serverless::Application
     DependsOn:
+      - IAMStack
       - DynamoDBStack
       - S3Stack
     Properties:

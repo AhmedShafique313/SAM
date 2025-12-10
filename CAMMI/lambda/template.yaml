@@ -22,7 +22,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles S3 to gateway
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
@@ -42,7 +42,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles add review documents
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
@@ -65,9 +65,9 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles api_request_func
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
-        Variables:                    # ✅ FIXED — added `Variables:`
+        Variables:                    
           S3_BUCKET_NAME: !Ref S3BucketName
           CLAUDE_USAGE_LOGS_TABLE: !ImportValue CAMMI-ClaudeUsageLogsTableName
 
@@ -107,7 +107,7 @@ Resources:
       MemorySize: 1024
       Tracing: Active
       Description: Handles doc_edit_complete
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -124,7 +124,7 @@ Resources:
       MemorySize: 1024
       Tracing: Active
       Description: Handles doc_edit_complete with multiple small docs
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
@@ -142,7 +142,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles s3_to_gateway_pdf
-      Role: arn:aws:iam::687088702813:role/cammi-lambda-role
+      Role: !ImportValue CAMMI-LambdaRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName

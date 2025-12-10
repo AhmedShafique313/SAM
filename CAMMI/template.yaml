@@ -110,6 +110,7 @@ Resources:
     DependsOn:
       - DynamoDBStack
       - S3Stack
+      - IAMStack
     Properties:
       Location: lambda/template.yaml
       Parameters:

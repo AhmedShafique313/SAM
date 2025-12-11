@@ -9,7 +9,7 @@ users_table = dynamodb.Table("users-table")  # change to your actual table name
 # WebSocket API Gateway client
 apigw = boto3.client(
     "apigatewaymanagementapi",
-    endpoint_url="https://4iqvtvmxle.execute-api.us-east-1.amazonaws.com/prod"
+    endpoint_url="https://5h8awbc6bi.execute-api.us-east-1.amazonaws.com/dev"
 )
  
  

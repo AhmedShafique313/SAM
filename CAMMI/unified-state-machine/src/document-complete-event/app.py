@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     """
     Step Function triggers this Lambda.
     This Lambda finds the connectionId and sends a message directly
-    to the WebSocket client via the sendMessage route.
+    to the WebSocket client via the realtimetext route.
     """
  
     print("Incoming event:", json.dumps(event))

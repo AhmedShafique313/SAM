@@ -125,6 +125,8 @@ Resources:
       Tracing: Active
       Description: Handles doc_edit_complete with multiple small docs
       Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue DocLibrariesLayer1Arn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName

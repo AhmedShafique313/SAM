@@ -140,6 +140,13 @@ Resources:
           KeyType: HASH
         - AttributeName: document_type_uuid
           KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: user_id-index
+          KeySchema:
+            - AttributeName: user_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   ###################################################
   # Documents History Table

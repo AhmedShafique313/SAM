@@ -13,7 +13,7 @@ user_table = dynamodb.Table("linkedin-user-table")
 
 # Config
 STATUS_TEXT_POST_LAMBDA_ARN = "arn:aws:lambda:us-east-1:687088702813:function:status"
-EVENTBRIDGE_ROLE_ARN = "arn:aws:iam::468943998235:role/Amazon_EventBridge_Invoke_Lambda"
+EVENTBRIDGE_ROLE_ARN = "arn:aws:iam::687088702813:role/scheduler-invoke-lambda-role"
 S3_BUCKET = "cammi-devprod"
 
 # Pakistan Standard Time

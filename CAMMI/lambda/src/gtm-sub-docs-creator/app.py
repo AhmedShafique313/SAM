@@ -29,6 +29,14 @@ users_table = dynamodb.Table("users-table")
 # ---------- CONFIG ----------
 TABLE_STYLE = "Light Grid Accent 1"
 
+# ---------- CORS HEADERS ----------
+CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',  # Change to specific domain in production
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Max-Age': '3600'
+}
+
 def get_user_id_from_session(session_id: str):
     """
     Fetch user_id from DynamoDB Users table using GSI: session_id-index
@@ -51,7 +59,7 @@ def get_user_id_from_session(session_id: str):
         raise
 
 
-def save_document_history_to_dynamodb(user_id, project_id, document_type, document_name, document_url):
+def save_document_history_to_dynamodb_old(user_id, project_id, document_type, document_name, document_url):
     """
     Inserts a new record into the DocumentHistory DynamoDB table.
 
@@ -85,6 +93,51 @@ def save_document_history_to_dynamodb(user_id, project_id, document_type, docume
         print(f"❌ Unexpected error while saving document history: {e}")
         return False
 
+def save_document_history_to_dynamodb(user_id, project_id, document_type, document_name, document_url):
+    try:
+        table = dynamodb.Table(DOCUMENT_HISTORY_TABLE)
+
+        # 1️⃣ Determine show_flag
+        show_flag = False if document_type.lower() == "gtm" else True
+
+        # 2️⃣ Check duplicates using the GSI
+        response = table.query(
+            IndexName="document_name_index",
+            KeyConditionExpression=Key("project_id").eq(project_id) &
+                                   Key("document_name").eq(document_name)
+        )
+
+        if response.get("Items"):
+            print(f"❌ Duplicate: '{document_name}' already exists for project '{project_id}'")
+            return False
+
+        # 3️⃣ Insert new item
+        document_type_uuid = f"{document_type}#{uuid.uuid4()}"
+        created_at = datetime.utcnow().isoformat()
+
+        item = {
+            "user_id": user_id,
+            "document_type_uuid": document_type_uuid,
+            "project_id": project_id,
+            "document_type": document_type,
+            "document_name": document_name,
+            "document_url": document_url,
+            "created_at": created_at,
+            "show_flag": show_flag
+        }
+
+        table.put_item(Item=item)
+
+        print(f"✅ Document history saved: {document_type_uuid}, show_flag={show_flag}")
+        return True
+
+    except ClientError as e:
+        print(f"❌ DynamoDB error: {e}")
+        return False
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        return False
+        
 # ---------- Helpers: formatting ----------
 def apply_base_format(run, size=12, bold=False):
     run.font.name = 'Arial'
@@ -138,7 +191,7 @@ def unbreak_paragraphs(text: str) -> str:
             continue
 
         # normal line join
-        if buffer and not buffer.endswith(('.', ':', '?', '!', '”', '"')):
+        if buffer and not buffer.endswith(('.', ':', '?', '!', '"', '"')):
             buffer += " " + stripped
         else:
             buffer += ("\n" if buffer else "") + stripped
@@ -421,114 +474,134 @@ def update_status_to_false(bucket_name, object_key):
 
 # ---------- Lambda handler ----------
 def lambda_handler(event, context):
+    try:
+        project_id = event.get("project_id", "")
+        session_id = event.get("session_id", "")
+        user_id = get_user_id_from_session(session_id)
+        document_type = event.get("document_type", "")
+
+        template_bucket = 'cammi-devprod'
+        # object_key = f'flow/{user_id}/{document_type}/execution_plan.json'
+        template_key = f'flow/{document_type}/marketing_document_template.json'
+        output_bucket = 'cammi-devprod'
+
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        output_key = f'project/{project_id}/{document_type}/marketing_strategy_document/{document_type}.docx'
+
+        # Load template JSON
+        template = read_json_from_s3(template_bucket, template_key)
+
+        # Build DOCX
+        document = Document()
+
+        # Default font
+        style = document.styles['Normal']
+        style.font.name = 'Arial'
+        style.font.size = Pt(12)
+
+        # Render sections
+        for section in template:
+            for subsection in section.get("sections", []):
+                subheading = format_heading(subsection.get("subheading", ""))
+                s3_path = subsection.get("s3_path", "")
+                if not s3_path.startswith("s3://"):
+                    s3_path = f"s3://cammi-devprod/{project_id}/gtm/{s3_path}"
+                content_text = read_text_file_from_s3(s3_path)
+
+                # spacing before heading
+                document.add_paragraph()
+
+                # Heading
+                p = document.add_paragraph(style='Heading 1')
+                run = p.add_run(subheading)
+                apply_base_format(run, size=17, bold=True)
+                run.font.color.rgb = RGBColor(0, 0, 0)
+
+                # spacing after heading
+                document.add_paragraph()
+
+                # Content (auto tables + rich formatting)
+                add_formatted_paragraphs(document, content_text, template_h1=subheading)
+
+        # Save to buffer
+        buffer = BytesIO()
+        document.save(buffer)
+        buffer.seek(0)
+
+        # Upload to S3
+        s3.put_object(
+            Bucket=output_bucket,
+            Key=output_key,
+            Body=buffer.getvalue(),
+            ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+
+        # Build document info
+        document_name = output_key.split('/')[-1]
+        document_url = f"s3://{output_bucket}/{output_key}"
+
+        # Save document history to DynamoDB
+        save_document_history_to_dynamodb(
+            user_id=user_id,
+            project_id=project_id,
+            document_type=document_type,
+            document_name=document_name,
+            document_url=document_url
+        )
+        
+        # Folder path for the user
+        FOLDER_PREFIX = f"project/{project_id}/{document_type}/marketing_strategy_document/"
+        
+        # List objects in S3 folder
+        response = s3.list_objects_v2(Bucket=output_bucket, Prefix=FOLDER_PREFIX)
+        
+        # Filter only .docx files
+        docx_files = [
+            obj for obj in response.get("Contents", [])
+            if obj["Key"].endswith(".docx")
+        ]
+        
+        if not docx_files:
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"error": "No .docx files found in the folder"}),
+                "headers": CORS_HEADERS
+            }
+        
+        # Get latest file
+        latest_file = max(docx_files, key=lambda x: x["LastModified"])
+        latest_key = latest_file["Key"]
+        
+        # Read and encode file
+        s3_response = s3.get_object(Bucket=output_bucket, Key=latest_key)
+        file_data = s3_response["Body"].read()
+        encoded_data = base64.b64encode(file_data).decode("utf-8")
+
+        # Reset execution plan statuses
+        # update_status_to_false(bucket_name='cammi-devprod', object_key=object_key)
+
+        return {
+            "statusCode": 200,
+            "session_id": session_id,
+            "project_id": project_id,
+            "body": json.dumps({
+                "message": "Latest .docx file fetched successfully",
+                "fileName": latest_key.split("/")[-1],
+                "docxBase64": encoded_data
+            }),
+            "headers": CORS_HEADERS
+        }
     
-    project_id = event.get("project_id", "")
-    session_id = event.get("session_id", "")
-    user_id = get_user_id_from_session(session_id)
-    document_type = event.get("document_type", "")
-
-    template_bucket = 'cammi-devprod'
-    # object_key = f'flow/{user_id}/{document_type}/execution_plan.json'
-    template_key = f'flow/{document_type}/marketing_document_template.json'
-    output_bucket = 'cammi-devprod'
-
-    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-    output_key = f'project/{project_id}/{document_type}/marketing_strategy_document/{document_type}_{timestamp}.docx'
-
-    # Load template JSON
-    template = read_json_from_s3(template_bucket, template_key)
-
-    # Build DOCX
-    document = Document()
-
-    # Default font
-    style = document.styles['Normal']
-    style.font.name = 'Arial'
-    style.font.size = Pt(12)
-
-    # Render sections
-    for section in template:
-        for subsection in section.get("sections", []):
-            subheading = format_heading(subsection.get("subheading", ""))
-            s3_path = subsection.get("s3_path", "")
-            if not s3_path.startswith("s3://"):
-                s3_path = f"s3://cammi-devprod/{project_id}/{document_type}/{s3_path}"
-            content_text = read_text_file_from_s3(s3_path)
-
-            # spacing before heading
-            document.add_paragraph()
-
-            # Heading
-            p = document.add_paragraph(style='Heading 1')
-            run = p.add_run(subheading)
-            apply_base_format(run, size=17, bold=True)
-            run.font.color.rgb = RGBColor(0, 0, 0)
-
-            # spacing after heading
-            document.add_paragraph()
-
-            # Content (auto tables + rich formatting)
-            add_formatted_paragraphs(document, content_text, template_h1=subheading)
-
-    # Save to buffer
-    buffer = BytesIO()
-    document.save(buffer)
-    buffer.seek(0)
-
-    # Upload to S3
-    s3.put_object(
-        Bucket=output_bucket,
-        Key=output_key,
-        Body=buffer.getvalue(),
-        ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    )
-
-    # Build document info
-    document_name = output_key.split('/')[-1]
-    document_url = f"s3://{output_bucket}/{output_key}"
-
-    # Save document history to DynamoDB
-    save_document_history_to_dynamodb(
-        user_id=user_id,
-        project_id=project_id,
-        document_type=document_type,
-        document_name=document_name,
-        document_url=document_url
-    )
-    
-	# Folder path for the user
-    FOLDER_PREFIX = f"project/{project_id}/{document_type}/marketing_strategy_document/"
-	# List objects in S3 folder
-    response = s3.list_objects_v2(Bucket=output_bucket, Prefix=FOLDER_PREFIX)
-	# Filter only .docx files
-    docx_files = [
-		obj for obj in response.get("Contents", [])
-		if obj["Key"].endswith(".docx")
-    ]
-    if not docx_files:
-	    return {
-			"statusCode": 404,
-			"body": json.dumps({"error": "No .docx files found in the folder"}),
-			"headers": CORS_HEADERS
-	    }
-	# Get latest file
-    latest_file = max(docx_files, key=lambda x: x["LastModified"])
-    latest_key = latest_file["Key"]
-	# Read and encode file
-    s3_response = s3.get_object(Bucket=output_bucket, Key=latest_key)
-    file_data = s3_response["Body"].read()
-    encoded_data = base64.b64encode(file_data).decode("utf-8")
-
-
-
-    # Reset execution plan statuses
-    # update_status_to_false(bucket_name='cammi', object_key=object_key)
-
-    return {
-		"statusCode": 200,
-		"body": json.dumps({
-			"message": "Latest .docx file fetched successfully",
-			"fileName": latest_key.split("/")[-1],
-			"docxBase64": encoded_data
-		})
-    }
+    except Exception as e:
+        print(f"❌ Lambda execution error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        return {
+            "statusCode": 500,
+            "body": json.dumps({
+                "error": "Internal server error",
+                "message": str(e)
+            }),
+            "headers": CORS_HEADERS
+        }

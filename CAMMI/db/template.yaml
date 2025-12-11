@@ -135,6 +135,8 @@ Resources:
           AttributeType: S
         - AttributeName: document_type_uuid
           AttributeType: S
+        - AttributeName: user_id
+          AttributeType: S
       KeySchema:
         - AttributeName: project_id
           KeyType: HASH

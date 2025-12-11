@@ -23,12 +23,12 @@ Resources:
         - !ImportValue GeminiLibrariesLayerArn
       Environment:
         Variables:
-          PROJECT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:PROJECT_ID}}"
-          PRIVATE_KEY_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:PRIVATE_KEY_ID}}"
-          PRIVATE_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:PRIVATE_KEY}}"
-          CLIENT_EMAIL: "{{resolve:secretsmanager:cammi-secrets:SecretString:CLIENT_EMAIL}}"
-          CLIENT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:CLIENT_ID}}"
-          AUTH_PROVIDER_X509_CERT_URL: "{{resolve:secretsmanager:cammi-secrets:SecretString:AUTH_PROVIDER_X509_CERT_URL}}"
+          PROJECT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:project_id}}"
+          PRIVATE_KEY_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:private_key_id}}"
+          PRIVATE_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:private_key}}"
+          CLIENT_EMAIL: "{{resolve:secretsmanager:cammi-secrets:SecretString:client_email}}"
+          CLIENT_ID: "{{resolve:secretsmanager:cammi-secrets:SecretString:client_id}}"
+          AUTH_PROVIDER_X509_CERT_URL: "{{resolve:secretsmanager:cammi-secrets:SecretString:auth_provider_x509_cert_url}}"
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
 
   ###################################################

@@ -42,7 +42,7 @@ def lambda_handler(event, context):
  
     # ✅ Message we want to send to the WebSocket client
     message = {
-        "action": "sendMessage",  # this matches your WebSocket route
+        "action": "realtimetext",  # this matches your WebSocket route
         "body": "Document generated successfully!"
     }
  

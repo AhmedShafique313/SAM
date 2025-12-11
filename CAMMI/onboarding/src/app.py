@@ -14,7 +14,7 @@ client = boto3.client("dynamodb")
 
 # ---------- Common Headers for CORS ----------
 CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",   # You can replace "*" with specific domain for more security
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
     "Access-Control-Allow-Headers": "Content-Type,Authorization",
 }

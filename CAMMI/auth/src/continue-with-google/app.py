@@ -47,7 +47,9 @@ flow = Flow.from_client_config(
     redirect_uri=REDIRECT_URI,
 )
 
+# ------------------------
 # Send welcome email
+# ------------------------
 def send_welcome_email(user_info):
     subject = "Welcome to CAMMI - Your AI-Powered Marketing Co-Pilot!"
     body_html = f"""
@@ -73,12 +75,14 @@ def send_welcome_email(user_info):
     msg["Subject"] = subject
     msg.attach(MIMEText("Welcome to CAMMI!", "plain"))
     msg.attach(MIMEText(body_html, "html"))
-
+ 
     with smtplib.SMTP_SSL("smtp.zoho.com", 465) as server:
         server.login(ZOHO_EMAIL, ZOHO_APP_PASSWORD)
         server.sendmail(ZOHO_EMAIL, user_info["email"], msg.as_string())
-
+ 
+# ------------------------
 # Login handler
+# ------------------------
 def login_lambda(event, context):
     try:
         authorization_url, state = flow.authorization_url()
@@ -97,10 +101,13 @@ def login_lambda(event, context):
             "headers": CORS_HEADERS,
             "body": json.dumps({"error": str(e)})
         }
-
+ 
+# ------------------------
 # Callback handler
+# ------------------------
 def callback_lambda(event, context):
     try:
+        # Get query parameters or JSON body
         query_params = event.get("queryStringParameters", {}) or {}
         if event.get("body"):
             try:
@@ -108,16 +115,20 @@ def callback_lambda(event, context):
                 query_params.update(body_data)
             except Exception as e:
                 print("Failed to parse body:", str(e))
-
+ 
+        # Construct authorization_response (URL-encoded)
         authorization_response = REDIRECT_URI + "?" + urlencode(query_params)
-
+ 
+        # Exchange code for tokens
         flow.fetch_token(authorization_response=authorization_response)
         credentials = flow.credentials
-
+ 
+        # Prepare request to verify ID token
         request_session = requests.session()
         cached_session = cachecontrol.CacheControl(request_session)
         token_request = google.auth.transport.requests.Request(session=cached_session)
-
+ 
+        # Verify token and get user info
         id_info = id_token.verify_oauth2_token(
             id_token=credentials.id_token,
             request=token_request,
@@ -125,7 +136,8 @@ def callback_lambda(event, context):
         )
         session_id = str(uuid.uuid4())
         id = str(uuid.uuid4())
-
+ 
+        # Build user info
         user_info = {
             "sub": id_info.get("sub"),
             "name": id_info.get("name"),
@@ -136,53 +148,59 @@ def callback_lambda(event, context):
             "expiry": str(credentials.expiry),
             "session_id": session_id,
             "onboarding_status": "true",
-            "id": id
+            "id": id,
+            "total_credits": 250
         }
-
+ 
+        # ------------------------
         # Onboarding status logic
-        frontend_onboarding_status = "true" 
-
+        # ------------------------
+        frontend_onboarding_status = "true"  # default for new user
+ 
         existing_user = users_table.get_item(Key={"email": user_info["email"]}).get("Item")
-
         if existing_user:
             id = existing_user.get("id")
-
+            # ✅ Use name from DB if present, otherwise keep the Google one
+            db_name = existing_user.get("name") or user_info["name"]
+            # Update session_id and onboarding_status
             users_table.update_item(
                 Key={"email": user_info["email"]},
-                UpdateExpression="SET session_id = :session_id, id = :id",
-                ExpressionAttributeValues={":session_id": session_id, ":id": id}
-            )
-
-            # User exists → flip onboarding_status to false
-            users_table.update_item(
-                Key={"email": user_info["email"]},
-                UpdateExpression="SET onboarding_status = :status",
-                ExpressionAttributeValues={":status": "false"}
+                UpdateExpression="SET session_id = :session_id, id = :id, onboarding_status = :status",
+                ExpressionAttributeValues={
+                    ":session_id": session_id,
+                    ":id": id,
+                    ":status": "false"
+                }
             )
             frontend_onboarding_status = "false"
+            final_name = db_name
         else:
             id = str(uuid.uuid4())
             user_info["id"] = id
-            # New user, insert with onboarding_status = "true"
+            # ✅ Store the Google name for the first time
             users_table.put_item(Item=user_info)
             send_welcome_email(user_info)
             frontend_onboarding_status = "true"
+            final_name = user_info["name"]
+ 
+        # ------------------------
+        # Redirect to dashboard
+        # ------------------------
         dashboard_url = "http://localhost:3000/callback"
-        # dashboard_url = "https://dev.d58o9xmomxg8r.amplifyapp.com/callback"
         query_params = {
             "token": credentials.token,
-            "name": id_info.get("name"),
+            "name": final_name,
             "email": id_info.get("email"),
             "picture": id_info.get("picture"),
             "sub": id_info.get("sub"),
             "session_id": session_id,
-            "onboarding_status": frontend_onboarding_status,
+            "onboarding_status": frontend_onboarding_status,  # ✅ controlled value
             "locale": id_info.get("locale"),
             "access_token": credentials.token,
             "expiry": str(credentials.expiry),
             "id": id
         }
-
+ 
         redirect_url = dashboard_url + "?" + urlencode(query_params)
         return {
             "statusCode": 302,
@@ -192,21 +210,23 @@ def callback_lambda(event, context):
             },
             "body": ""
         }
-
+ 
     except Exception as e:
         return {
             "statusCode": 500,
             "headers": CORS_HEADERS,
             "body": json.dumps({"error": str(e), "event": event})
         }
-
+ 
+# ------------------------
 # Main Lambda handler
+# ------------------------
 def lambda_handler(event, context):
     path = event.get("requestContext", {}).get("http", {}).get("path", "") \
         or event.get("path", "")
-
+ 
     print("EVENT PATH:", path)
-
+ 
     if path.endswith("/auth/google-login"):
         return login_lambda(event, context)
     elif path.endswith("/auth/google-callback"):

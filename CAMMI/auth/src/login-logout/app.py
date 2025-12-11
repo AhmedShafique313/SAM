@@ -54,8 +54,8 @@ def resp(status, headers, body_dict):
         "body": json.dumps(body_dict),
     }
  
-
-
+ 
+ 
 def get_onboarding_answer_count(user_id: str) -> int:
     """
     Returns how many onboarding answers exist for this user_id
@@ -71,47 +71,47 @@ def get_onboarding_answer_count(user_id: str) -> int:
         }
         if last_evaluated_key:
             params["ExclusiveStartKey"] = last_evaluated_key
-
+ 
         resp = onboarding_table.query(**params)
         total += resp.get("Count", 0)
         last_evaluated_key = resp.get("LastEvaluatedKey")
         if not last_evaluated_key:
             break
     return total
-
+ 
  
 # ---------- Lambda ----------
 def lambda_handler(event, context):
     method = event.get("httpMethod", "")
     path = event.get("path", "")
     headers = base_headers(event)
-
+ 
     # CORS preflight
     if method == "OPTIONS":
         return resp(200, headers, {"message": "CORS ok"})
-
+ 
     # --------- /login ---------
     if path == "/auth/login" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             email = (body.get("email") or "").strip().lower()
             password = body.get("password")
-
+ 
             if not email or not password:
                 return resp(400, headers, {"message": "Email and password required"})
-
+ 
             user = table.get_item(Key={"email": email}).get("Item")
             if not user:
                 return resp(404, headers, {"message": "User not found"})
-
+ 
             if user.get("status") != "ACTIVE":
                 return resp(403, headers, {"message": "User not verified yet"})
-
+ 
             if not verify_password(user["password"], password):
                 return resp(401, headers, {"message": "Invalid password"})
-
+ 
             session_id = str(uuid.uuid4())
-
+ 
             # ----- COUNT-BASED ONBOARDING CHECK -----
             # If user has fewer than TOTAL_REQUIRED_ONBOARDING_QUESTIONS answers in the
             # Onboarding table (partition key = user_id), keep onboarding_status = True.
@@ -132,7 +132,7 @@ def lambda_handler(event, context):
                 # If counting fails, be safe and require onboarding
                 computed_onboarding_status = True
                 remaining_questions = TOTAL_REQUIRED_ONBOARDING_QUESTIONS
-
+ 
             # Persist fresh session_id + computed onboarding_status
             table.update_item(
                 Key={"email": email},
@@ -142,10 +142,10 @@ def lambda_handler(event, context):
                     ":o": computed_onboarding_status,
                 },
             )
-
+ 
             # Combine firstName + lastName for full name
             full_name = f"{user.get('firstName', '').strip()} {user.get('lastName', '').strip()}".strip()
-
+ 
             raw_picture = (user.get("picture") or "").strip()
             picture_url = None
             if raw_picture:
@@ -157,11 +157,11 @@ def lambda_handler(event, context):
                     # Example raw_picture: https://cammi.s3.amazonaws.com/profile/<user_id>.jpeg
                     try:
                         # Extract bucket and key from the URL
-                        # format: https://{bucket}.s3.amazonaws.com/{key...}   
+                        # format: https://{bucket}.s3.amazonaws.com/{key...}  
                         without_scheme = raw_picture.split("://", 1)[-1]
                         host, key = without_scheme.split("/", 1)
                         bucket = host.split(".s3.amazonaws.com")[0]
-
+ 
                         picture_url = s3.generate_presigned_url(
                             ClientMethod="get_object",
                             Params={"Bucket": bucket, "Key": key},
@@ -188,7 +188,7 @@ def lambda_handler(event, context):
                     },
                 },
             )
-
+ 
         except Exception as e:
             print("Login error:", str(e))
             return resp(
@@ -196,37 +196,37 @@ def lambda_handler(event, context):
                 headers,
                 {"message": "Server error", "error": str(e)},
             )
-
+ 
     # --------- /logout ---------
     if path == "/auth/logout" and method == "POST":
         try:
             body = json.loads(event.get("body", "{}"))
             token = body.get("token")
-
+ 
             if not token:
                 return resp(400, headers, {"message": "Token required"})
-
+ 
             # 🔍 Find user by scanning for session_id (since session_id is not a key)
             response = table.scan(
                 FilterExpression="session_id = :s",
                 ExpressionAttributeValues={":s": token},
             )
-
+ 
             items = response.get("Items", [])
             if not items:
                 return resp(401, headers, {"message": "Invalid or expired token"})
-
+ 
             user = items[0]
             email = user["email"]
-
+ 
             # Remove session_id
             table.update_item(
                 Key={"email": email},
                 UpdateExpression="REMOVE session_id",
             )
-
+ 
             return resp(200, headers, {"message": "Logged out successfully"})
-
+ 
         except Exception as e:
             print("Logout error:", str(e))
             return resp(
@@ -234,6 +234,6 @@ def lambda_handler(event, context):
                 headers,
                 {"message": "Server error", "error": str(e)},
             )
-
+ 
     # --------- Fallback ---------
     return resp(404, headers, {"message": "Not found"})

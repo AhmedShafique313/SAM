@@ -16,7 +16,7 @@ ZOHO_APP_PASSWORD = os.environ["ZOHO_APP_PASSWORD"]
 
 REDIRECT_URI = "https://3gd0sb22ah.execute-api.us-east-1.amazonaws.com/dev/auth/google-callback"
 ZOHO_EMAIL = "info@cammi.ai"
-USERS_TABLE = "Users"
+USERS_TABLE = "users-table"
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",

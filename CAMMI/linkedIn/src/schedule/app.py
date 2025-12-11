@@ -12,9 +12,9 @@ post_table = dynamodb.Table("linkedin-posts-table")
 user_table = dynamodb.Table("linkedin-user-table")
 
 # Config
-STATUS_TEXT_POST_LAMBDA_ARN = "arn:aws:lambda:us-east-1:468943998235:function:post_status_check"
+STATUS_TEXT_POST_LAMBDA_ARN = "arn:aws:lambda:us-east-1:687088702813:function:status"
 EVENTBRIDGE_ROLE_ARN = "arn:aws:iam::468943998235:role/Amazon_EventBridge_Invoke_Lambda"
-S3_BUCKET = "linkedin-data-posts-cammi"
+S3_BUCKET = "cammi-devprod"
 
 # Pakistan Standard Time
 PKT = timezone(timedelta(hours=5))

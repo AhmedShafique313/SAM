@@ -57,6 +57,31 @@ Resources:
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
         - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
 
+  SchedulerInvokeLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: scheduler-invoke-lambda-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - scheduler.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: scheduler-invoke-lambda-inline-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*"
+
+
 
 
 Outputs:
@@ -71,3 +96,10 @@ Outputs:
     Value: !GetAtt LambdaRole.Arn
     Export:
       Name: CAMMI-LambdaRoleArn
+
+  SchedulerInvokeLambdaRoleArn:
+    Description: "Role for EventBridge Scheduler to invoke specific Lambda"
+    Value: !GetAtt SchedulerInvokeLambdaRole.Arn
+    Export:
+      Name: CAMMI-SchedulerInvokeLambdaRoleArn
+

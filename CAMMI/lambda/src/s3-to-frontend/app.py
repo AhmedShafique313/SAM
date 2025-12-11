@@ -12,7 +12,7 @@ BUCKET_NAME = "cammi-devprod"
  
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, session_id",
+    "Access-Control-Allow-Headers": "Content-Type,session_id,document_type,project_id",
     "Access-Control-Allow-Methods": "GET, OPTIONS"
 }
  

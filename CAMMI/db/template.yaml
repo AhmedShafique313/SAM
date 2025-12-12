@@ -163,30 +163,12 @@ Resources:
           AttributeType: S
         - AttributeName: document_type_uuid
           AttributeType: S
-        - AttributeName: project_id
-          AttributeType: S
-        - AttributeName: document_name
-          AttributeType: S
-        - AttributeName: document_type
-          AttributeType: S
       KeySchema:
         - AttributeName: user_id
           KeyType: HASH
         - AttributeName: document_type_uuid
           KeyType: RANGE
-      GlobalSecondaryIndexes:
-        - IndexName: document_name_index
-          KeySchema:
-            - AttributeName: project_id
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
-        - IndexName: document_type_index
-          KeySchema:
-            - AttributeName: project_id
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
+
 
 
   ###################################################

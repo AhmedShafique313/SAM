@@ -129,7 +129,11 @@ def lambda_handler(event, context):
                     "verification_expires_at": expires_at,
                     "onboarding_status": True,
                     "createdAt": datetime.utcnow().isoformat(),
-                    "total_credits": 250
+                    "total_credits": 250,
+                    "dashboard_status": False,
+                    "user_input_status": False,
+                    "final_preview_status": False,
+                    "document_preview_status": False
                 }
                 table.put_item(Item=user)
  
@@ -185,7 +189,11 @@ def lambda_handler(event, context):
                     "email": user["email"],
                     "id": user["id"],
                     "firstName": user.get("firstName", ""),
-                    "lastName": user.get("lastName", "")
+                    "lastName": user.get("lastName", ""),
+                    "dashboard_status": False,
+                    "user_input_status": False,
+                    "final_preview_status": False,
+                    "document_preview_status": False
                 }
             })
  

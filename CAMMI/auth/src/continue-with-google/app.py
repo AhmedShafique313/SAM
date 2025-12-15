@@ -149,7 +149,11 @@ def callback_lambda(event, context):
             "session_id": session_id,
             "onboarding_status": "true",
             "id": id,
-            "total_credits": 250
+            "total_credits": 250,
+            "dashboard_status": False,
+            "user_input_status": False,
+            "final_preview_status": False,
+            "document_preview_status": False
         }
  
         # ------------------------
@@ -198,7 +202,11 @@ def callback_lambda(event, context):
             "locale": id_info.get("locale"),
             "access_token": credentials.token,
             "expiry": str(credentials.expiry),
-            "id": id
+            "id": id,
+            "dashboard_status": False,
+            "user_input_status": False,
+            "final_preview_status": False,
+            "document_preview_status": False
         }
  
         redirect_url = dashboard_url + "?" + urlencode(query_params)

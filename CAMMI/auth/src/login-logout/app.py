@@ -185,6 +185,10 @@ def lambda_handler(event, context):
                         "id": user["id"],
                         "name": full_name,
                         "picture": picture_url,
+                        "dashboard_status": user.get("dashboard_status", False),
+                        "user_input_status": user.get("user_input_status", False),
+                        "final_preview_status": user.get("final_preview_status", False),
+                        "document_preview_status": user.get("document_preview_status", False),
                     },
                 },
             )

@@ -87,6 +87,7 @@ Resources:
       - WordpressFeature
       - LambdaFeature
       - DocumentGenerationFeature
+      - TourFeature
     Properties:
       Location: API/template.yaml
 
@@ -259,6 +260,14 @@ Resources:
     Properties:
       Location: amplify/template.yaml
 
+  TourFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - IAMStack
+      - DynamoDBStack
+    Properties:
+      Location: tour/template.yaml
+
 Outputs:
   IAMStackOutput:
     Description: Outputs from IAM stack
@@ -367,3 +376,7 @@ Outputs:
   AmplifyStackOutput:
     Description: Outputs from the amplify stack
     Value: !Ref AmplifyStack
+
+  TourFeatureOutput:
+    Description: Outputs from the tour feature
+    Value: !Ref TourFeature

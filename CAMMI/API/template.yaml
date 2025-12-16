@@ -35,6 +35,7 @@ Resources:
       - WordPress
       - Lambda
       - DocumentGeneration
+      - Tour
     Properties:
       RestApiId: !Ref cammi
 
@@ -245,11 +246,18 @@ Resources:
       Location: document-generation.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi
+
+  Tour:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: tour.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi                             
 
 
 Outputs:
-
   CammiApiId:
     Description: Cammi API ID
     Value: !Ref cammi

@@ -15,7 +15,33 @@ icp  = [
     "Do you already know your best-fit customers or industries?",
     "Who are your main competitors?"
 ]
- 
+messaging = [
+    "What's the name of the brand we're talking about?",
+    "In a nutshell, what are you offering, and what specific headache does it actually cure for people?",
+    "Who usually buys this? I'm thinking specific industries, job titles, or company sizes.",
+    "Deep down, what's the main mission here? What specific problem are you waking up to solve every day?",
+    "Where do you see this going? Like, what's the dream scenario for the business down the road?",
+    "What's that one thing that makes you totally different from everyone else doing this?"
+]
+
+brand = [
+    "How would you explain what the business does in plain English?",
+    "Who are we trying to get the attention of? What kind of people or companies are your 'people'?",
+    "Why does this brand exist, and where are you hoping to take it eventually?",
+    "If someone lined you up next to your competitors, what makes you stand out?",
+    "How should the brand sound or feel? Also, are there any vibes you absolutely hate and want to avoid?"
+]	
+
+mr = [
+    "How would you pitch what you do and who it's for if we were just chatting casually?",
+    "What's keeping your ideal customers up at night lately? What are their biggest annoyances?",
+    "How are they trying to fix that stuff right now? Are they using other tools, vendors, or just messy workarounds?",
+    "Why aren't the current options working for them, and how is your way better?",
+    "Where can you realistically take on clients over the next year or two? Is it global or specific regions?",
+    "What does an average customer usually spend with you?",
+    "Do you have a feel for how many potential customers are actually out there for this?",
+    "Who are you competing against, and are you seeing any big shifts in the market recently?"
+]
 kmf = [
     "What is the name of your business?",
     "Which industry does your business belong to?",
@@ -49,6 +75,22 @@ sr = [
     "When do you plan to start this project?",
     "When is your planned end date or long-term milestone?"
 ]
+smp = [
+    "How would you describe the business in just a sentence or two?",
+    "How does the money-making side work? Like pricing models, how you sell, that sort of thing.",
+    "Who's the target buyer here? Any specific industries, company sizes, or roles?",
+    "What is the number one problem you are helping people solve right now?",
+    "What's the big long-term vision you're building toward?",
+    "Fast forward a few years—what does 'success' look like to you for this business?"
+]
+
+icp2 = [
+    "Give me the quick scoop on the business—what you do and the big issue you fix.",
+    "Who is the primary decision-maker you want to target? What's their job title and what are they responsible for?",
+    "What kind of pressure is this person under? What goals are they stressed about hitting?",
+    "Where does this person usually work? I'm curious about company size, industry, location, etc.",
+    "Where do they hang out online or get their info? Specific blogs, communities, or influencers?"
+]
 
 bs = [
     "What is the name of your business?",
@@ -68,8 +110,8 @@ bs = [
     "Can you provide links to approved customer logos or other visual assets?",
     "What brag points or achievements would you like to highlight?",
     "Who will act as the spokesperson for your business?",
-    "What is the spokesperson’s title or role?",
-    "Can you provide links to your brand’s visual assets (e.g., logo, product screenshots)?"
+    "What is the spokesperson's title or role?",
+    "Can you provide links to your brand's visual assets (e.g., logo, product screenshots)?"
 ]
 
 gtm = [
@@ -110,10 +152,20 @@ def lambda_handler(event, context):
             question_list = icp
         elif document_type.lower() == 'gtm': 
             question_list = gtm
+        elif document_type.lower() == 'brand':
+            question_list = brand
+        elif document_type.lower() == 'messaging':
+            question_list = messaging    
         elif document_type.lower() == 'kmf':
             question_list = kmf
+        elif document_type.lower() == 'mr':
+            question_list = mr
         elif document_type.lower() == 'sr':
             question_list = sr  
+        elif document_type.lower() == 'smp':
+            question_list = smp
+        elif document_type.lower() == 'icp2':
+            question_list = icp2
         elif document_type.lower() == 'bs':
             question_list = bs             
         else:

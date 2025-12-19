@@ -15,12 +15,21 @@ ALLOWED_ORIGIN = "*"
 
 # Document credit cost mapping
 DOCUMENT_CREDITS = {
-    "gtm": 25,  # GTM Document
-    "icp": 3,   # ICP Document
-    "kmf": 3,   # Key Messaging
-    "sr": 4,    # Strategy Roadmap
-    "bs": 3     # Brand Strategy
+    # Existing
+    "gtm": 25,   # GTM Document
+    "icp": 3,    # ICP Document
+    "kmf": 3,    # Key Messaging Framework
+    "sr": 4,     # Strategy Roadmap
+    "bs": 3,     # Brand Strategy
+
+    # New (5 credits each)
+    "smp": 5,        # Social Media Plan
+    "mr": 5,         # Market Research
+    "messaging": 5,  # Messaging Document
+    "brand": 5,      # Brand Document
+    "icp2": 5        # ICP v2
 }
+
 
 def response(status_code, message):
     return {

@@ -322,6 +322,22 @@ Resources:
         - AttributeName: ticket_id
           KeyType: RANGE
 
+  ###################################################
+  # Ticket Counter Table
+  ###################################################
+  TicketCounterTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ticket-counter-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: counter_name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: counter_name
+          KeyType: HASH
+        
+
 
 Outputs:
 
@@ -425,4 +441,10 @@ Outputs:
     Description: Documents History table
     Value: !Ref EmailSupportTable
     Export:
-      Name: CAMMI-EmailSupportTableName      
+      Name: CAMMI-EmailSupportTableName  
+
+  TicketCounterTableName:
+    Description: Documents History table
+    Value: !Ref TicketCounterTable
+    Export:
+      Name: CAMMI-ETicketCounterTableName            

@@ -255,7 +255,15 @@ Resources:
       Location: tour.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                             
+        RestApiId: !Ref cammi   
+
+  Support:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: support.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                                    
 
 
 Outputs:

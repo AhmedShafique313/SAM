@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Support feature for CAMMI
+
+Resources:
+
+  EmailSupportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: email-support
+      Handler: app.lambda_handler
+      CodeUri: src/email-support/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles user email support for help.
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          USER_ONBOARDING_QUESTIONS_TABLE: !ImportValue CAMMI-UserOnboardingQuestionsTableName
+
+Outputs:
+  EmailSupportFunctionArn:
+    Description: ARN of user onboarding Lambda
+    Value: !GetAtt EmailSupportFunction.Arn
+    Export:
+      Name: EmailSupportFunctionArn

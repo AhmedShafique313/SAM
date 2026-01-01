@@ -88,6 +88,7 @@ Resources:
       - LambdaFeature
       - DocumentGenerationFeature
       - TourFeature
+      - EmailSupportFeature
     Properties:
       Location: API/template.yaml
 
@@ -267,6 +268,14 @@ Resources:
       - DynamoDBStack
     Properties:
       Location: tour/template.yaml
+      
+  EmailSupportFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: support/template.yaml        
+
 
 Outputs:
   IAMStackOutput:
@@ -380,3 +389,7 @@ Outputs:
   TourFeatureOutput:
     Description: Outputs from the tour feature
     Value: !Ref TourFeature
+
+  EmailSupportFeatureOutput:
+    Description: Outputs from the tour feature
+    Value: !Ref EmailSupportFeature

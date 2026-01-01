@@ -36,6 +36,7 @@ Resources:
       - Lambda
       - DocumentGeneration
       - Tour
+      - Support
     Properties:
       RestApiId: !Ref cammi
 

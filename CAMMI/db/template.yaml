@@ -303,6 +303,26 @@ Resources:
         - AttributeName: run_id
           KeyType: RANGE
 
+  ###################################################
+  # User Email Support Ticket Table
+  ###################################################
+  EmailSupportTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: email-support-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: ticket_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: ticket_id
+          KeyType: RANGE
+
+
 Outputs:
 
   UsersTableName:
@@ -400,3 +420,9 @@ Outputs:
     Value: !Ref ClaudeUsageLogsTable
     Export:
       Name: CAMMI-ClaudeUsageLogsTableName
+
+  EmailSupportTableName:
+    Description: Documents History table
+    Value: !Ref EmailSupportTable
+    Export:
+      Name: CAMMI-EmailSupportTableName      

@@ -112,7 +112,7 @@ def lambda_handler(event, context):
 
         # Fetch user using session_id
         user = get_user_by_session_id(session_id)
-        user_id = user.get("user_id")
+        user_id = user.get("id")
 
         if not user_id:
             return {

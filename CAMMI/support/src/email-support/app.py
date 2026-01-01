@@ -19,6 +19,12 @@ users_table = dynamodb.Table(USERS_TABLE_NAME)
 counter_table = dynamodb.Table(COUNTER_TABLE_NAME)
 ses = boto3.client("ses")
 
+# ---------- CORS Headers ----------
+cors_headers = {
+    "Access-Control-Allow-Origin": "*",  # Change to frontend domain in prod
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
+    "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+}
 
 # ---------- Atomic Ticket ID Generator ----------
 def generate_ticket_id():
@@ -94,8 +100,16 @@ def send_support_emails(ticket_id, user_name, user_email, message):
 
 # ---------- Lambda Handler ----------
 def lambda_handler(event, context):
+
+    # ✅ Handle CORS preflight
+    if event.get("httpMethod") == "OPTIONS":
+        return {
+            "statusCode": 200,
+            "headers": cors_headers,
+            "body": ""
+        }
+
     try:
-        # Parse input
         body = json.loads(event["body"]) if "body" in event else event
 
         session_id = body.get("session_id")
@@ -107,24 +121,23 @@ def lambda_handler(event, context):
         if not all([session_id, name, phone, email, message]):
             return {
                 "statusCode": 400,
+                "headers": cors_headers,
                 "body": json.dumps({"error": "Missing required fields"})
             }
 
-        # Fetch user using session_id
         user = get_user_by_session_id(session_id)
         user_id = user.get("id")
 
         if not user_id:
             return {
                 "statusCode": 400,
+                "headers": cors_headers,
                 "body": json.dumps({"error": "User not found for session"})
             }
 
-        # Generate ticket ID (SAFE)
         ticket_id = generate_ticket_id()
         created_at = datetime.utcnow().isoformat()
 
-        # Save ticket
         support_table.put_item(
             Item={
                 "user_id": user_id,
@@ -138,11 +151,11 @@ def lambda_handler(event, context):
             }
         )
 
-        # Send emails
         send_support_emails(ticket_id, name, email, message)
 
         return {
             "statusCode": 200,
+            "headers": cors_headers,
             "body": json.dumps({
                 "message": "Support ticket created successfully",
                 "ticket_id": ticket_id
@@ -152,5 +165,6 @@ def lambda_handler(event, context):
     except Exception as e:
         return {
             "statusCode": 500,
+            "headers": cors_headers,
             "body": json.dumps({"error": str(e)})
         }

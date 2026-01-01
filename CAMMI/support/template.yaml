@@ -26,4 +26,4 @@ Outputs:
     Description: ARN of user onboarding Lambda
     Value: !GetAtt EmailSupportFunction.Arn
     Export:
-      Name: EmailSupportFunctionArn
+      Name: EmailSupportFunctionArn  

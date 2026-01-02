@@ -343,7 +343,7 @@ Resources:
   AnalyticsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: analytics-table
+      TableName: wordpress-analytics-table
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: project_id

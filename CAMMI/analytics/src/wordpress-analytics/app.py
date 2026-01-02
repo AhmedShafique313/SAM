@@ -23,7 +23,7 @@ GA_CREDS_JSON = get_secret(os.environ["GA_CREDS_JSON"])
 # ---------------------------
 # Environment variables
 # ---------------------------
-ANALYTICS_TABLE_NAME = "analytics-table"
+ANALYTICS_TABLE_NAME = "wordpress-analytics-table"
 PROJECTS_TABLE_NAME = "projects-table"
 
 if not GA_CREDS_JSON:

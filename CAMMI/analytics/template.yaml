@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Support feature for CAMMI
+
+Resources:
+
+  WordpressAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wordpress-analytics
+      Handler: app.lambda_handler
+      CodeUri: src/wordpress-analytics/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles wordpress analytics.
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue GoogleLayer2Arn  
+        - !ImportValue GoogleLayer3Arn      
+      Environment:
+        Variables:
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+          ANALYTICS_TABLE: !ImportValue CAMMI-AnalyticsTableName 
+
+Outputs:
+  WordpressAnalyticsFunctionArn:
+    Description: ARN of user onboarding Lambda
+    Value: !GetAtt WordpressAnalyticsFunction.Arn
+    Export:
+      Name: WordpressAnalyticsFunctionArn  

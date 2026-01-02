@@ -274,7 +274,14 @@ Resources:
     DependsOn:
       - DynamoDBStack
     Properties:
-      Location: support/template.yaml        
+      Location: support/template.yaml   
+
+  AnalyticsFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: analytics/template.yaml              
 
 
 Outputs:
@@ -393,3 +400,7 @@ Outputs:
   EmailSupportFeatureOutput:
     Description: Outputs from the tour feature
     Value: !Ref EmailSupportFeature
+
+  AnalyticsFeatureOutput:
+    Description: Outputs from the analytics feature
+    Value: !Ref AnalyticsFeature

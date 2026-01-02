@@ -37,6 +37,7 @@ Resources:
       - DocumentGeneration
       - Tour
       - Support
+      - WordpressAnalytics
     Properties:
       RestApiId: !Ref cammi
 
@@ -263,7 +264,15 @@ Resources:
       Location: support.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                                    
+        RestApiId: !Ref cammi  
+
+  WordpressAnalytics:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: wordpress-analytics.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                                           
 
 
 Outputs:

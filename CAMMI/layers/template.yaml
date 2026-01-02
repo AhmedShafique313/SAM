@@ -73,6 +73,24 @@ Resources:
         - python3.13
       RetentionPolicy: Delete
 
+  GoogleLayer2:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: analytics-layer
+      Description: Shared dependencies for Google Analytics
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete    
+      
+  GoogleLayer3:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: analytics-layer2
+      Description: Shared dependencies for Google Analytics second one.
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete 
+
 
 Outputs:
   Google1LibrariesLayerArn:
@@ -116,3 +134,15 @@ Outputs:
     Value: !Ref DocLibrariesLayer1
     Export:
       Name: DocLibrariesLayer1Arn
+
+  GoogleLayer2Arn:
+    Description: ARN of the doc generation libraries
+    Value: !Ref GoogleLayer2
+    Export:
+      Name: GoogleLayer2Arn    
+
+  GoogleLayer3Arn:
+    Description: ARN of the doc generation libraries
+    Value: !Ref GoogleLayer3
+    Export:
+      Name: GoogleLayer3Arn         

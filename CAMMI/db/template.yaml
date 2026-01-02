@@ -336,6 +336,22 @@ Resources:
       KeySchema:
         - AttributeName: counter_name
           KeyType: HASH
+
+  ###################################################
+  # Analytics Table
+  ###################################################
+  AnalyticsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: analytics-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+
         
 
 
@@ -447,4 +463,10 @@ Outputs:
     Description: Documents History table
     Value: !Ref TicketCounterTable
     Export:
-      Name: CAMMI-ETicketCounterTableName            
+      Name: CAMMI-ETicketCounterTableName  
+
+  AnalyticsTableName:
+    Description: Documents History table
+    Value: !Ref AnalyticsTable
+    Export:
+      Name: CAMMI-AnalyticsTableName                 

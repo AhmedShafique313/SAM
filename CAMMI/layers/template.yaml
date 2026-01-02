@@ -78,6 +78,7 @@ Resources:
     Properties:
       LayerName: analytics-layer
       Description: Shared dependencies for Google Analytics
+      ContentUri: google_layer_2.zip
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete    
@@ -87,6 +88,7 @@ Resources:
     Properties:
       LayerName: analytics-layer2
       Description: Shared dependencies for Google Analytics second one.
+      ContentUri: python.zip
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete 

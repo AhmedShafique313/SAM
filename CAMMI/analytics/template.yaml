@@ -17,8 +17,8 @@ Resources:
       Description: Handles wordpress analytics.
       Role: !ImportValue CAMMI-LambdaRoleArn
       Layers:
-        - !ImportValue GoogleLayer2Arn  
-        - !ImportValue GoogleLayer3Arn      
+        - !ImportValue GoogleLayer3Arn  
+        - !ImportValue GoogleLayer2Arn      
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName

@@ -177,6 +177,6 @@ Outputs:
 
   G4TagLayerArn:
     Description: ARN of the analytics layer
-    Value: !Ref AnalyticsLayer
+    Value: !Ref G4TagLayer
     Export:
       Name: G4TagLayerArn   

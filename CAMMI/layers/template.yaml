@@ -103,6 +103,16 @@ Resources:
         - python3.13
       RetentionPolicy: Delete
 
+    G4TagLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: g4tag-layer
+      Description: shared dependencies for Google Analytics layer
+      ContentUri: python.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
+
 
 Outputs:
   Google1LibrariesLayerArn:
@@ -163,4 +173,10 @@ Outputs:
     Description: ARN of the analytics layer
     Value: !Ref AnalyticsLayer
     Export:
-      Name: AnalyticsLayerArn         
+      Name: AnalyticsLayerArn      
+
+  G4TagLayerArn:
+    Description: ARN of the analytics layer
+    Value: !Ref AnalyticsLayer
+    Export:
+      Name: G4TagLayerArn   

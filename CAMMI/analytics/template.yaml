@@ -17,6 +17,7 @@ Resources:
       Description: Handles wordpress analytics.
       Role: !ImportValue CAMMI-LambdaRoleArn
       Layers:
+        - !ImportValue G4TagLayerArn
         - !ImportValue AnalyticsLayerArn
         - !ImportValue GoogleLayer3Arn  
         - !ImportValue GoogleLayer2Arn      

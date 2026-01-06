@@ -20,7 +20,8 @@ Resources:
         - !ImportValue G4TagLayerArn
         # - !ImportValue AnalyticsLayerArn
         # - !ImportValue GoogleLayer3Arn  
-        # - !ImportValue GoogleLayer2Arn      
+        # - !ImportValue GoogleLayer2Arn 
+        - !ImportValue LatestG4TagLayerArn     
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
@@ -42,7 +43,8 @@ Resources:
         - !ImportValue G4TagLayerArn
         # - !ImportValue AnalyticsLayerArn
         # - !ImportValue GoogleLayer3Arn  
-        # - !ImportValue GoogleLayer2Arn      
+        # - !ImportValue GoogleLayer2Arn  
+        - !ImportValue LatestG4TagLayerArn              
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName

@@ -38,6 +38,7 @@ Resources:
       - Tour
       - Support
       - WordpressAnalytics
+      - QuickPost
     Properties:
       RestApiId: !Ref cammi
 
@@ -272,8 +273,15 @@ Resources:
       Location: wordpress-analytics.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                                           
+        RestApiId: !Ref cammi  
 
+  QuickPost:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: quick-post.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                                          
 
 Outputs:
   CammiApiId:

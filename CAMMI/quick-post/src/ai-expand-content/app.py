@@ -1,72 +1,98 @@
 import json
 import boto3
-from boto3.dynamodb.conditions import Key
 
-dynamodb = boto3.resource('dynamodb')
+# Initialize Bedrock Runtime client
+bedrock_runtime = boto3.client(
+    "bedrock-runtime",
+    region_name="us-east-1"
+)
 
-# Table names
-USERS_TABLE = "users-table"
-FEEDBACK_TABLE = "users-feedback-table"
+# Claude 4 Sonnet model ID
+MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
-def lambda_handler(event, context):
-    # --- Parse body ---
-    if "body" not in event or not event["body"]:
-        return build_response(400, {"error": "Missing request body."})
 
-    body = json.loads(event["body"])
+def invoke_claude(prompt: str) -> dict:
+    system_prompt = """
+You are an expert SEO strategist and social media expert.
 
-    session_id = body.get("session_id")
-    questions = body.get("questions")
-    answers = body.get("answers")
+Your task:
+- Analyze the user's idea or content prompt
+- Generate (max 5 each):
+  1. SEO-friendly keywords (primary, secondary)
+  2. Relevant social media hashtags related to the user prompt
 
-    # --- Validate required fields ---
-    if not session_id or not questions or not answers:
-        return build_response(400, {"error": "Missing one or more required fields: session_id, questions, answers"})
+Strict rules:
+- Output ONLY valid JSON
+- No markdown
+- No explanations
+- No additional text
+- Keywords: short, high-intent phrases
+- Hashtags: lowercase, no spaces
 
-    # --- Fetch user by session_id from Users table ---
-    users_table = dynamodb.Table(USERS_TABLE)
-    response = users_table.query(
-        IndexName="session_id-index",  # must exist as GSI
-        KeyConditionExpression=Key("session_id").eq(session_id)
-    )
+Required JSON schema:
+{
+  "keywords": ["keyword1", "keyword2"],
+  "hashtags": ["#hashtag1", "#hashtag2"]
+}
+"""
 
-    if not response.get("Items"):
-        return build_response(404, {"error": f"No user found for session_id: {session_id}"})
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "text": f"{system_prompt}\n\nUser Input:\n{prompt}"
+                }
+            ]
+        }
+    ]
 
-    user_item = response["Items"][0]
-    user_id = user_item.get("id")
-    email = user_item.get("email")
-
-    if not user_id:
-        return build_response(400, {"error": "User record found, but 'id' field missing."})
-
-    # --- Insert feedback into user_feedback table ---
-    feedback_table = dynamodb.Table(FEEDBACK_TABLE)
-    feedback_table.put_item(
-        Item={
-            "user_id": user_id,       # partition key
-            "questions": questions,
-            "answers": answers
+    response = bedrock_runtime.converse(
+        modelId=MODEL_ID,
+        messages=messages,
+        inferenceConfig={
+            "temperature": 0.6,
+            "topP": 0.9
         }
     )
 
-    # --- Success response ---
-    return build_response(200, {
-        "message": "Feedback successfully stored.",
-        "user_id": user_id,
-        "email": email
-    })
+    # Claude always returns text → parse it as JSON
+    response_text = response["output"]["message"]["content"][0]["text"]
+    return json.loads(response_text)
 
 
-def build_response(status_code, body_dict):
-    """Formats response with CORS headers."""
+def lambda_handler(event, context):
+    body = event.get("body")
+
+    # Body must be a string
+    if not body or not isinstance(body, str):
+        return {
+            "statusCode": 400,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": json.dumps({"error": "Request body must be a JSON string"})
+        }
+
+    body_json = json.loads(body)
+    prompt = body_json.get("prompt")
+
+    # Prompt must be a string
+    if not prompt or not isinstance(prompt, str):
+        return {
+            "statusCode": 400,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": json.dumps({"error": "Field 'prompt' must be a string"})
+        }
+
+    claude_output = invoke_claude(prompt.strip())
+
     return {
-        "statusCode": status_code,
+        "statusCode": 200,
         "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
-            "Access-Control-Allow-Headers": "Content-Type"
+            "Content-Type": "application/json"
         },
-        "body": json.dumps(body_dict)
+        "body": json.dumps(claude_output)
     }

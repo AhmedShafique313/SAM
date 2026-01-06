@@ -103,14 +103,14 @@ Resources:
         - python3.13
       RetentionPolicy: Delete
 
-    G4TagLayer:
+  G4TagLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: g4tag-layer
       Description: shared dependencies for Google Analytics layer
       ContentUri: python.zip
       CompatibleRuntimes:
-        - python3.13
+        - python3.12
       RetentionPolicy: Delete
 
 

@@ -92,6 +92,16 @@ Resources:
       CompatibleRuntimes:
         - python3.13
       RetentionPolicy: Delete 
+  
+  AnalyticsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: analytics-layer-single
+      Description: shared dependencies for Google Analytics Main layer
+      ContentUri: python.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
 
 
 Outputs:
@@ -147,4 +157,10 @@ Outputs:
     Description: ARN of the doc generation libraries
     Value: !Ref GoogleLayer3
     Export:
-      Name: GoogleLayer3Arn         
+      Name: GoogleLayer3Arn
+
+  AnalyticsLayerArn:
+    Description: ARN of the analytics layer
+    Value: !Ref AnalyticsLayer
+    Export:
+      Name: AnalyticsLayerArn         

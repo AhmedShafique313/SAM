@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Quick Post features for CAMMI
+
+Resources:
+  AIExpandContentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ai-expand-content
+      Handler: app.lambda_handler
+      CodeUri: src/ai-expand-content/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles AI based caption, CTA, hashtags, aware tone
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+
+  AISuggestionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ai-suggestion
+      Handler: app.lambda_handler
+      CodeUri: src/ai-suggestion/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Fetches and handles ai suggestions on date and time
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+
+Outputs:
+  AIExpandContentFunctionArn:
+    Description: ARN of AIExpandContentFunction Lambda
+    Value: !GetAtt AIExpandContentFunction.Arn
+    Export:
+      Name: AIExpandContentFunctionArn
+
+  AISuggestionFunctionArn:
+    Description: ARN of AISuggestionFunction Lambda
+    Value: !GetAtt AISuggestionFunction.Arn
+    Export:
+      Name: AISuggestionFunctionArn

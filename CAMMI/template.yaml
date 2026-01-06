@@ -281,8 +281,14 @@ Resources:
     DependsOn:
       - DynamoDBStack
     Properties:
-      Location: analytics/template.yaml              
+      Location: analytics/template.yaml
 
+  QuickPostFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: quick-post/template.yaml            
 
 Outputs:
   IAMStackOutput:
@@ -404,3 +410,7 @@ Outputs:
   AnalyticsFeatureOutput:
     Description: Outputs from the analytics feature
     Value: !Ref AnalyticsFeature
+
+  QuickPostFeatureOutput:
+    Description: Outputs from the Quick Post feature
+    Value: !Ref QuickPostFeature

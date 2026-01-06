@@ -26,9 +26,38 @@ Resources:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
           ANALYTICS_TABLE: !ImportValue CAMMI-AnalyticsTableName 
 
+  WordpressDimensionsAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wordpress-dimension-analytics
+      Handler: app.lambda_handler
+      CodeUri: src/wordpress-dimensions-analytics/
+      Runtime: python3.12
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles wordpress Dimensions analytics.
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue G4TagLayerArn
+        # - !ImportValue AnalyticsLayerArn
+        # - !ImportValue GoogleLayer3Arn  
+        # - !ImportValue GoogleLayer2Arn      
+      Environment:
+        Variables:
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+          ANALYTICS_TABLE: !ImportValue CAMMI-AnalyticsTableName 
+
+
 Outputs:
   WordpressAnalyticsFunctionArn:
     Description: ARN of user onboarding Lambda
     Value: !GetAtt WordpressAnalyticsFunction.Arn
     Export:
       Name: WordpressAnalyticsFunctionArn  
+
+  WordpressDimensionsAnalyticsFunctionArn:
+    Description: ARN of user onboarding Lambda
+    Value: !GetAtt WordpressDimensionsAnalyticsFunction.Arn
+    Export:
+      Name: WordpressDimensionsAnalyticsFunctionArn       

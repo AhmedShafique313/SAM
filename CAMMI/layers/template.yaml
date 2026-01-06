@@ -112,6 +112,17 @@ Resources:
       CompatibleRuntimes:
         - python3.12
       RetentionPolicy: Delete
+      CompatibleArchitectures:
+        
+  LatestG4TagLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: latest-g4tag-layer
+      Description: shared dependencies for Google Analytics layer
+      ContentUri: python.zip
+      CompatibleRuntimes:
+        - python3.12
+      RetentionPolicy: Delete        
 
 
 Outputs:
@@ -180,3 +191,9 @@ Outputs:
     Value: !Ref G4TagLayer
     Export:
       Name: G4TagLayerArn   
+
+  LatestG4TagLayerArn:
+    Description: ARN of the analytics layer
+    Value: !Ref LatestG4TagLayer
+    Export:
+      Name: LatestG4TagLayerArn       

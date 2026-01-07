@@ -76,7 +76,7 @@ Resources:
   StatusUpdateAnalyticsFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt WordPressParentResource.ResourceId
+      ParentId: !GetAtt AnalyticsParentResource.ResourceId
       PathPart: status-update-analytics
       RestApiId: !Ref RestApiId
 

@@ -89,6 +89,7 @@ Resources:
       - DocumentGenerationFeature
       - TourFeature
       - EmailSupportFeature
+      - QuickPostFeature
     Properties:
       Location: API/template.yaml
 

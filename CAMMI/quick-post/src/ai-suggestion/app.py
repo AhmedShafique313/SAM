@@ -1,72 +1,135 @@
+# Agentic DAG
 import json
 import boto3
-from boto3.dynamodb.conditions import Key
+from datetime import datetime, timedelta
+from langchain_community.tools import DuckDuckGoSearchRun
 
-dynamodb = boto3.resource('dynamodb')
+ddg_search = DuckDuckGoSearchRun()
+bedrock_runtime = boto3.client(
+    "bedrock-runtime",
+    region_name="us-east-1"
+)
 
-# Table names
-USERS_TABLE = "users-table"
-FEEDBACK_TABLE = "users-feedback-table"
+MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
-def lambda_handler(event, context):
-    # --- Parse body ---
-    if "body" not in event or not event["body"]:
-        return build_response(400, {"error": "Missing request body."})
+def run_research(current_time_iso: str, platform: str, media_type: str) -> str:
+    dt = datetime.fromisoformat(current_time_iso)
 
-    body = json.loads(event["body"])
+    day_name = dt.strftime("%A")          
+    month_year = dt.strftime("%B %Y")     
 
-    session_id = body.get("session_id")
-    questions = body.get("questions")
-    answers = body.get("answers")
+    queries = [
+        f"Best time to post on {platform} {day_name} {month_year}",
+        f"{platform} algorithm updates {month_year} for {media_type}",
+        f"Current trending topics on {platform} {day_name} {month_year}"
+    ]
 
-    # --- Validate required fields ---
-    if not session_id or not questions or not answers:
-        return build_response(400, {"error": "Missing one or more required fields: session_id, questions, answers"})
+    results = []
+    for query in queries:
+        search_result = ddg_search.run(query)
+        results.append(f"QUERY: {query}\nRESULT:\n{search_result}")
+    return "\n\n".join(results)
 
-    # --- Fetch user by session_id from Users table ---
-    users_table = dynamodb.Table(USERS_TABLE)
-    response = users_table.query(
-        IndexName="session_id-index",  # must exist as GSI
-        KeyConditionExpression=Key("session_id").eq(session_id)
-    )
 
-    if not response.get("Items"):
-        return build_response(404, {"error": f"No user found for session_id: {session_id}"})
+def invoke_claude_agent(current_time_iso: str, platform: str, media_type: str, research_data: str) -> dict:
+    system_prompt = """
+You are an expert social media strategist operating as an autonomous agent.
 
-    user_item = response["Items"][0]
-    user_id = user_item.get("id")
-    email = user_item.get("email")
+You have access to recent (2026) research data.
 
-    if not user_id:
-        return build_response(400, {"error": "User record found, but 'id' field missing."})
+Your task:
+- Analyze the provided research data
+- Generate 30-minute posting slots for the next 24 hours
+- Score each slot based on:
+  1. Algorithm alignment
+  2. Audience receptivity
+- Adjust recommendations based on the current ISO time provided
+- Select the SINGLE best posting time
 
-    # --- Insert feedback into user_feedback table ---
-    feedback_table = dynamodb.Table(FEEDBACK_TABLE)
-    feedback_table.put_item(
-        Item={
-            "user_id": user_id,       # partition key
-            "questions": questions,
-            "answers": answers
+Strict rules:
+- Output ONLY valid JSON
+- No markdown
+- No explanations outside JSON
+- Use ISO 8601 datetime format
+
+Required JSON schema:
+{
+  "recommended_post_time": "YYYY-MM-DDTHH:MM:SS",
+  "platform": "linkedin",
+  "media_type": "post",
+  "reasoning": "concise, data-grounded explanation"
+}
+"""
+
+    user_prompt = f"""
+Current Time (ISO): {current_time_iso}
+Platform: {platform}
+Media Type: {media_type}
+
+Research Data:
+{research_data}
+"""
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "text": system_prompt + "\n\n" + user_prompt
+                }
+            ]
+        }
+    ]
+
+    response = bedrock_runtime.converse(
+        modelId=MODEL_ID,
+        messages=messages,
+        inferenceConfig={
+            "temperature": 0.6,
+            "topP": 0.9
         }
     )
 
-    # --- Success response ---
-    return build_response(200, {
-        "message": "Feedback successfully stored.",
-        "user_id": user_id,
-        "email": email
-    })
+    response_text = response["output"]["message"]["content"][0]["text"]
+    return json.loads(response_text)
 
 
-def build_response(status_code, body_dict):
-    """Formats response with CORS headers."""
+def lambda_handler(event, context):
+    body = event.get("body")
+    if not body or not isinstance(body, str):
+        return {
+            "statusCode": 400,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": json.dumps({"error": "Request body must be a JSON string"})
+        }
+    payload = json.loads(body)
+    current_time = payload.get("current_time")
+    platform = payload.get("platform", "linkedin").lower()
+    media_type = payload.get("media_type", "post").lower()
+    if not current_time or not isinstance(current_time, str):
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": "Field 'current_time' must be an ISO 8601 string"})
+        }
+    
+    research_data = run_research(
+        current_time_iso=current_time,
+        platform=platform,
+        media_type=media_type
+    )
+
+    ai_output = invoke_claude_agent(
+        current_time_iso=current_time,
+        platform=platform,
+        media_type=media_type,
+        research_data=research_data
+    )
+
     return {
-        "statusCode": status_code,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "body": json.dumps(body_dict)
+        "statusCode": 200,
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps(ai_output)
     }

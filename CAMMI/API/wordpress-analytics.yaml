@@ -9,7 +9,7 @@ Parameters:
     Type: String
 
 Resources:
-  # /admin-portal
+  # /analytics
   AnalyticsParentResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -17,7 +17,7 @@ Resources:
       PathPart: analytics
       RestApiId: !Ref RestApiId
 
-  # /admin-portal/get-analytics
+  # /analytics/get-analytics
   GetAnalyticsFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -25,7 +25,7 @@ Resources:
       PathPart: get-analytics
       RestApiId: !Ref RestApiId
 
-  # GET /admin-portal/get-analytics
+  # GET /analytics/get-analytics
   GetAnalyticsFunctionResourceGETMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -44,7 +44,7 @@ Resources:
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  # OPTIONS /admin-portal/get-analytics
+  # OPTIONS /analytics/get-analytics
   GetAnalyticsFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -70,3 +70,58 @@ Resources:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
+
+
+  # /analytics/status-update-analytics
+  StatusUpdateAnalyticsFunctionResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt WordPressParentResource.ResourceId
+      PathPart: status-update-analytics
+      RestApiId: !Ref RestApiId
+
+  # POST /analytics/status-update-analytics
+  StatusUpdateAnalyticsFunctionResourcePOSTMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref StatusUpdateAnalyticsFunctionResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusUpdateAnalyticsFunctionArn}/invocations
+          - StatusUpdateAnalyticsFunctionArn: !ImportValue StatusUpdateAnalyticsFunctionArn
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        TimeoutInMillis: 29000
+
+  # OPTIONS /analytics/status-update-analytics
+  StatusUpdateAnalyticsFunctionResourceOPTIONSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref StatusUpdateAnalyticsFunctionResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{ "statusCode": 200 }'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true            

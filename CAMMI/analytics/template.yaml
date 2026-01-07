@@ -50,6 +50,23 @@ Resources:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
           ANALYTICS_TABLE: !ImportValue CAMMI-AnalyticsTableName 
 
+  StatusUpdateAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: update-status-analytics
+      Handler: app.lambda_handler
+      CodeUri: src/status-update-analytics/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles support ticket exists or not against user.
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          EMAIL_SUPPORT_TABLE: !ImportValue CAMMI-EmailSupportTableName 
+          TICKET_COUNTER_TABLE: !ImportValue CAMMI-ETicketCounterTableName           
+
 
 Outputs:
   WordpressAnalyticsFunctionArn:
@@ -62,4 +79,10 @@ Outputs:
     Description: ARN of user onboarding Lambda
     Value: !GetAtt WordpressDimensionsAnalyticsFunction.Arn
     Export:
-      Name: WordpressDimensionsAnalyticsFunctionArn       
+      Name: WordpressDimensionsAnalyticsFunctionArn    
+
+  StatusUpdateAnalyticsFunctionArn:
+    Description: ARN of user onboarding Lambda
+    Value: !GetAtt StatusUpdateAnalyticsFunction.Arn
+    Export:
+      Name: StatusUpdateAnalyticsFunctionArn          

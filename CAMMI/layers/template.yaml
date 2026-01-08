@@ -73,76 +73,76 @@ Resources:
         - python3.13
       RetentionPolicy: Delete
 
-  GoogleLayer2:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: analytics-layer
-      Description: Shared dependencies for Google Analytics
-      ContentUri: google_layer_2.zip
-      CompatibleRuntimes:
-        - python3.13
-      RetentionPolicy: Delete    
+  # GoogleLayer2:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: analytics-layer
+  #     Description: Shared dependencies for Google Analytics
+  #     ContentUri: google_layer_2.zip
+  #     CompatibleRuntimes:
+  #       - python3.13
+  #     RetentionPolicy: Delete    
       
-  GoogleLayer3:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: analytics-layer2
-      Description: Shared dependencies for Google Analytics second one.
-      ContentUri: python.zip
-      CompatibleRuntimes:
-        - python3.13
-      RetentionPolicy: Delete 
+  # GoogleLayer3:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: analytics-layer2
+  #     Description: Shared dependencies for Google Analytics second one.
+  #     ContentUri: python.zip
+  #     CompatibleRuntimes:
+  #       - python3.13
+  #     RetentionPolicy: Delete 
   
-  AnalyticsLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: analytics-layer-single
-      Description: shared dependencies for Google Analytics Main layer
-      ContentUri: python.zip
-      CompatibleRuntimes:
-        - python3.13
-      RetentionPolicy: Delete
+  # AnalyticsLayer:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: analytics-layer-single
+  #     Description: shared dependencies for Google Analytics Main layer
+  #     ContentUri: python.zip
+  #     CompatibleRuntimes:
+  #       - python3.13
+  #     RetentionPolicy: Delete
 
-  G4TagLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: g4tag-layer
-      Description: shared dependencies for Google Analytics layer
-      ContentUri: python.zip
-      CompatibleRuntimes:
-        - python3.12
-      RetentionPolicy: Delete
-      CompatibleArchitectures:
+  # G4TagLayer:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: g4tag-layer
+  #     Description: shared dependencies for Google Analytics layer
+  #     ContentUri: python.zip
+  #     CompatibleRuntimes:
+  #       - python3.12
+  #     RetentionPolicy: Delete
+  #     CompatibleArchitectures:
         
-  LatestG4TagLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: latest-g4tag-layer
-      Description: shared dependencies for Google Analytics layer
-      ContentUri: python.zip
-      CompatibleRuntimes:
-        - python3.12
-      RetentionPolicy: Delete        
+  # LatestG4TagLayer:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: latest-g4tag-layer
+  #     Description: shared dependencies for Google Analytics layer
+  #     ContentUri: python.zip
+  #     CompatibleRuntimes:
+  #       - python3.12
+  #     RetentionPolicy: Delete        
 
-  AgenticDAGLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: agentic-dag-layer
-      Description: shared dependencies for Agentic DAG layer
-      ContentUri: python.zip
-      CompatibleRuntimes:
-        - python3.13
-      RetentionPolicy: Delete
+  # AgenticDAGLayer:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: agentic-dag-layer
+  #     Description: shared dependencies for Agentic DAG layer
+  #     ContentUri: python.zip
+  #     CompatibleRuntimes:
+  #       - python3.13
+  #     RetentionPolicy: Delete
 
-  AgenticDAGLayer1:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: new-dag-layer
-      Description: shared dependencies for Agentic DAG layer
-      ContentUri: python.zip
-      CompatibleRuntimes:
-        - python3.13
-      RetentionPolicy: Delete
+  # AgenticDAGLayer1:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     LayerName: new-dag-layer
+  #     Description: shared dependencies for Agentic DAG layer
+  #     ContentUri: python.zip
+  #     CompatibleRuntimes:
+  #       - python3.13
+  #     RetentionPolicy: Delete
 
 Outputs:
   Google1LibrariesLayerArn:
@@ -187,44 +187,44 @@ Outputs:
     Export:
       Name: DocLibrariesLayer1Arn
 
-  GoogleLayer2Arn:
-    Description: ARN of the doc generation libraries
-    Value: !Ref GoogleLayer2
-    Export:
-      Name: GoogleLayer2Arn    
+  # GoogleLayer2Arn:
+  #   Description: ARN of the doc generation libraries
+  #   Value: !Ref GoogleLayer2
+  #   Export:
+  #     Name: GoogleLayer2Arn    
 
-  GoogleLayer3Arn:
-    Description: ARN of the doc generation libraries
-    Value: !Ref GoogleLayer3
-    Export:
-      Name: GoogleLayer3Arn
+  # GoogleLayer3Arn:
+  #   Description: ARN of the doc generation libraries
+  #   Value: !Ref GoogleLayer3
+  #   Export:
+  #     Name: GoogleLayer3Arn
 
-  AnalyticsLayerArn:
-    Description: ARN of the analytics layer
-    Value: !Ref AnalyticsLayer
-    Export:
-      Name: AnalyticsLayerArn      
+  # AnalyticsLayerArn:
+  #   Description: ARN of the analytics layer
+  #   Value: !Ref AnalyticsLayer
+  #   Export:
+  #     Name: AnalyticsLayerArn      
 
-  G4TagLayerArn:
-    Description: ARN of the analytics layer
-    Value: !Ref G4TagLayer
-    Export:
-      Name: G4TagLayerArn   
+  # G4TagLayerArn:
+  #   Description: ARN of the analytics layer
+  #   Value: !Ref G4TagLayer
+  #   Export:
+  #     Name: G4TagLayerArn   
 
-  LatestG4TagLayerArn:
-    Description: ARN of the analytics layer
-    Value: !Ref LatestG4TagLayer
-    Export:
-      Name: LatestG4TagLayerArn
+  # LatestG4TagLayerArn:
+  #   Description: ARN of the analytics layer
+  #   Value: !Ref LatestG4TagLayer
+  #   Export:
+  #     Name: LatestG4TagLayerArn
 
-  AgenticDAGLayerArn:
-    Description: ARN of the agentic dag layer
-    Value: !Ref AgenticDAGLayer
-    Export:
-      Name: AgenticDAGLayerArn
+  # AgenticDAGLayerArn:
+  #   Description: ARN of the agentic dag layer
+  #   Value: !Ref AgenticDAGLayer
+  #   Export:
+  #     Name: AgenticDAGLayerArn
 
-  AgenticDAGLayer1Arn:
-    Description: ARN of the agentic dag layer1
-    Value: !Ref AgenticDAGLayer1
-    Export:
-      Name: AgenticDAGLayer1Arn       
+  # AgenticDAGLayer1Arn:
+  #   Description: ARN of the agentic dag layer1
+  #   Value: !Ref AgenticDAGLayer1
+  #   Export:
+  #     Name: AgenticDAGLayer1Arn       

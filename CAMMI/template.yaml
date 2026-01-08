@@ -288,7 +288,7 @@ Resources:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
-      # - LayersStack
+      - LayersStack
     Properties:
       Location: quick-post/template.yaml            
 

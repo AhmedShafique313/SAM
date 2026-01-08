@@ -31,8 +31,8 @@ Resources:
       Tracing: Active
       Description: Fetches and handles ai suggestions on date and time
       Role: !ImportValue CAMMI-LambdaRoleArn
-      # Layers:
-      #   - !ImportValue AgenticDAGLayerArn
+      Layers:
+        - !ImportValue AgenticDAGLayer1Arn
       Environment:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName

@@ -1,7 +1,7 @@
 # Agentic DAG
 import json
 import boto3
-from datetime import datetime, timedelta
+from datetime import datetime
 from langchain_community.tools import DuckDuckGoSearchRun
 
 ddg_search = DuckDuckGoSearchRun()

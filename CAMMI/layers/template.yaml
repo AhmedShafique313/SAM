@@ -124,6 +124,15 @@ Resources:
         - python3.12
       RetentionPolicy: Delete        
 
+  AgenticDAGLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: agentic-dag-layer
+      Description: shared dependencies for Agentic DAG layer
+      ContentUri: python.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Delete
 
 Outputs:
   Google1LibrariesLayerArn:
@@ -196,4 +205,10 @@ Outputs:
     Description: ARN of the analytics layer
     Value: !Ref LatestG4TagLayer
     Export:
-      Name: LatestG4TagLayerArn       
+      Name: LatestG4TagLayerArn
+
+  AgenticDAGLayerArn:
+    Description: ARN of the agentic dag layer
+    Value: !Ref AgenticDAGLayer
+    Export:
+      Name: AgenticDAGLayerArn       

@@ -1,9 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Support feature for CAMMI
+Description: Analytics feature for CAMMI
 
 Resources:
-
   WordpressAnalyticsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -15,13 +14,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles wordpress analytics.
-      Role: !ImportValue CAMMI-LambdaRoleArn
-      Layers:
-        - !ImportValue G4TagLayerArn
-        # - !ImportValue AnalyticsLayerArn
-        # - !ImportValue GoogleLayer3Arn  
-        # - !ImportValue GoogleLayer2Arn 
-        - !ImportValue LatestG4TagLayerArn     
+      Role: !ImportValue CAMMI-LambdaRoleArn    
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
@@ -38,13 +31,7 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles wordpress Dimensions analytics.
-      Role: !ImportValue CAMMI-LambdaRoleArn
-      Layers:
-        - !ImportValue G4TagLayerArn
-        # - !ImportValue AnalyticsLayerArn
-        # - !ImportValue GoogleLayer3Arn  
-        # - !ImportValue GoogleLayer2Arn  
-        - !ImportValue LatestG4TagLayerArn              
+      Role: !ImportValue CAMMI-LambdaRoleArn             
       Environment:
         Variables:
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName

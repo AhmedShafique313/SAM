@@ -39,6 +39,7 @@ Resources:
       - Support
       - WordpressAnalytics
       - QuickPost
+      - NewCampaign
     Properties:
       RestApiId: !Ref cammi
 
@@ -279,6 +280,14 @@ Resources:
     Type: AWS::Serverless::Application
     Properties:
       Location: quick-post.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi
+
+  NewCampaign:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: new-campaign.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi                                          

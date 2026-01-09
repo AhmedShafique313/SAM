@@ -90,6 +90,7 @@ Resources:
       - TourFeature
       - EmailSupportFeature
       - QuickPostFeature
+      - NewCampaignFeature
     Properties:
       Location: API/template.yaml
 

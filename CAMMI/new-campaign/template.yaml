@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: New Campaign Creation feature for CAMMI
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
+Resources:
+  LinkParsingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: link
+      Handler: app.lambda_handler
+      CodeUri: src/link/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles link scrapping for new campaign creation
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue WebLibrariesLayerArn
+      Environment:
+        Variables:
+          HYPERBROWSER_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:HYPERBROWSER_API_KEY}}"
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+  CampaignDocumentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: document
+      Handler: app.lambda_handler
+      CodeUri: src/document/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles frontend file to s3
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+  QuestionaireFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: questionaire
+      Handler: app.lambda_handler
+      CodeUri: src/questionaire/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles campaign questions
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+Outputs:
+  LinkParsingFunctionArn:
+    Description: ARN of link parsing Lambda
+    Value: !GetAtt LinkParsingFunction.Arn
+    Export:
+      Name: LinkParsingFunctionArn
+
+  CampaignDocumentFunctionArn:
+    Description: ARN of campaign document upload Lambda
+    Value: !GetAtt CampaignDocumentFunction.Arn
+    Export:
+      Name: CampaignDocumentFunctionArn
+
+  QuestionaireFunctionArn:
+    Description: ARN of campaign questions Lambda
+    Value: !GetAtt QuestionaireFunction.Arn
+    Export:
+      Name: QuestionaireFunctionArn

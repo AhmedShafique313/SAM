@@ -289,7 +289,17 @@ Resources:
     DependsOn:
       - DynamoDBStack
     Properties:
-      Location: quick-post/template.yaml            
+      Location: quick-post/template.yaml
+
+  NewCampaignFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - IAMStack
+      - S3Stack
+    Properties:
+      Location: new-campaign/template.yaml
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName            
 
 Outputs:
   IAMStackOutput:
@@ -415,3 +425,7 @@ Outputs:
   QuickPostFeatureOutput:
     Description: Outputs from the Quick Post feature
     Value: !Ref QuickPostFeature
+
+  NewCampaignFeatureOutput:
+    Description: Outputs from the New campaign feature
+    Value: !Ref NewCampaignFeature

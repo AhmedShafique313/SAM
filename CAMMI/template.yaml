@@ -297,6 +297,7 @@ Resources:
     DependsOn:
       - IAMStack
       - S3Stack
+      - LayersStack
     Properties:
       Location: new-campaign/template.yaml
       Parameters:

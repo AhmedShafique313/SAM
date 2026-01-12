@@ -39,6 +39,8 @@ Resources:
       Tracing: Active
       Description: Handles frontend file to s3
       Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue PdfLibrariesLayerArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName

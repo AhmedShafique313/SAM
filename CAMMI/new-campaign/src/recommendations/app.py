@@ -1,136 +1,154 @@
-import json, boto3, os
-from boto3.dynamodb.conditions import Attr
+import json
+import boto3
+import os
+from boto3.dynamodb.conditions import Key
 
+# AWS clients
 s3 = boto3.client("s3")
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
-lambda_client = boto3.client("lambda")
-BUCKET_NAME = "cammi-devprod" 
- 
-def llm_calling(prompt, model_id):
-    conversation = [
-        {
-            "role": "user",
-            "content": [{"text": str(prompt)}]
-        }
-    ]
+dynamodb = boto3.resource("dynamodb")
+
+# Resources
+BUCKET_NAME = "cammi-devprod"
+users_table = dynamodb.Table("users-table")
+campaigns_table = dynamodb.Table("campaigns-table")
+
+DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+
+
+def llm_calling(prompt: str, model_id: str):
     response = bedrock_runtime.converse(
         modelId=model_id,
-        messages=conversation,
+        messages=[
+            {
+                "role": "user",
+                "content": [{"text": prompt}]
+            }
+        ],
         inferenceConfig={
-            "maxTokens": 60000,
-            "temperature": 0.7,
+            "maxTokens": 4000,
+            "temperature": 0.6,
             "topP": 0.9
         }
     )
-    response_text = response["output"]["message"]["content"][0]["text"]
-    return response_text.strip()
- 
-def get_http_method(event):
-    if "httpMethod" in event:
-        return event["httpMethod"]
-    return event.get("requestContext", {}).get("http", {}).get("method", "")
- 
- 
+    return response["output"]["message"]["content"][0]["text"]
+
+
 def lambda_handler(event, context):
-    method = get_http_method(event)
+    body = json.loads(event.get("body", "{}"))
 
-    if method == "OPTIONS":
-        return build_response(200, {"message": "CORS preflight OK"})
+    session_id = body.get("session_id")
+    campaign_name = body.get("campaign_name")
+    campaign_goal_type = body.get("campaign_goal_type")
+    platform_name = body.get("platform_name")
 
-    if event.get("action") == "process":
-        user_input = event["user_input"]
-        campaign_name = event["campaign_name"]
-        model_id = event.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
- 
-        prompt_relevancy = f"""
-You are a senior business and marketing analyst with deep experience in execution-ready B2B and B2C social media campaigns.
+    if not all([session_id, campaign_name, campaign_goal_type, platform_name]):
+        return build_response(400, {"error": "Missing required fields"})
 
-You are given raw, unstructured user input that may include ideas, descriptions, opinions, or partial information:
-{str(user_input)}
+    # ------------------------------------------------------------------
+    # 1. Resolve user_id using session_id (via GSI)
+    # ------------------------------------------------------------------
+    user_resp = users_table.query(
+        IndexName="user_id_index",
+        KeyConditionExpression=Key("session_id").eq(session_id),
+        Limit=1
+    )
 
-Your task is to carefully READ and EXTRACT only the information that is EXPLICITLY stated by the user.
-Do NOT infer, assume, guess, or generate missing details.
+    if not user_resp.get("Items"):
+        return build_response(404, {"error": "User not found"})
 
-Extract the following information, only if it is clearly present in the input:
+    user = user_resp["Items"][0]
+    user_id = user["user_id"]
 
-1. The specific product or service the user wants to promote.
-2. The ideal customer described or implied by the user.
-3. The main problem or pain point this product or service solves.
-4. The key reason the user believes customers should choose them over competitors.
-5. The social media platform(s) where the user indicates their audience spends time.
-6. The action the user wants people to take after seeing the ad.
-7. Any existing creatives or brand assets mentioned (e.g., logos, videos, testimonials).
-8. How the user defines success for this campaign (business outcomes, not vanity metrics).
+    # ------------------------------------------------------------------
+    # 2. Store campaign names under user record (String Set)
+    # ------------------------------------------------------------------
+    users_table.update_item(
+        Key={"email": user["email"]},
+        UpdateExpression="ADD campaigns :c",
+        ExpressionAttributeValues={
+            ":c": {campaign_name}
+        }
+    )
 
-Additional Instructions:
-- Preserve the user's original wording as much as possible.
-- Maintain the implied brand tone and brand voice.
-- If a specific item is NOT mentioned, clearly write: "Not provided by the user."
-- Do NOT summarize, rewrite, or improve the content.
-- Do NOT add examples or suggestions.
-- Use complete sentences.
-- Avoid bullet points unless the user explicitly lists items in their input.
+    # ------------------------------------------------------------------
+    # 3. Read campaign context from S3 (no try/except)
+    # ------------------------------------------------------------------
+    s3_key = f"execution - ready campaigns/{campaign_name}/data.txt"
 
-Output the extracted information clearly labeled from 1 to 8.
+    s3_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
+    campaign_context = s3_obj["Body"].read().decode("utf-8")
+
+    # ------------------------------------------------------------------
+    # 4. LLM Prompt (STRICT JSON OUTPUT)
+    # ------------------------------------------------------------------
+    prompt = f"""
+You are a senior paid media and brand strategist.
+
+Campaign Goal Type:
+{campaign_goal_type}
+
+Primary Platform:
+{platform_name}
+
+Campaign Context:
+{campaign_context}
+
+TASK:
+Generate a campaign execution plan.
+
+OUTPUT RULES:
+- Return ONLY valid JSON.
+- Do NOT include explanations or markdown.
+- Do NOT add extra keys.
+
+Required JSON format:
+{{
+  "campaign_duration_days": number,
+  "best_suited_platform": string,
+  "campaign_type": {{
+    "brand_tone": string,
+    "brand_voice": string,
+    "key_message": string
+  }},
+  "best_posting_time": string,
+  "creative_brief": string
+}}
 """
 
-        refined_info = llm_calling(prompt_relevancy, model_id)
- 
-        s3_key = f"execution - ready campaigns/{campaign_name}/data.txt"
+    llm_response = llm_calling(prompt, DEFAULT_MODEL_ID)
 
-        try:
-            existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
-            existing_content = existing_obj["Body"].read().decode("utf-8")
-        except s3.exceptions.NoSuchKey:
-            existing_content = ""
- 
-        combined_content = existing_content + "\n\n" + refined_info
+    generated_campaign = json.loads(llm_response)
 
-        s3.put_object(
-            Bucket=BUCKET_NAME,
-            Key=s3_key,
-            Body=combined_content.encode("utf-8"),
-            ContentType="text/plain"
-        )
-        return {"ok": True}
-
-    if method == "POST":
-        body = json.loads(event.get("body", "{}"))
-
-        user_input = body.get("user_input")
-        campaign_name = body.get("campaign_name")
-        model_id = body.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
- 
-        if not campaign_name or not user_input:
-            return build_response(400, {"error": "Missing required fields: campaign_name, user_input"})
- 
-        payload = {
-            "action": "process",               
+    # ------------------------------------------------------------------
+    # 5. Save campaign data in campaigns-table
+    # ------------------------------------------------------------------
+    campaigns_table.put_item(
+        Item={
+            "user_id": user_id,
             "campaign_name": campaign_name,
-            "user_input": user_input,
-            "model_id": model_id
+            "platform_name": platform_name,
+            "campaign_goal_type": campaign_goal_type,
+            "generated_campaign": generated_campaign
         }
-        lambda_client.invoke(
-            FunctionName=context.invoked_function_arn,
-            InvocationType="Event",   
-            Payload=json.dumps(payload).encode("utf-8")
-        )
+    )
 
-        return build_response(202, {  
-            "message": "Information processing started — Cammi has got your data."
-        })
- 
-    return build_response(405, {"error": "Method not allowed"})
- 
- 
+    # ------------------------------------------------------------------
+    # 6. Frontend response
+    # ------------------------------------------------------------------
+    return build_response(200, {
+        "message": "Cammi is analyzing your input",
+        "data": generated_campaign
+    })
+
+
 def build_response(status, body):
-    """Helper to build API Gateway compatible response."""
     return {
         "statusCode": status,
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",  
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type",
         },
         "body": json.dumps(body)

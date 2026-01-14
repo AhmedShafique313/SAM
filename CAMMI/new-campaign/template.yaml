@@ -94,6 +94,7 @@ Resources:
           S3_BUCKET_NAME: !Ref S3BucketName
           LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
 
 Outputs:
   LinkParsingFunctionArn:

@@ -352,7 +352,17 @@ Resources:
         - AttributeName: project_id
           KeyType: HASH
 
-        
+  CampaignsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: campaigns-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
 
 
 Outputs:
@@ -470,3 +480,9 @@ Outputs:
     Value: !Ref AnalyticsTable
     Export:
       Name: CAMMI-AnalyticsTableName                 
+
+  CampaignsTableName:
+    Description: Campaigns table
+    Value: !Ref CampaignsTable
+    Export:
+      Name: CAMMI-CampaignsTableName

@@ -298,6 +298,7 @@ Resources:
       - IAMStack
       - S3Stack
       - LayersStack
+      - DynamoDBStack
     Properties:
       Location: new-campaign/template.yaml
       Parameters:

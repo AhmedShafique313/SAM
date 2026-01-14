@@ -96,7 +96,7 @@ def lambda_handler(event, context):
     # ✅ Extract project_id and session_id from object_key
     # Expected pattern: pdf_files/{project_id}/{session_id}/{file_name}
     parts = object_key.split("/")
-    if len(parts) < 4 or parts[0] != "pdf_files":
+    if len(parts) < 3 or parts[0] != "execution - ready campaigns":
         return {
             "statusCode": 400,
             "body": json.dumps({"message": f"Invalid S3 key structure: {object_key}"})

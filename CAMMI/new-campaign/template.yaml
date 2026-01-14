@@ -77,6 +77,24 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
 
+  RecommendationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: recommendations
+      Handler: app.lambda_handler
+      CodeUri: src/recommendations/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles campaign cammi recommendations feature
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+
 Outputs:
   LinkParsingFunctionArn:
     Description: ARN of link parsing Lambda
@@ -101,3 +119,9 @@ Outputs:
     Value: !GetAtt DocUploadFunction.Arn
     Export:
       Name: DocUploadFunctionArn
+
+  RecommendationsFunctionArn:
+    Description: ARN of campaign cammi recommendations Lambda
+    Value: !GetAtt RecommendationsFunction.Arn
+    Export:
+      Name: RecommendationsFunctionArn

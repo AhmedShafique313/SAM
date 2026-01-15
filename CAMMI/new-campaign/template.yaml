@@ -96,6 +96,24 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
 
+  ContentGeneratorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: content
+      Handler: app.lambda_handler
+      CodeUri: src/content/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles campaign cammi content generator feature
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
+
 Outputs:
   LinkParsingFunctionArn:
     Description: ARN of link parsing Lambda
@@ -126,3 +144,9 @@ Outputs:
     Value: !GetAtt RecommendationsFunction.Arn
     Export:
       Name: RecommendationsFunctionArn
+
+  ContentGeneratorFunctionArn:
+    Description: ARN of campaign cammi content generator Lambda
+    Value: !GetAtt ContentGeneratorFunction.Arn
+    Export:
+      Name: ContentGeneratorFunctionArn

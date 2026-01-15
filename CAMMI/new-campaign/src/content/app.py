@@ -3,16 +3,12 @@ import boto3
 import os
 from boto3.dynamodb.conditions import Key
 
-# AWS clients
 s3 = boto3.client("s3")
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 dynamodb = boto3.resource("dynamodb")
-
-# Resources
 BUCKET_NAME = "cammi-devprod"
 users_table = dynamodb.Table("users-table")
 campaigns_table = dynamodb.Table("campaigns-table")
-
 DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
 
@@ -36,7 +32,6 @@ def llm_calling(prompt: str, model_id: str):
 
 def lambda_handler(event, context):
     body = json.loads(event.get("body", "{}"))
-
     session_id = body.get("session_id")
     campaign_name = body.get("campaign_name")
     campaign_goal_type = body.get("campaign_goal_type")

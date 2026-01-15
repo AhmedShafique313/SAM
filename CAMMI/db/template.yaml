@@ -360,13 +360,13 @@ Resources:
       AttributeDefinitions:
         - AttributeName: user_id
           AttributeType: S
-        - AttributeName: campaign_name
-          AttributeType: S
+        # - AttributeName: campaign_name
+        #   AttributeType: S
       KeySchema:
         - AttributeName: user_id
           KeyType: HASH
-        - AttributeName: campaign_name
-          KeyType: RANGE
+        # - AttributeName: campaign_name
+        #   KeyType: RANGE
 
 
 Outputs:

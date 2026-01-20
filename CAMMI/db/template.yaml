@@ -376,12 +376,12 @@ Resources:
       AttributeDefinitions:
         - AttributeName: campaign_id
           AttributeType: S
-        - AttributeName: user_id
+        - AttributeName: project_id
           AttributeType: S
       KeySchema:
         - AttributeName: campaign_id
           KeyType: HASH
-        - AttributeName: user_id
+        - AttributeName: project_id
           KeyType: RANGE
 
 

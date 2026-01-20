@@ -196,6 +196,7 @@ Please return the response in plain text format. Do not use markdown.
         finalize_info = llm_calling(prompt_finalize, model_id, session_id)
  
         s3_key = f"url_parsing/{project_id}/{user_id}/web_scraping.txt"
+        knowledgebase_output = f"knowledgebase/{user_id}/{user_id}_data.txt"
  
         # ✅ Check if file exists and append content
         try:
@@ -214,6 +215,14 @@ Please return the response in plain text format. Do not use markdown.
             Body=combined_content.encode("utf-8"),
             ContentType="text/plain"
         )
+
+        # Save back to S3
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=knowledgebase_output,
+            Body=combined_content.encode("utf-8"),
+            ContentType="text/plain"
+        )        
  
         # Background branch ends here
         return {"ok": True}

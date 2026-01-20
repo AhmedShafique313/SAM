@@ -175,6 +175,7 @@ def lambda_handler(event, context):
 
     # ✅ Upload extracted + parsed text to S3 (append if exists)
     s3_key = f"url_parsing/{project_id}/{user_id}/web_scraping.txt"
+    knowledgebase_output = f"knowledgebase/{user_id}/{user_id}_data.txt"
 
     try:
         existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
@@ -196,6 +197,13 @@ def lambda_handler(event, context):
         Body=final_output.encode("utf-8"),
         ContentType="text/plain"
     )
+
+    s3.put_object(
+        Bucket=BUCKET_NAME,
+        Key=knowledgebase_output,
+        Body=final_output.encode("utf-8"),
+        ContentType="text/plain"
+    )    
 
     s3_url = f"s3://{BUCKET_NAME}/{s3_key}"
 

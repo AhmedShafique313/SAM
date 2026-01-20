@@ -368,6 +368,22 @@ Resources:
         # - AttributeName: campaign_name
         #   KeyType: RANGE
 
+  UserCampaignTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: user-campaigns
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: campaign_id
+          AttributeType: S
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: campaign_id
+          KeyType: HASH
+        - AttributeName: user_id
+          KeyType: RANGE
+
 
 Outputs:
 
@@ -490,3 +506,9 @@ Outputs:
     Value: !Ref CampaignsTable
     Export:
       Name: CAMMI-CampaignsTableName
+
+  UserCampaignTableName:
+    Description: user campaigns table
+    Value: !Ref UserCampaignTable
+    Export:
+      Name: CAMMI-UserCampaignTableName

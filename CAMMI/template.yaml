@@ -302,7 +302,15 @@ Resources:
     Properties:
       Location: new-campaign/template.yaml
       Parameters:
-        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName            
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName
+
+  ExecutionReadyCampaignsFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - IAMStack
+      - DynamoDBStack
+    Properties:
+      Location: execution-ready-campaigns/template.yaml            
 
 Outputs:
   IAMStackOutput:
@@ -432,3 +440,7 @@ Outputs:
   NewCampaignFeatureOutput:
     Description: Outputs from the New campaign feature
     Value: !Ref NewCampaignFeature
+
+  ExecutionReadyCampaignsFeatureOutput:
+    Description: Outputs from the execution ready campaigns feature
+    Value: !Ref ExecutionReadyCampaignsFeature

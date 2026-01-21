@@ -1,210 +1,23 @@
-import json, boto3, os
+import json
+import boto3
+import os
+from datetime import datetime
+from boto3.dynamodb.conditions import Key
 from hyperbrowser import Hyperbrowser
 from hyperbrowser.models import StartScrapeJobParams, ScrapeOptions
 
 s3 = boto3.client("s3")
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
-lambda_client = boto3.client("lambda")
+dynamodb = boto3.resource("dynamodb")
+
+users_table = dynamodb.Table("users-table")
+campaigns_table = dynamodb.Table("user-campaigns")
+
 BUCKET_NAME = "cammi-devprod"
 client_scraper = Hyperbrowser(api_key=os.environ["HYPERBROWSER_API_KEY"])
 
-def scrape_links(url):
-    result = client_scraper.scrape.start_and_wait(
-        StartScrapeJobParams(
-            url=url,
-            scrape_options=ScrapeOptions(formats=["links"], only_main_content=True)
-        )
-    )
-    return result.data.links
 
-def scrape_page_content(url):
-    result = client_scraper.scrape.start_and_wait(
-        StartScrapeJobParams(
-            url=url,
-            scrape_options=ScrapeOptions(formats=["markdown"], only_main_content=True)
-        )
-    )
-    return result.data.markdown or ""
- 
- 
-def llm_calling(prompt, model_id):
-    conversation = [
-        {
-            "role": "user",
-            "content": [{"text": str(prompt)}]
-        }
-    ]
-    response = bedrock_runtime.converse(
-        modelId=model_id,
-        messages=conversation,
-        inferenceConfig={
-            "maxTokens": 60000,
-            "temperature": 0.7,
-            "topP": 0.9
-        }
-    )
-    response_text = response["output"]["message"]["content"][0]["text"]
-    return response_text.strip()
-
-def get_http_method(event):
-    if "httpMethod" in event:
-        return event["httpMethod"]
-    return event.get("requestContext", {}).get("http", {}).get("method", "")
- 
- 
-def lambda_handler(event, context):
-    method = get_http_method(event)
-
-    if method == "OPTIONS":
-        return build_response(200, {"message": "CORS preflight OK"})
-
-    if event.get("action") == "process":
-        campaign_name = event["campaign_name"]
-        website = event["website"]
-        model_id = event.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
- 
-        links = scrape_links(website)
-        links = [link for link in links if link.startswith(website)]
- 
-        all_content = ""
-        for idx, link in enumerate(links, start=1):
-            page_content = scrape_page_content(link)
-            all_content += f"\n\n--- Page: {link} ---\n{page_content}"
- 
-        prompt_structuring = f"""
-You are an expert information architect.
-Convert the unstructured data below into structured information.
-Do not remove any information — just present it in a structured format.
- 
-Data:
-{str(all_content)}
-"""
- 
-        prompt_relevancy = f"""
-You are an expert business and marketing analyst specializing in B2B brand strategy.
- 
-You are given structured company information (scraped and pre-organized in JSON or markdown):
-{str(all_content)}
- 
-Your task:
-1. Extract all key information relevant to building a detailed and personalized business profile.
-2. Use only factual data found in the input. Do not infer or invent data.
-3. Return the response in the exact format below using the same headings and order.
-4. If any field cannot be determined confidently, leave it blank (do not make assumptions).
- 
-Return your answer in this format exactly:
- 
-Business Name:
-Industry / Sector:
-Mission:
-Vision:
-Objective / Purpose Statement:
-Business Concept:
-Products or Services Offered:
-Target Market:
-Who They Currently Sell To:
-Value Proposition:
-Top Business Goals:
-Challenges:
-Company Overview / About Summary:
-Core Values / Brand Personality:
-Unique Selling Points (USPs):
-Competitive Advantage / What Sets Them Apart:
-Market Positioning Statement:
-Customer Segments:
-Proof Points / Case Studies / Testimonials Summary:
-Key Differentiators:
-Tone of Voice / Brand Personality Keywords:
-Core Features / Capabilities:
-Business Model:
-Technology Stack / Tools / Platform:
-Geographic Presence:
-Leadership / Founder Info:
-Company Values / Culture:
-Strategic Initiatives / Future Plans:
-Awards / Recognition / Partnerships:
-Press Mentions or Achievements:
-Client or Industry Verticals Served:
- 
-Notes:
-- Keep responses concise and factual.
-- Avoid any assumptions or generation of new data.
-- Use sentence form, not bullet lists, except where lists are explicitly more natural.
-"""
- 
-        structured_info = llm_calling(prompt_structuring, model_id)
-        relevant_info = llm_calling(prompt_relevancy, model_id)
- 
-        prompt_finalize = f"""
-You are an expert business analyst.
-Using the structured information below, create a professional company profile.
- 
-{str(relevant_info)}
- 
-Return the output using these exact headings:
-Business Name:
-Industry / Sector:
-Mission:
-Vision:
-Products or Services Offered:
-Target Market:
-Value Proposition:
-Company Overview:
- 
-Please return the response in plain text format. Do not use markdown.
-"""
- 
-        finalize_info = llm_calling(prompt_finalize, model_id)
- 
-        s3_key = f"execution - ready campaigns/{campaign_name}/data.txt"
-
-        try:
-            existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
-            existing_content = existing_obj["Body"].read().decode("utf-8")
-        except s3.exceptions.NoSuchKey:
-            existing_content = ""
- 
-        combined_content = existing_content + "\n\n" + finalize_info
-
-        s3.put_object(
-            Bucket=BUCKET_NAME,
-            Key=s3_key,
-            Body=combined_content.encode("utf-8"),
-            ContentType="text/plain"
-        )
-
-        return {"ok": True}
-
-    if method == "POST":
-        body = json.loads(event.get("body", "{}"))
-        website = body.get("website")
-        campaign_name = body.get("campaign_name")
-        model_id = event.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
- 
-        if not website:
-            return build_response(400, {"error": "Missing required field: website"})
-
-        payload = {
-            "action": "process",                
-            "website": website,
-            "campaign_name": campaign_name,
-            "model_id": model_id
-        }
-        lambda_client.invoke(
-            FunctionName=context.invoked_function_arn,
-            InvocationType="Event",                    
-            Payload=json.dumps(payload).encode("utf-8")
-        )
-
-        return build_response(202, {
-            "message": "Scraping started — Cammi has got your data."
-        })
- 
-    return build_response(405, {"error": "Method not allowed"})
- 
- 
 def build_response(status, body):
-    """Helper to build API Gateway compatible response."""
     return {
         "statusCode": status,
         "headers": {
@@ -215,3 +28,185 @@ def build_response(status, body):
         },
         "body": json.dumps(body)
     }
+
+
+def get_http_method(event):
+    if "httpMethod" in event:
+        return event["httpMethod"]
+    return event.get("requestContext", {}).get("http", {}).get("method", "")
+
+
+def update_campaign_status(campaign_id, project_id, user_id, status, website=None):
+    campaigns_table.update_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        },
+        UpdateExpression="""
+            SET input_data_status = :status,
+                user_id = :uid,
+                website = if_not_exists(website, :website),
+                updated_at = :updated_at
+        """,
+        ExpressionAttributeValues={
+            ":status": status,
+            ":uid": user_id,
+            ":website": website or "",
+            ":updated_at": datetime.utcnow().isoformat()
+        }
+    )
+
+
+def get_campaign_name(campaign_id, project_id):
+    response = campaigns_table.get_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        }
+    )
+
+    item = response.get("Item")
+    if not item or "campaign_name" not in item:
+        raise Exception("campaign_name not found for campaign_id")
+
+    return item["campaign_name"]
+
+
+def scrape_links(url):
+    result = client_scraper.scrape.start_and_wait(
+        StartScrapeJobParams(
+            url=url,
+            scrape_options=ScrapeOptions(formats=["links"], only_main_content=True)
+        )
+    )
+    return result.data.links
+
+
+def scrape_page_content(url):
+    result = client_scraper.scrape.start_and_wait(
+        StartScrapeJobParams(
+            url=url,
+            scrape_options=ScrapeOptions(formats=["markdown"], only_main_content=True)
+        )
+    )
+    return result.data.markdown or ""
+
+
+def llm_calling(prompt, model_id):
+    response = bedrock_runtime.converse(
+        modelId=model_id,
+        messages=[{
+            "role": "user",
+            "content": [{"text": str(prompt)}]
+        }],
+        inferenceConfig={
+            "maxTokens": 60000,
+            "temperature": 0.7,
+            "topP": 0.9
+        }
+    )
+    return response["output"]["message"]["content"][0]["text"].strip()
+
+
+def lambda_handler(event, context):
+    method = get_http_method(event)
+
+    if method == "OPTIONS":
+        return build_response(200, {"message": "CORS OK"})
+
+    # =======================
+    # API GATEWAY POST (Synchronous scraping)
+    # =======================
+    if method == "POST":
+        body = json.loads(event.get("body", "{}"))
+
+        session_id = body.get("session_id")
+        project_id = body.get("project_id")
+        campaign_id = body.get("campaign_id")
+        website = body.get("website")
+        model_id = body.get(
+            "model_id",
+            "us.anthropic.claude-sonnet-4-20250514-v1:0"
+        )
+
+        if not all([session_id, project_id, campaign_id, website]):
+            return build_response(400, {
+                "error": "session_id, project_id, campaign_id, and website are required"
+            })
+
+        # Get user
+        user_resp = users_table.query(
+            IndexName="session_id-index",
+            KeyConditionExpression=Key("session_id").eq(session_id),
+            Limit=1
+        )
+
+        if not user_resp.get("Items"):
+            return build_response(404, {"error": "User not found"})
+
+        user_id = user_resp["Items"][0]["id"]
+
+        # Mark initial status
+        update_campaign_status(
+            campaign_id,
+            project_id,
+            user_id,
+            status="Web Scrapped",
+            website=website
+        )
+
+        # Get campaign_name from DynamoDB
+        campaign_name = get_campaign_name(campaign_id, project_id)
+
+        # ----------------------------
+        # START SYNCHRONOUS SCRAPING
+        # ----------------------------
+        links = scrape_links(website)
+        links = [l for l in links if l.startswith(website)]
+
+        all_content = ""
+        for link in links:
+            page_content = scrape_page_content(link)
+            all_content += f"\n\n--- Page: {link} ---\n{page_content}"
+
+        structured_info = llm_calling(
+            f"Convert this into structured information:\n{all_content}",
+            model_id
+        )
+
+        final_output = llm_calling(
+            f"Convert this into execution-ready campaign data:\n{structured_info}",
+            model_id
+        )
+
+        # Save to S3
+        s3_key = f"knowledgebase/{user_id}/{user_id}_campaign_data.txt"
+
+        try:
+            existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
+            existing_content = existing_obj["Body"].read().decode("utf-8")
+        except s3.exceptions.NoSuchKey:
+            existing_content = ""
+
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=s3_key,
+            Body=(existing_content + "\n\n" + final_output).encode("utf-8"),
+            ContentType="text/plain"
+        )
+
+        # Update status as completed
+        update_campaign_status(
+            campaign_id,
+            project_id,
+            user_id,
+            status="Web Scrapped Completed"
+        )
+
+        # Return synchronous response to frontend
+        return build_response(200, {
+            "message": "Web scraping completed",
+            "s3_path": f"s3://{BUCKET_NAME}/{s3_key}"
+        })
+
+    return build_response(405, {"error": "Method not allowed"})

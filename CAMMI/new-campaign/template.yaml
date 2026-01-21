@@ -16,7 +16,7 @@ Resources:
       CodeUri: src/link/
       Runtime: python3.13
       Timeout: 900
-      MemorySize: 128
+      MemorySize: 10240
       Tracing: Active
       Description: Handles link scrapping for new campaign creation
       Role: !ImportValue CAMMI-LambdaRoleArn

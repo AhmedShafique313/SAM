@@ -384,6 +384,22 @@ Resources:
         - AttributeName: project_id
           KeyType: RANGE
 
+  PostsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: posts-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: post_id
+          AttributeType: S
+        - AttributeName: campaign_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: post_id
+          KeyType: HASH
+        - AttributeName: campaign_id
+          KeyType: RANGE
+
 
 Outputs:
 
@@ -512,3 +528,9 @@ Outputs:
     Value: !Ref UserCampaignTable
     Export:
       Name: CAMMI-UserCampaignTableName
+
+  PostsTableName:
+    Description: user campaigns posts table
+    Value: !Ref PostsTable
+    Export:
+      Name: CAMMI-PostsTableName

@@ -190,7 +190,7 @@ Resources:
   S3EventRule:
     Type: AWS::Events::Rule
     Properties:
-      Name: S3EventRule
+      Name: S3EventRuleNew
       EventPattern:
         source:
           - aws.s3

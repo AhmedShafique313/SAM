@@ -151,62 +151,62 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           CONVERTAPI_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:CONVERTAPI_KEY}}"
 
-  # KnowledgeBaseSyncTriggerFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     FunctionName: knowledgebase_sync_trigger
-  #     Handler: app.lambda_handler
-  #     CodeUri: src/knowledgebase_sync_trigger/
-  #     Runtime: python3.13
-  #     Timeout: 900
-  #     MemorySize: 1024
-  #     Tracing: Active
-  #     Description: Handles knowledge base data sync
-  #     Role: !ImportValue CAMMI-LambdaRoleArn
-  #     Environment:
-  #       Variables:
-  #         S3_BUCKET_NAME: !Ref S3BucketName   
+  KnowledgeBaseSyncTriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: knowledgebase_sync_trigger
+      Handler: app.lambda_handler
+      CodeUri: src/knowledgebase_sync_trigger/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles knowledge base data sync
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName   
 
-  # S3EventRuleRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     RoleName: S3EventRuleRole
-  #     AssumeRolePolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service: events.amazonaws.com
-  #           Action: sts:AssumeRole
-  #     Policies:
-  #       - PolicyName: S3EventRulePolicy
-  #         PolicyDocument:
-  #           Version: "2012-10-17"
-  #           Statement:
-  #             - Effect: Allow
-  #               Action: '*'
-  #               Resource: '*'
+  S3EventRuleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: S3EventRuleRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3EventRulePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
 
-  # S3EventRule:
-  #   Type: AWS::Events::Rule
-  #   Properties:
-  #     Name: S3EventRule
-  #     EventPattern:
-  #       source:
-  #         - aws.s3
-  #       detail-type:
-  #         - Object Created
-  #       detail:
-  #         bucket:
-  #           name:
-  #             - !Ref S3BucketName
-  #         object:
-  #           key:
-  #             - wildcard: '*/knowledgebase/*'
-  #     Targets:
-  #       - Id: "KnowledgeBaseSyncTriggerEvent"
-  #         RoleArn: !GetAtt S3EventRuleRole.Arn
-  #         Arn: !GetAtt  KnowledgeBaseSyncTriggerFunction.Arn
+  S3EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: S3EventRule
+      EventPattern:
+        source:
+          - aws.s3
+        detail-type:
+          - Object Created
+        detail:
+          bucket:
+            name:
+              - !Ref S3BucketName
+          object:
+            key:
+              - wildcard: '*/knowledgebase/*'
+      Targets:
+        - Id: "KnowledgeBaseSyncTriggerEvent"
+          RoleArn: !GetAtt S3EventRuleRole.Arn
+          Arn: !GetAtt  KnowledgeBaseSyncTriggerFunction.Arn
 
 
 ###################################################
@@ -254,9 +254,4 @@ Outputs:
     Value: !GetAtt DownloadAsPDFFunction.Arn
     Export:
       Name: DownloadAsPDFFunctionArn
-
-  # KnowledgeBaseSyncTriggerFunctionArn:
-  #   Description: ARN of KnowledgeBaseSyncTriggerFunction lambda
-  #   Value: !GetAtt KnowledgeBaseSyncTriggerFunction.Arn
-  #   Export:
-  #     Name: KnowledgeBaseSyncTriggerFunctionArn      
+    

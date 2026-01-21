@@ -187,7 +187,8 @@ def lambda_handler(event, context):
         Bucket=BUCKET_NAME,
         Key=s3_key,
         Body=final_output.encode("utf-8"),
-        ContentType="text/plain"
+        ContentType="text/plain",
+        Metadata=user_id
     )
 
     s3_url = f"s3://{BUCKET_NAME}/{s3_key}"

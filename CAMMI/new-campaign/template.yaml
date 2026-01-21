@@ -114,6 +114,25 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
 
+  EditRecommendationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: edit-recommendations
+      Handler: app.lambda_handler
+      CodeUri: src/edit-recommendations/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles editing of campaign cammi recommendations feature
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
+
 Outputs:
   LinkParsingFunctionArn:
     Description: ARN of link parsing Lambda
@@ -150,3 +169,9 @@ Outputs:
     Value: !GetAtt ContentGeneratorFunction.Arn
     Export:
       Name: ContentGeneratorFunctionArn
+
+  EditRecommendationsFunctionArn:
+    Description: ARN of editing of campaign cammi recommendations Lambda
+    Value: !GetAtt EditRecommendationsFunction.Arn
+    Export:
+      Name: EditRecommendationsFunctionArn

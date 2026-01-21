@@ -192,7 +192,8 @@ def lambda_handler(event, context):
             Bucket=BUCKET_NAME,
             Key=s3_key,
             Body=(existing_content + "\n\n" + final_output).encode("utf-8"),
-            ContentType="text/plain"
+            ContentType="text/plain",
+            Metadata=user_id
         )
 
         # Update status as completed

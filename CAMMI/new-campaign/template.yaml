@@ -68,7 +68,7 @@ Resources:
   S3EventRule:
     Type: AWS::Events::Rule
     Properties:
-      Name: S3EventRuleNew
+      Name: S3EventRuleNew2
       EventPattern:
         source:
           - aws.s3

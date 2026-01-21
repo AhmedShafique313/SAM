@@ -1,27 +1,18 @@
 import json
 import boto3
-import re
+import uuid
 from boto3.dynamodb.conditions import Key
 from datetime import datetime
 
-# ---------------------------------------------------------
-# AWS Clients
-# ---------------------------------------------------------
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 dynamodb = boto3.resource("dynamodb")
-
-# ---------------------------------------------------------
-# DynamoDB Tables
-# ---------------------------------------------------------
 users_table = dynamodb.Table("users-table")
-campaigns_table = dynamodb.Table("campaigns-table")
+campaigns_table = dynamodb.Table("user-campaigns")
+posts_table = dynamodb.Table("posts-table")
 
 DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
 
-# ---------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------
 def llm_calling(prompt: str, model_id: str) -> str:
     response = bedrock_runtime.converse(
         modelId=model_id,
@@ -35,47 +26,16 @@ def llm_calling(prompt: str, model_id: str) -> str:
     return response["output"]["message"]["content"][0]["text"]
 
 
-def extract_json(text: str) -> dict:
-    match = re.search(r"\{[\s\S]*\}", text)
-    if not match:
-        raise ValueError("No JSON found in LLM response")
-    return json.loads(match.group())
-
-
-# ---------------------------------------------------------
-# Lambda Handler
-# ---------------------------------------------------------
 def lambda_handler(event, context):
     body = json.loads(event.get("body", "{}"))
 
     session_id = body.get("session_id")
-    campaign_name = body.get("campaign_name")
-    campaign_goal_type = body.get("campaign_goal_type")
-    platform_name = body.get("platform_name")
+    project_id = body.get("project_id")
+    campaign_id = body.get("campaign_id")
 
-    data = body.get("data", {})
-    post_volume = data.get("post_volume")
-    best_posting_time = data.get("best_posting_time")
-    creative_brief = data.get("creative_brief")
-
-    if not all([
-        session_id,
-        campaign_name,
-        campaign_goal_type,
-        platform_name,
-        post_volume,
-        best_posting_time,
-        creative_brief
-    ]):
+    if not session_id or not project_id or not campaign_id:
         return build_response(400, {"error": "Missing required fields"})
 
-    total_posts = post_volume.get("total_posts")
-    if not total_posts or total_posts <= 0:
-        return build_response(400, {"error": "Invalid post_volume.total_posts"})
-
-    # ---------------------------------------------------------
-    # 1. Resolve user
-    # ---------------------------------------------------------
     user_resp = users_table.query(
         IndexName="session_id-index",
         KeyConditionExpression=Key("session_id").eq(session_id),
@@ -87,9 +47,31 @@ def lambda_handler(event, context):
 
     user_id = user_resp["Items"][0]["id"]
 
-    # ---------------------------------------------------------
-    # 2. Prompt
-    # ---------------------------------------------------------
+    campaign_resp = campaigns_table.get_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        }
+    )
+
+    if "Item" not in campaign_resp:
+        return build_response(404, {"error": "Campaign not found"})
+
+    campaign = campaign_resp["Item"]
+
+    platform_name = campaign.get("platform_name")
+    creative_brief = campaign.get("creative_brief")
+    key_message = campaign.get("key_message")
+    total_posts = int(campaign.get("total_posts", 0))
+    posts_per_week = campaign.get("posts_per_week")
+    campaign_goal_type = campaign.get("campaign_goal_type")
+    campaign_duration_days = campaign.get("campaign_duration_days")
+    brand_tone = campaign.get("brand_tone")
+    brand_voice = campaign.get("brand_voice")
+
+    if total_posts <= 0:
+        return build_response(400, {"error": "Invalid total_posts value"})
+
     prompt = f"""
 You are a senior social media strategist.
 
@@ -119,51 +101,91 @@ JSON FORMAT:
 
 Platform: {platform_name}
 Campaign Goal: {campaign_goal_type}
-Posting Window: {best_posting_time}
+Campaign Duration (days): {campaign_duration_days}
+Posts Per Week: {posts_per_week}
+Brand Tone: {brand_tone}
+Brand Voice: {brand_voice}
+Key Message: {key_message}
 Creative Brief: {creative_brief}
 """
 
-    # ---------------------------------------------------------
-    # 3. Generate & Parse
-    # ---------------------------------------------------------
     llm_response = llm_calling(prompt, DEFAULT_MODEL_ID)
 
     try:
-        generated_posts = extract_json(llm_response)
-        posts = generated_posts["posts"]
-    except Exception:
-        return build_response(500, {
-            "error": "Invalid LLM response format",
-            "raw_llm_output": llm_response[:1000]
+        generated = json.loads(llm_response)
+    except json.JSONDecodeError:
+        return build_response(500, {"error": "Invalid LLM JSON response"})
+
+    posts_list = generated.get("posts", [])
+
+    saved_posts = []
+
+    for post in posts_list:
+        post_id = uuid.uuid4().hex[:12]  # ✅ small unique UUID
+
+        title = post.get("title")
+        description = post.get("description")
+        hashtags = post.get("hashtags")
+        image_generation_prompt = post.get("image_generation_prompt")
+        best_post_time = post.get("best_post_time")
+        best_post_day = post.get("best_post_day")
+
+        posts_table.update_item(
+            Key={
+                "post_id": post_id,          # ✅ Partition Key
+                "campaign_id": campaign_id  # ✅ Sort Key
+            },
+            UpdateExpression="""
+                SET
+                    title = :title,
+                    description = :description,
+                    hashtags = :hashtags,
+                    image_generation_prompt = :image_generation_prompt,
+                    best_post_time = :best_post_time,
+                    best_post_day = :best_post_day,
+                    generated_at = :generated_at
+            """,
+            ExpressionAttributeValues={
+                ":title": title,
+                ":description": description,
+                ":hashtags": hashtags,
+                ":image_generation_prompt": image_generation_prompt,
+                ":best_post_time": best_post_time,
+                ":best_post_day": best_post_day,
+                ":generated_at": datetime.utcnow().isoformat()
+            }
+        )
+
+        saved_posts.append({
+            "post_id": post_id,
+            "title": title,
+            "description": description,
+            "hashtags": hashtags,
+            "image_generation_prompt": image_generation_prompt,
+            "best_post_time": best_post_time,
+            "best_post_day": best_post_day
         })
 
-    if len(posts) != total_posts:
-        return build_response(500, {"error": "Incorrect number of posts generated"})
-
-    # ---------------------------------------------------------
-    # 4. Save
-    # ---------------------------------------------------------
-    campaigns_table.put_item(
-        Item={
-            "user_id": user_id,
-            "campaign_name": campaign_name,
-            "platform_name": platform_name,
-            "campaign_goal_type": campaign_goal_type,
-            "post_volume": post_volume,
-            "best_posting_time": best_posting_time,
-            "creative_brief": creative_brief,
-            "posts": posts,
-            "status": "generated",
-            "created_at": datetime.utcnow().isoformat()
+    campaigns_table.update_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        },
+        UpdateExpression="SET #s = :status",
+        ExpressionAttributeNames={
+            "#s": "status"
+        },
+        ExpressionAttributeValues={
+            ":status": "Generated"
         }
     )
 
     return build_response(200, {
         "message": "Cammi generated your campaign content",
         "data": {
-            "campaign_name": campaign_name,
+            "status": "Generated",
             "total_posts": total_posts,
-            "posts": posts
+            "posts": saved_posts
         }
     })
 

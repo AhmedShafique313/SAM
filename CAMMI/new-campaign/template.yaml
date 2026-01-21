@@ -182,11 +182,11 @@ Outputs:
     Export:
       Name: LinkParsingFunctionArn
 
-  # CampaignDocumentFunctionArn:
-  #   Description: ARN of campaign document upload Lambda
-  #   Value: !GetAtt CampaignDocumentFunction.Arn
-  #   Export:
-  #     Name: CampaignDocumentFunctionArn
+  CampaignDocumentFunctionArn:
+    Description: ARN of campaign document upload Lambda
+    Value: !GetAtt CampaignDocumentFunction.Arn
+    Export:
+      Name: CampaignDocumentFunctionArn
 
   QuestionaireFunctionArn:
     Description: ARN of campaign questions Lambda

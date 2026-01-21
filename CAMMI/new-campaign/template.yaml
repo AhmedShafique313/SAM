@@ -45,6 +45,48 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
 
+  S3EventRuleRoleNew2:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: S3EventRuleRoleNew2
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3EventRulePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+
+  S3EventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: S3EventRuleNew
+      EventPattern:
+        source:
+          - aws.s3
+        detail-type:
+          - Object Created
+        detail:
+          bucket:
+            name:
+              - !Ref S3BucketName
+          object:
+            key:
+              - wildcard: 'pdf_files/'
+      Targets:
+        - Id: "CampaignDocumentFunctionEvent"
+          RoleArn: !GetAtt S3EventRuleRoleNew2.Arn
+          Arn: !GetAtt  CampaignDocumentFunction.Arn
+
+
   QuestionaireFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -140,11 +182,11 @@ Outputs:
     Export:
       Name: LinkParsingFunctionArn
 
-  CampaignDocumentFunctionArn:
-    Description: ARN of campaign document upload Lambda
-    Value: !GetAtt CampaignDocumentFunction.Arn
-    Export:
-      Name: CampaignDocumentFunctionArn
+  # CampaignDocumentFunctionArn:
+  #   Description: ARN of campaign document upload Lambda
+  #   Value: !GetAtt CampaignDocumentFunction.Arn
+  #   Export:
+  #     Name: CampaignDocumentFunctionArn
 
   QuestionaireFunctionArn:
     Description: ARN of campaign questions Lambda

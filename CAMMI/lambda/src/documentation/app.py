@@ -489,6 +489,13 @@ def lambda_handler(event, context):
     document_type = event.get("document_type", "")
     logo_base64 = event.get("logo_base64", "")
 
+    common_metadata = {
+    "user_id": user_id,
+    "project_id": project_id,
+    "document_type": document_type
+    }
+
+
     template_bucket = 'cammi-devprod'
     object_key = f'flow/{user_id}/{document_type}/execution_plan.json'
     template_key = f'flow/{document_type}/marketing_document_template.json'
@@ -602,6 +609,7 @@ def lambda_handler(event, context):
         Bucket=output_bucket,
         Key=output_key,
         Body=buffer.getvalue(),
+        Metadata=common_metadata,
         ContentType=(
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         )
@@ -611,6 +619,7 @@ def lambda_handler(event, context):
         Bucket=output_bucket,
         Key=knowledgebase_output,
         Body=buffer.getvalue(),
+        Metadata=common_metadata,
         ContentType=(
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         )

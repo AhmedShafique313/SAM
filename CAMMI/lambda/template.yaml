@@ -202,7 +202,7 @@ Resources:
               - !Ref S3BucketName
           object:
             key:
-              - wildcard: '*/knowledgebase/*'
+              - wildcard: 'knowledgebase/'
       Targets:
         - Id: "KnowledgeBaseSyncTriggerEvent"
           RoleArn: !GetAtt S3EventRuleRoleNew.Arn

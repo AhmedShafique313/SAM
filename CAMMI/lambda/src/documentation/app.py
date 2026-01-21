@@ -14,8 +14,13 @@ from docx import Document
 from docx.shared import Pt, RGBColor
 from docx.oxml.ns import qn
 from datetime import datetime
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 import re
 import difflib
+import base64
+from docx.shared import Inches
+
 
 # ---------- AWS ----------
 s3 = boto3.client('s3')
@@ -25,6 +30,17 @@ DOCUMENT_HISTORY_TABLE = "documents-history-table"
 
 # ---------- CONFIG ----------
 TABLE_STYLE = "Light Grid Accent 1"
+DOCUMENT_TYPE_NAMES = {
+    "gtm": "Go to Market",
+    "icp": "Ideal Customer Profile",
+    "kmf": "Key Messaging Framework",
+    "bs": "Brand Strategy",
+    "sr": "Strategy Roadmap",
+    "mr": "Market Research",
+    "brand": "Brand",
+    "messaging": "Messaging",
+    "smp": "Strategic Marketing Plan"
+}
 
 
 def save_document_history_to_dynamodb(user_id, project_id, document_type, document_name, document_url):
@@ -62,12 +78,6 @@ def save_document_history_to_dynamodb(user_id, project_id, document_type, docume
         return False
 
 # ---------- Helpers: formatting ----------
-def apply_base_format(run, size=12, bold=False):
-    run.font.name = 'Arial'
-    run._element.rPr.rFonts.set(qn('w:eastAsia'), 'Arial')
-    run.font.size = Pt(size)
-    run.bold = bold
-
 def format_heading(text: str) -> str:
     return ' '.join(word.capitalize() for word in text.replace("_", " ").split())
 
@@ -114,7 +124,7 @@ def unbreak_paragraphs(text: str) -> str:
             continue
 
         # normal line join
-        if buffer and not buffer.endswith(('.', ':', '?', '!', '”', '"')):
+        if buffer and not buffer.endswith(('.', ':', '?', '!', '"', '"')):
             buffer += " " + stripped
         else:
             buffer += ("\n" if buffer else "") + stripped
@@ -125,6 +135,14 @@ def unbreak_paragraphs(text: str) -> str:
     return "\n\n".join(result)
 
 # ---------- S3 I/O ----------
+def load_template_from_s3(bucket, key):
+    """
+    Load a DOCX template from S3 and return a Document object.
+    """
+    response = s3.get_object(Bucket=bucket, Key=key)
+    template_stream = BytesIO(response['Body'].read())
+    return Document(template_stream)
+
 def read_json_from_s3(bucket, key):
     response = s3.get_object(Bucket=bucket, Key=key)
     content = response['Body'].read().decode('utf-8')
@@ -216,16 +234,13 @@ def markdown_table_to_docx(md_table: str, doc: Document):
         cell.text = h
         for paragraph in cell.paragraphs:
             for run in paragraph.runs:
-                apply_base_format(run, size=11, bold=True)
+                run.bold = True
 
     # body
     for i, row in enumerate(rows):
         for j, txt in enumerate(row):
             cell = table.cell(i + 1, j)
             cell.text = txt
-            for paragraph in cell.paragraphs:
-                for run in paragraph.runs:
-                    apply_base_format(run, size=10, bold=False)
 
 # ---------- Content renderer ----------
 def add_formatted_paragraphs(document: Document, text: str, template_h1: str = ""):
@@ -291,17 +306,13 @@ def add_formatted_paragraphs(document: Document, text: str, template_h1: str = "
 
         # H3
         if line.startswith("### "):
-            p = document.add_paragraph()
-            run = p.add_run(line[4:].strip())
-            apply_base_format(run, size=14, bold=True)
+            document.add_paragraph(line[4:].strip(), style="Heading 3")
             i += 1
             continue
 
         # H2
         if line.startswith("## "):
-            p = document.add_paragraph()
-            run = p.add_run(line[3:].strip())
-            apply_base_format(run, size=16, bold=True)
+            document.add_paragraph(line[3:].strip(), style="Heading 2")
             i += 1
             continue
 
@@ -309,33 +320,33 @@ def add_formatted_paragraphs(document: Document, text: str, template_h1: str = "
         if line.startswith("# "):
             h1_text = line[2:].strip()
             if not (template_h1 and exact_match(h1_text, template_h1)):
-                p = document.add_paragraph()
-                run = p.add_run(h1_text)
-                apply_base_format(run, size=17, bold=True)
-                run.font.color.rgb = RGBColor(0, 0, 0)
+                document.add_paragraph(h1_text, style="Heading 1")
             i += 1
             continue
 
         # bullets
         if line.startswith(("-", "*", "•")):
             content = line[1:].strip()
-            p = document.add_paragraph(style='List Bullet')
+            try:
+                p = document.add_paragraph(style='List Paragraph')
+            except KeyError:
+                p = document.add_paragraph()
+                p.style = document.styles['Normal']
+                p.paragraph_format.left_indent = Pt(18)
             if ':' in content:
                 # Handle both "Label:" and "Label: Value" formats
                 if content.endswith(':'):
                     # Case: "Revenue Streams:" - make entire content bold
                     run = p.add_run(content)
-                    apply_base_format(run, bold=True)
+                    run.bold = True
                 else:
                     # Case: "Label: Value" - make only label part bold
                     label, _, rest = content.partition(':')
                     run_b = p.add_run(label.strip() + ": ")
-                    apply_base_format(run_b, bold=True)
+                    run_b.bold = True
                     run_n = p.add_run(rest.strip())
-                    apply_base_format(run_n)
             else:
-                run = p.add_run(content)
-                apply_base_format(run)
+                p.add_run(content)
             i += 1
             continue
 
@@ -345,7 +356,7 @@ def add_formatted_paragraphs(document: Document, text: str, template_h1: str = "
                 # Case: "Revenue Streams:" - entire line bold
                 p = document.add_paragraph()
                 run = p.add_run(line)
-                apply_base_format(run, bold=True)
+                run.bold = True
             else:
                 # Case: "Label: Value" - only label part bold
                 label, value = line.split(':', 1)   # split only once
@@ -356,20 +367,18 @@ def add_formatted_paragraphs(document: Document, text: str, template_h1: str = "
 
                 # Bold label
                 run_b = p.add_run(label + ": ")
-                apply_base_format(run_b, bold=True)
+                run_b.bold = True
 
                 # Normal value (explicitly un-bolded)
                 if value:
                     run_n = p.add_run(value)
-                    apply_base_format(run_n, bold=False)
+                    run_n.bold = False
 
             i += 1
             continue        
 
         # default paragraph
-        p = document.add_paragraph()
-        run = p.add_run(line)
-        apply_base_format(run)
+        document.add_paragraph(line)
         i += 1
 
 # ---------- Status updater ----------
@@ -395,12 +404,90 @@ def update_status_to_false(bucket_name, object_key):
     except Exception as e:
         print(f"❌ Unexpected Error: {e}")
 
-# ---------- Lambda handler ----------
+
+def save_project_logo_to_s3(project_id: str, logo_base64: str):
+    """
+    Saves project logo to:
+    s3://cammi-devprod/logos/{project_id}/logo.png
+    Overwrites if already exists.
+    """
+    try:
+        if not logo_base64:
+            return None
+
+        # Remove data:image/...;base64,
+        if "," in logo_base64:
+            logo_base64 = logo_base64.split(",", 1)[1]
+
+        image_bytes = base64.b64decode(logo_base64)
+
+        logo_key = f"logos/{project_id}/logo.png"
+
+        s3.put_object(
+            Bucket="cammi-devprod",
+            Key=logo_key,
+            Body=image_bytes,
+            ContentType="image/png"
+        )
+
+        print(f"✅ Logo saved at s3://cammi-devprod/{logo_key}")
+        return logo_key
+
+    except Exception as e:
+        print(f"❌ Failed to save logo: {e}")
+        return None
+
+def get_project_logo_from_s3(project_id: str):
+    """
+    Loads project logo from S3 and returns BytesIO.
+    Returns None if logo does not exist.
+    """
+    try:
+        logo_key = f"logos/{project_id}/logo.png"
+
+        response = s3.get_object(
+            Bucket="cammi-devprod",
+            Key=logo_key
+        )
+
+        return BytesIO(response["Body"].read())
+
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "NoSuchKey":
+            print("ℹ️ No logo found for project")
+            return None
+        raise e
+
+
+def add_logo_to_header_from_s3(document, project_id: str):
+    """
+    Adds project logo (if exists) to the TOP-RIGHT of the header.
+    """
+    try:
+        logo_stream = get_project_logo_from_s3(project_id)
+        if not logo_stream:
+            return  # no logo → do nothing
+
+        header = document.sections[0].header
+
+        # Create a new paragraph ONLY for logo
+        p = header.add_paragraph()
+        p.alignment = 2  # RIGHT alignment
+
+        run = p.add_run()
+        run.add_picture(logo_stream, width=Inches(0.3))
+
+    except Exception as e:
+        print(f"⚠️ Logo skipped: {e}")
+
+
+
 def lambda_handler(event, context):
     user_id = event.get("user_id", "")
     project_id = event.get("project_id", "")
     session_id = event.get("session_id", "")
     document_type = event.get("document_type", "")
+    logo_base64 = event.get("logo_base64", "")
 
     template_bucket = 'cammi-devprod'
     object_key = f'flow/{user_id}/{document_type}/execution_plan.json'
@@ -408,61 +495,129 @@ def lambda_handler(event, context):
     output_bucket = 'cammi-devprod'
 
     timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-    output_key = f'project/{project_id}/{document_type}/marketing_strategy_document/{document_type}_{timestamp}.docx'
+    output_key = (
+        f'project/{project_id}/{document_type}/'
+        f'marketing_strategy_document/{document_type}_{timestamp}.docx'
+    )
+    knowledgebase_output = f'knowledgebase/{user_id}/{user_id}_{document_type}_{timestamp}.docx'
+
+    # -------------------------------
+    # 1️⃣ SAVE LOGO (ONLY IF SENT)
+    # -------------------------------
+    if logo_base64:
+        save_project_logo_to_s3(project_id, logo_base64)
 
     # Load template JSON
     template = read_json_from_s3(template_bucket, template_key)
 
-    # Build DOCX
-    document = Document()
+    # Load DOCX template from S3
+    document = load_template_from_s3(
+        'cammi-devprod',
+        'templates/cammi_master_strategy_template.docx'
+    )
 
-    # Default font
-    style = document.styles['Normal']
-    style.font.name = 'Arial'
-    style.font.size = Pt(12)
+    # -------------------------------
+    # 2️⃣ HEADER (TEXT + LOGO)
+    # -------------------------------
+    header = document.sections[0].header
 
-    # Render sections
+    # Clear ALL header paragraphs safely
+    for p in header.paragraphs:
+        p.clear()
+
+    # 👉 Add logo first (top-right)
+    add_logo_to_header_from_s3(document, project_id)
+
+    # 👉 Add header text (left aligned)
+    p_text = header.add_paragraph()
+    p_text.alignment = 0  # LEFT
+
+    doc_type_full = DOCUMENT_TYPE_NAMES.get(document_type.lower(), document_type)
+
+    run_header = p_text.add_run(f"Cammi.ai | {doc_type_full} Document")
+    run_header.font.size = Pt(10)
+    run_header.font.bold = True
+    run_header.font.color.rgb = RGBColor(50, 50, 50)
+
+    # -------------------------------
+    # 3️⃣ FOOTER (UNCHANGED)
+    # -------------------------------
+    footer = document.sections[0].footer
+    footer_paragraph = footer.paragraphs[0]
+    footer_paragraph.clear()
+
+    run_page = footer_paragraph.add_run("Page ")
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+    run_page._r.append(fldChar1)
+
+    instrText = OxmlElement('w:instrText')
+    instrText.text = 'PAGE'
+    run_page._r.append(instrText)
+
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'end')
+    run_page._r.append(fldChar2)
+
+    run_conf = footer_paragraph.add_run(
+        " | From Clarification to Iteration: Move faster with CAMMI"
+    )
+
+    for r in [run_page, run_conf]:
+        r.font.size = Pt(10)
+        r.font.bold = True
+        r.font.color.rgb = RGBColor(50, 50, 50)
+
+    # -------------------------------
+    # 4️⃣ RENDER CONTENT
+    # -------------------------------
     for section in template:
         for subsection in section.get("sections", []):
             subheading = format_heading(subsection.get("subheading", ""))
             s3_path = subsection.get("s3_path", "")
+
             if not s3_path.startswith("s3://"):
-                s3_path = f"s3://cammi-devprod/{project_id}/{document_type}/{s3_path}"
+                s3_path = (
+                    f"s3://cammi-devprod/{project_id}/"
+                    f"{document_type}/{s3_path}"
+                )
+
             content_text = read_text_file_from_s3(s3_path)
 
-            # spacing before heading
-            document.add_paragraph()
+            document.add_paragraph(subheading, style='Heading 1')
+            add_formatted_paragraphs(
+                document,
+                content_text,
+                template_h1=subheading
+            )
 
-            # Heading
-            p = document.add_paragraph(style='Heading 1')
-            run = p.add_run(subheading)
-            apply_base_format(run, size=17, bold=True)
-            run.font.color.rgb = RGBColor(0, 0, 0)
-
-            # spacing after heading
-            document.add_paragraph()
-
-            # Content (auto tables + rich formatting)
-            add_formatted_paragraphs(document, content_text, template_h1=subheading)
-
-    # Save to buffer
+    # -------------------------------
+    # 5️⃣ SAVE DOC
+    # -------------------------------
     buffer = BytesIO()
     document.save(buffer)
     buffer.seek(0)
 
-    # Upload to S3
     s3.put_object(
         Bucket=output_bucket,
         Key=output_key,
         Body=buffer.getvalue(),
-        ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ContentType=(
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
     )
 
-    # Build document info
+    s3.put_object(
+        Bucket=output_bucket,
+        Key=knowledgebase_output,
+        Body=buffer.getvalue(),
+        ContentType=(
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+    )
     document_name = output_key.split('/')[-1]
     document_url = f"s3://{output_bucket}/{output_key}"
 
-    # Save document history to DynamoDB
     save_document_history_to_dynamodb(
         user_id=user_id,
         project_id=project_id,
@@ -471,9 +626,10 @@ def lambda_handler(event, context):
         document_url=document_url
     )
 
-
-    # Reset execution plan statuses
-    update_status_to_false(bucket_name='cammi-devprod', object_key=object_key)
+    update_status_to_false(
+        bucket_name='cammi-devprod',
+        object_key=object_key
+    )
 
     return {
         'statusCode': 200,

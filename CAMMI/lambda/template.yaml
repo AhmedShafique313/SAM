@@ -167,10 +167,10 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName   
 
-  S3EventRuleRole:
+  S3EventRuleRoleNew:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: S3EventRuleRole
+      RoleName: S3EventRuleRoleNew
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -205,7 +205,7 @@ Resources:
               - wildcard: '*/knowledgebase/*'
       Targets:
         - Id: "KnowledgeBaseSyncTriggerEvent"
-          RoleArn: !GetAtt S3EventRuleRole.Arn
+          RoleArn: !GetAtt S3EventRuleRoleNew.Arn
           Arn: !GetAtt  KnowledgeBaseSyncTriggerFunction.Arn
 
 

@@ -2,11 +2,14 @@ import json
 import boto3
 import pdfplumber
 import io
+from datetime import datetime
 from boto3.dynamodb.conditions import Key, Attr
 
 s3 = boto3.client('s3')
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 BUCKET_NAME = "cammi-devprod"
+dynamodb = boto3.resource("dynamodb")
+campaigns_table = dynamodb.Table("user-campaigns")
 
 def llm_calling(prompt, model_id):
     conversation = [
@@ -25,6 +28,34 @@ def llm_calling(prompt, model_id):
     )
     response_text = response["output"]["message"]["content"][0]["text"]
     return response_text.strip()
+
+def update_campaign_status(campaign_id, project_id, user_id, status, website=None):
+    campaigns_table.update_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        },
+        UpdateExpression="""
+            SET input_data_status = :status,
+                user_id = :uid,
+                website = if_not_exists(website, :website),
+                updated_at = :updated_at
+        """,
+        ExpressionAttributeValues={
+            ":status": status,
+            ":uid": user_id,
+            ":website": website or "",
+            ":updated_at": datetime.utcnow().isoformat()
+        }
+    )
+
+def get_campaign_name(campaign_id, project_id):
+    response = campaigns_table.get_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        }
+    )
 
 def call_llm_extract_profile(all_content: str) -> str:
     prompt_relevancy = f"""
@@ -94,16 +125,26 @@ def lambda_handler(event, context):
         }
 
     # ✅ Extract project_id and session_id from object_key
-    # Expected pattern: pdf_files/{project_id}/{session_id}/{file_name}
+    # object_key = f"pdf_files/{project_id}/{user_id}/{campaign_id}/{file_name}"
     parts = object_key.split("/")
-    if len(parts) < 3 or parts[0] != "execution - ready campaigns":
+    if len(parts) < 5 or parts[0] != "pdf_files":
         return {
             "statusCode": 400,
             "body": json.dumps({"message": f"Invalid S3 key structure: {object_key}"})
         }
     
-    campaign_name = parts[1]
-    file_name = parts[2]
+    project_id = parts[1]
+    user_id = parts[2]
+    campaign_id = parts[3]
+    file_name = parts[4]
+
+    update_campaign_status(
+            campaign_id,
+            project_id,
+            user_id,
+            status="PDF Extracted",
+        )
+    campaign_name = get_campaign_name(campaign_id, project_id)
 
     print(f"Extracted campaign_name: {campaign_name}, file_name: {file_name}")
 
@@ -126,7 +167,7 @@ def lambda_handler(event, context):
     parsed_profile = call_llm_extract_profile(all_text)
     print("LLM processing completed.")
 
-    s3_key = f"execution - ready campaigns/{campaign_name}/data.txt"
+    s3_key = f"knowledgebase/{user_id}/{user_id}_campaign_data.txt"
 
     try:
         existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)

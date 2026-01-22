@@ -5,12 +5,16 @@ import io
 from datetime import datetime
 from boto3.dynamodb.conditions import Key, Attr
 
-s3 = boto3.client('s3')
+s3 = boto3.client("s3")
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
-BUCKET_NAME = "cammi-devprod"
 dynamodb = boto3.resource("dynamodb")
+
+BUCKET_NAME = "cammi-devprod"
 campaigns_table = dynamodb.Table("user-campaigns")
 
+# -----------------------------------------
+# LLM helpers
+# -----------------------------------------
 def llm_calling(prompt, model_id):
     conversation = [
         {
@@ -26,9 +30,30 @@ def llm_calling(prompt, model_id):
             "topP": 0.9
         }
     )
-    response_text = response["output"]["message"]["content"][0]["text"]
-    return response_text.strip()
+    return response["output"]["message"]["content"][0]["text"].strip()
 
+
+def call_llm_extract_profile(all_content: str) -> str:
+    prompt = f"""
+You are an expert business and marketing analyst specializing in B2B brand strategy.
+
+Input:
+{all_content}
+
+Extract factual company profile only.
+Do not infer or invent data.
+
+Return in exact structured format.
+""".strip()
+
+    return llm_calling(
+        prompt,
+        model_id="us.anthropic.claude-sonnet-4-20250514-v1:0"
+    )
+
+# -----------------------------------------
+# DynamoDB helpers
+# -----------------------------------------
 def update_campaign_status(campaign_id, project_id, user_id, status, website=None):
     campaigns_table.update_item(
         Key={
@@ -49,6 +74,7 @@ def update_campaign_status(campaign_id, project_id, user_id, status, website=Non
         }
     )
 
+
 def get_campaign_name(campaign_id, project_id):
     response = campaigns_table.get_item(
         Key={
@@ -56,67 +82,26 @@ def get_campaign_name(campaign_id, project_id):
             "project_id": project_id
         }
     )
+    return response.get("Item", {}).get("campaign_name")
 
-def call_llm_extract_profile(all_content: str) -> str:
-    prompt_relevancy = f"""
-You are an expert business and marketing analyst specializing in B2B brand strategy.
- 
-You are given structured company information (scraped and pre-organized in JSON or markdown):
-{str(all_content)}
- 
-Your task:
-1. Extract all key information relevant to building a detailed and personalized business profile.
-2. Use only factual data found in the input. Do not infer or invent data.
-3. Return the response in the exact format below using the same headings and order.
-4. If any field cannot be determined confidently, leave it blank (do not make assumptions).
- 
-Return your answer in this format exactly:
- 
-Business Name:
-Industry / Sector:
-Mission:
-Vision:
-Objective / Purpose Statement:
-Business Concept:
-Products or Services Offered:
-Target Market:
-Who They Currently Sell To:
-Value Proposition:
-Top Business Goals:
-Challenges:
-Company Overview / About Summary:
-Core Values / Brand Personality:
-Unique Selling Points (USPs):
-Competitive Advantage / What Sets Them Apart:
-Market Positioning Statement:
-Customer Segments:
-Proof Points / Case Studies / Testimonials Summary:
-Key Differentiators:
-Tone of Voice / Brand Personality Keywords:
-Core Features / Capabilities:
-Business Model:
-Technology Stack / Tools / Platform:
-Geographic Presence:
-Leadership / Founder Info:
-Company Values / Culture:
-Strategic Initiatives / Future Plans:
-Awards / Recognition / Partnerships:
-Press Mentions or Achievements:
-Client or Industry Verticals Served:
- 
-Notes:
-- Keep responses concise and factual.
-- Avoid any assumptions or generation of new data.
-- Use sentence form, not bullet lists, except where lists are explicitly more natural.
-    """.strip()
-
-    return llm_calling(prompt_relevancy, model_id="us.anthropic.claude-sonnet-4-20250514-v1:0")
-
+# -----------------------------------------
+# Lambda handler (EventBridge)
+# -----------------------------------------
 def lambda_handler(event, context):
-    print("Received S3 event:", json.dumps(event))
-    record = event["Records"][0]
-    bucket_name = record["s3"]["bucket"]["name"]
-    object_key = record["s3"]["object"]["key"]
+    print("📥 Received EventBridge event:", json.dumps(event))
+
+    # -------------------------------------
+    # Extract EventBridge S3 details
+    # -------------------------------------
+    detail = event.get("detail", {})
+    bucket_name = detail.get("bucket", {}).get("name")
+    object_key = detail.get("object", {}).get("key")
+
+    if not bucket_name or not object_key:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"message": "Invalid EventBridge S3 event"})
+        }
 
     if bucket_name != BUCKET_NAME:
         return {
@@ -124,80 +109,89 @@ def lambda_handler(event, context):
             "body": json.dumps({"message": f"Unexpected bucket: {bucket_name}"})
         }
 
-    # ✅ Extract project_id and session_id from object_key
-    # object_key = f"pdf_files/{project_id}/{user_id}/{campaign_id}/{file_name}"
+    print(f"📄 New object detected: s3://{bucket_name}/{object_key}")
+
+    # -------------------------------------
+    # Expected S3 path:
+    # pdf_files/{project_id}/{user_id}/{campaign_id}/{file_name}
+    # -------------------------------------
     parts = object_key.split("/")
+
     if len(parts) < 5 or parts[0] != "pdf_files":
         return {
             "statusCode": 400,
             "body": json.dumps({"message": f"Invalid S3 key structure: {object_key}"})
         }
-    
+
     project_id = parts[1]
     user_id = parts[2]
     campaign_id = parts[3]
     file_name = parts[4]
 
+    # -------------------------------------
+    # Update campaign status
+    # -------------------------------------
     update_campaign_status(
-            campaign_id,
-            project_id,
-            user_id,
-            status="PDF Extracted",
-        )
+        campaign_id=campaign_id,
+        project_id=project_id,
+        user_id=user_id,
+        status="PDF Extracted"
+    )
+
     campaign_name = get_campaign_name(campaign_id, project_id)
+    print(f"🎯 Campaign: {campaign_name}, File: {file_name}")
 
-    print(f"Extracted campaign_name: {campaign_name}, file_name: {file_name}")
-
+    # -------------------------------------
+    # Read PDF
+    # -------------------------------------
     pdf_obj = s3.get_object(Bucket=bucket_name, Key=object_key)
     pdf_bytes = pdf_obj["Body"].read()
 
-    print(f"Reading file from S3: {object_key}")
-    print(f"File size: {len(pdf_bytes)} bytes")
-
     all_text = ""
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        print(f"Total pages: {len(pdf.pages)}")
-        for i, page in enumerate(pdf.pages):
-            print(f"Extracting page {i + 1} ...")
+        for page in pdf.pages:
             text = page.extract_text()
             if text:
                 all_text += text + "\n" + "-" * 80 + "\n"
 
-    print("Calling Bedrock LLM to generate structured business profile...")
+    # -------------------------------------
+    # Call LLM
+    # -------------------------------------
     parsed_profile = call_llm_extract_profile(all_text)
-    print("LLM processing completed.")
 
-    s3_key = f"knowledgebase/{user_id}/{user_id}_campaign_data.txt"
+    # -------------------------------------
+    # Write to knowledgebase (user-scoped)
+    # -------------------------------------
+    kb_key = f"knowledgebase/{user_id}/{user_id}_campaign_data.txt"
 
     try:
-        existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
-        existing_content = existing_obj["Body"].read().decode("utf-8")
-        print("Existing file found. Appending new content...")
+        existing = s3.get_object(Bucket=BUCKET_NAME, Key=kb_key)
+        existing_content = existing["Body"].read().decode("utf-8")
     except s3.exceptions.NoSuchKey:
         existing_content = ""
-        print("No existing file found. Creating a new one...")
 
     final_output = (
         existing_content + "\n\n--- NEW PDF EXTRACT ---\n\n" + parsed_profile
-        if existing_content
-        else parsed_profile
+        if existing_content else parsed_profile
     )
 
     s3.put_object(
         Bucket=BUCKET_NAME,
-        Key=s3_key,
+        Key=kb_key,
         Body=final_output.encode("utf-8"),
         ContentType="text/plain",
-        Metadata=user_id
+        Metadata={
+            "user_id": user_id,
+            "project_id": project_id,
+            "campaign_id": campaign_id
+        }
     )
-
-    s3_url = f"s3://{BUCKET_NAME}/{s3_key}"
 
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": "Triggered by S3: PDF processed successfully and profile saved.",
+            "message": "EventBridge-triggered PDF processed successfully",
             "campaign_name": campaign_name,
-            "url": s3_url
+            "knowledgebase_path": f"s3://{BUCKET_NAME}/{kb_key}"
         })
     }

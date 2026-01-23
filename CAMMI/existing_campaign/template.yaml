@@ -11,7 +11,7 @@ Resources:
   UserCampaignsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: web-scraping
+      FunctionName: user_campaigns
       Handler: app.lambda_handler
       CodeUri: src/user_campaigns/
       Runtime: python3.13
@@ -27,7 +27,7 @@ Resources:
   CampaignPostsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: pdf-extraction
+      FunctionName: campaign_posts
       Handler: app.lambda_handler
       CodeUri: src/campaign_posts/
       Runtime: python3.13

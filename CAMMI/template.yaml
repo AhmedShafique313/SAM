@@ -91,6 +91,7 @@ Resources:
       - EmailSupportFeature
       - QuickPostFeature
       - NewCampaignFeature
+      - ExistingCampaignFeature
     Properties:
       Location: API/template.yaml
 

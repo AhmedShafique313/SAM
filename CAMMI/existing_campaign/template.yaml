@@ -20,11 +20,8 @@ Resources:
       Tracing: Active
       Description: Handles web scrapping for brand setup
       Role: !ImportValue CAMMI-LambdaRoleArn
-      Layers:
-        - !ImportValue WebLibrariesLayerArn
       Environment:
         Variables:
-          HYPERBROWSER_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:HYPERBROWSER_API_KEY}}"
           S3_BUCKET_NAME: !Ref S3BucketName
 
   CampaignPostsFunction:
@@ -38,7 +35,10 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles PDF extraction for brand setup
-      Role: !ImportValue CAMMI-LambdaRoleArn  
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName       
 
 Outputs:
   UserCampaignsFunctionArn:

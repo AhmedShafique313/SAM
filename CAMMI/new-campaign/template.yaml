@@ -193,6 +193,25 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
 
+  DeleteContentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: delete-content
+      Handler: app.lambda_handler
+      CodeUri: src/delete-content/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles campaign cammi deleting in content generator feature
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
+
+
 Outputs:
   LinkParsingFunctionArn:
     Description: ARN of link parsing Lambda
@@ -241,3 +260,9 @@ Outputs:
     Value: !GetAtt EditContentFunction.Arn
     Export:
       Name: EditContentFunctionArn
+
+  DeleteContentFunctionArn:
+    Description: ARN of deleting of campaign cammi content Lambda
+    Value: !GetAtt DeleteContentFunction.Arn
+    Export:
+      Name: DeleteContentFunctionArn

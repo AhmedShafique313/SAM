@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Brand Setup feature for CAMMI
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name imported from parent stack
+
+Resources:
+  UserCampaignFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: web-scraping
+      Handler: app.lambda_handler
+      CodeUri: src/web-scrapping/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles web scrapping for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue WebLibrariesLayerArn
+      Environment:
+        Variables:
+          HYPERBROWSER_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:HYPERBROWSER_API_KEY}}"
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+  CampaignPosts:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: pdf-extraction
+      Handler: app.lambda_handler
+      CodeUri: src/pdf-extraction/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn  
+
+Outputs:
+  UserCampaignFunctionArn:
+    Description: ARN of web scrapping Lambda
+    Value: !GetAtt UserCampaignFunction.Arn
+    Export:
+      Name: UserCampaignFunctionArn    
+    
+  CampaignPostsArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt CampaignPosts.Arn
+      

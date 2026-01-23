@@ -310,7 +310,14 @@ Resources:
       - IAMStack
       - DynamoDBStack
     Properties:
-      Location: execution-ready-campaigns/template.yaml            
+      Location: execution-ready-campaigns/template.yaml   
+
+  ExistingCampaignFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      Location: existing_campaign/template.yaml                 
 
 Outputs:
   IAMStackOutput:
@@ -444,3 +451,7 @@ Outputs:
   ExecutionReadyCampaignsFeatureOutput:
     Description: Outputs from the execution ready campaigns feature
     Value: !Ref ExecutionReadyCampaignsFeature
+
+  ExistingCampaignFeatureOutput:
+    Description: Outputs from the execution ready campaigns feature
+    Value: !Ref ExistingCampaignFeature  

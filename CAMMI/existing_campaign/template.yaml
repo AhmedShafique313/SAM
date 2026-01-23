@@ -8,12 +8,12 @@ Parameters:
     Description: S3 bucket name imported from parent stack
 
 Resources:
-  UserCampaignFunction:
+  UserCampaignsFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: web-scraping
       Handler: app.lambda_handler
-      CodeUri: src/web-scrapping/
+      CodeUri: src/user_campaigns/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
@@ -27,12 +27,12 @@ Resources:
           HYPERBROWSER_API_KEY: "{{resolve:secretsmanager:cammi-secrets:SecretString:HYPERBROWSER_API_KEY}}"
           S3_BUCKET_NAME: !Ref S3BucketName
 
-  CampaignPosts:
+  CampaignPostsFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: pdf-extraction
       Handler: app.lambda_handler
-      CodeUri: src/pdf-extraction/
+      CodeUri: src/campaign_posts/
       Runtime: python3.13
       Timeout: 900
       MemorySize: 128
@@ -41,13 +41,15 @@ Resources:
       Role: !ImportValue CAMMI-LambdaRoleArn  
 
 Outputs:
-  UserCampaignFunctionArn:
+  UserCampaignsFunctionArn:
     Description: ARN of web scrapping Lambda
-    Value: !GetAtt UserCampaignFunction.Arn
+    Value: !GetAtt UserCampaignsFunction.Arn
     Export:
-      Name: UserCampaignFunctionArn    
+      Name: UserCampaignsFunctionArn    
     
-  CampaignPostsArn:
+  CampaignPostsFunctionArn:
     Description: ARN of PDF extraction Lambda
-    Value: !GetAtt CampaignPosts.Arn
+    Value: !GetAtt CampaignPostsFunction.Arn
+    Export:
+      Name: CampaignPostsFunctionArn     
       

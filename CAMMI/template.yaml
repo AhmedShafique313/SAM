@@ -319,7 +319,9 @@ Resources:
       - DynamoDBStack
       - S3Stack
     Properties:
-      Location: existing_campaign/template.yaml                 
+      Location: existing_campaign/template.yaml   
+      Parameters:
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName                  
 
 Outputs:
   IAMStackOutput:

@@ -317,6 +317,7 @@ Resources:
     Type: AWS::Serverless::Application
     DependsOn:
       - DynamoDBStack
+      - S3Stack
     Properties:
       Location: existing_campaign/template.yaml                 
 

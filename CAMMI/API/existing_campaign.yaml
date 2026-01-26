@@ -20,24 +20,24 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt ExistingCampaignParentResource.ResourceId
-      PathPart: existing-campaign
+      PathPart: user-campaigns
       RestApiId: !Ref RestApiId
 
-  UserCampaignsFunctionResourceGETMethod:
+  UserCampaignsFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref UserCampaignsFunctionResource
-      HttpMethod: GET
+      HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Uri: !Sub
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UserCampaignsFunctionArn}/invocations
-          - UserCampaignsFunctionArn : !ImportValue UserCampaignsFunctionArn 
+          - UserCampaignsFunctionArn: !ImportValue UserCampaignsFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
@@ -56,7 +56,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST,PUT'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: "{}"
@@ -67,36 +67,36 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
             
-  CampaignsPostsFunctionResource:
+  CampaignPostsFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt ExistingCampaignParentResource.ResourceId
-      PathPart: existing-campaign
+      PathPart: campaign-posts
       RestApiId: !Ref RestApiId
 
-  CampaignsPostsFunctionResourceGETMethod:
+  CampaignPostsFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
-      ResourceId: !Ref CampaignsPostsFunctionResource
-      HttpMethod: GET
+      ResourceId: !Ref CampaignPostsFunctionResource
+      HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
         Uri: !Sub
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CampaignPostsFunctionArn}/invocations
-          - CampaignPostsFunctionArn : !ImportValue CampaignPostsFunctionArn 
+          - CampaignPostsFunctionArn: !ImportValue CampaignPostsFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  CampaignsPostsFunctionResourceOPTIONSMethod:
+  CampaignPostsFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
-      ResourceId: !Ref CampaignsPostsFunctionResource
+      ResourceId: !Ref CampaignPostsFunctionResource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:
@@ -107,7 +107,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST,PUT'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: "{}"
@@ -116,4 +116,4 @@ Resources:
           ResponseParameters:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
-            method.response.header.Access-Control-Allow-Origin: true            
+            method.response.header.Access-Control-Allow-Origin: true

@@ -41,6 +41,7 @@ Resources:
       - QuickPost
       - NewCampaign
       - ExecutionReadyCampaigns
+      - ExistingCampaign
     Properties:
       RestApiId: !Ref cammi
 
@@ -299,7 +300,15 @@ Resources:
       Location: execution-ready-campaigns.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi                                          
+        RestApiId: !Ref cammi       
+
+  ExistingCampaign:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: existing_campaign.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi                                            
 
 Outputs:
   CammiApiId:

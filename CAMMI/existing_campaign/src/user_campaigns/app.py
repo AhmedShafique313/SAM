@@ -17,6 +17,13 @@ def lambda_handler(event, context):
     Fetch all campaigns for a given project_id
     and return them as a clean list.
     """
+    body = event.get("body")
+    if body:
+        try:
+            event = json.loads(body)
+        except json.JSONDecodeError:
+            return _response(400, {"error": "Invalid JSON in request body"})
+
 
     # 1. Extract inputs
     session_id = event.get('session_id')

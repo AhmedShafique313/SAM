@@ -18,6 +18,13 @@ def lambda_handler(event, context):
     return them as a numbered post map.
     """
 
+    body = event.get("body")
+    if body:
+        try:
+            event = json.loads(body)
+        except json.JSONDecodeError:
+            return _response(400, {"error": "Invalid JSON in request body"})    
+
     # 1. Extract input
     campaign_id = event.get('campaign_id')
 

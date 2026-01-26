@@ -410,6 +410,16 @@ Resources:
         - AttributeName: campaign_id
           KeyType: RANGE
 
+      GlobalSecondaryIndexes:
+        - IndexName: campaign_id-index
+          KeySchema:
+            - AttributeName: campaign_id
+              KeyType: HASH
+            - AttributeName: post_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL          
+
 
 Outputs:
 

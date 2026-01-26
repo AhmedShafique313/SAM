@@ -384,6 +384,16 @@ Resources:
         - AttributeName: project_id
           KeyType: RANGE
 
+      GlobalSecondaryIndexes:
+        - IndexName: project_id-index
+          KeySchema:
+            - AttributeName: project_id
+              KeyType: HASH
+            - AttributeName: campaign_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL          
+
   PostsTable:
     Type: AWS::DynamoDB::Table
     Properties:

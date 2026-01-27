@@ -36,8 +36,8 @@ def lambda_handler(event, context):
     project_id = body.get("project_id")
     campaign_id = body.get("campaign_id")
     campaign_goal_type = body.get("campaign_goal_type")
-    platform_name = body.get("platform_name")  # optional
-    brand_tone_input = body.get("brand_tone")  # optional (not used in overwrite)
+    platform_name = body.get("platform_name")
+    brand_tone_input = body.get("brand_tone")
 
     if not all([session_id, project_id, campaign_id, campaign_goal_type]):
         return build_response(400, {"error": "Missing required fields"})
@@ -105,6 +105,7 @@ Required JSON format:
 
     llm_response = llm_calling(prompt, DEFAULT_MODEL_ID)
     generated_campaign = json.loads(llm_response)
+
     campaign_type_obj = generated_campaign.get("campaign_type", {})
     campaign_duration_days = generated_campaign.get("campaign_duration_days")
     best_suited_platform = generated_campaign.get("best_suited_platform")
@@ -122,8 +123,8 @@ Required JSON format:
 
     campaigns_table.update_item(
         Key={
-            "campaign_id": campaign_id,   # Partition Key
-            "project_id": project_id      # Sort Key
+            "campaign_id": campaign_id,
+            "project_id": project_id
         },
         UpdateExpression="""
             SET
@@ -158,7 +159,6 @@ Required JSON format:
         }
     )
 
-
     return build_response(
         200,
         {
@@ -175,7 +175,7 @@ def build_response(status: int, body: dict):
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization"
         },
         "body": json.dumps(body)
     }

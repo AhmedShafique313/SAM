@@ -72,11 +72,20 @@ def lambda_handler(event, context):
     """
     AWS Lambda handler
     """
+
+    # ✅ Handle CORS preflight
+    if event.get("httpMethod") == "OPTIONS":
+        return {
+            "statusCode": 200,
+            "headers": _cors_headers(),
+            "body": ""
+        }
+
     body = event.get("body")
     if not body or not isinstance(body, str):
         return {
             "statusCode": 400,
-            "headers": {"Content-Type": "application/json"},
+            "headers": _cors_headers(),
             "body": json.dumps({"error": "Request body must be a JSON string"})
         }
 
@@ -88,7 +97,7 @@ def lambda_handler(event, context):
     if not current_time or not isinstance(current_time, str):
         return {
             "statusCode": 400,
-            "headers": {"Content-Type": "application/json"},
+            "headers": _cors_headers(),
             "body": json.dumps({"error": "Field 'current_time' must be an ISO 8601 string"})
         }
 
@@ -100,6 +109,14 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "headers": {"Content-Type": "application/json"},
+        "headers": _cors_headers(),
         "body": json.dumps(ai_output)
+    }
+
+
+def _cors_headers():
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,POST",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization"
     }

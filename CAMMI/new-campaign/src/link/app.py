@@ -18,13 +18,14 @@ client_scraper = Hyperbrowser(api_key=os.environ["HYPERBROWSER_API_KEY"])
 
 
 def build_response(status, body):
+    # Required CORS headers
     return {
         "statusCode": status,
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Methods": "OPTIONS,POST",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization"
         },
         "body": json.dumps(body)
     }
@@ -64,11 +65,9 @@ def get_campaign_name(campaign_id, project_id):
             "project_id": project_id
         }
     )
-
     item = response.get("Item")
     if not item or "campaign_name" not in item:
         raise Exception("campaign_name not found for campaign_id")
-
     return item["campaign_name"]
 
 
@@ -114,9 +113,6 @@ def lambda_handler(event, context):
     if method == "OPTIONS":
         return build_response(200, {"message": "CORS OK"})
 
-    # =======================
-    # API GATEWAY POST (Synchronous scraping)
-    # =======================
     if method == "POST":
         body = json.loads(event.get("body", "{}"))
 
@@ -134,7 +130,6 @@ def lambda_handler(event, context):
                 "error": "session_id, project_id, campaign_id, and website are required"
             })
 
-        # Get user
         user_resp = users_table.query(
             IndexName="session_id-index",
             KeyConditionExpression=Key("session_id").eq(session_id),
@@ -146,7 +141,6 @@ def lambda_handler(event, context):
 
         user_id = user_resp["Items"][0]["id"]
 
-        # Mark initial status
         update_campaign_status(
             campaign_id,
             project_id,
@@ -155,12 +149,8 @@ def lambda_handler(event, context):
             website=website
         )
 
-        # Get campaign_name from DynamoDB
         campaign_name = get_campaign_name(campaign_id, project_id)
 
-        # ----------------------------
-        # START SYNCHRONOUS SCRAPING
-        # ----------------------------
         links = scrape_links(website)
         links = [l for l in links if l.startswith(website)]
 
@@ -179,7 +169,6 @@ def lambda_handler(event, context):
             model_id
         )
 
-        # Save to S3
         s3_key = f"knowledgebase/{user_id}/{user_id}_campaign_data.txt"
 
         try:
@@ -193,10 +182,9 @@ def lambda_handler(event, context):
             Key=s3_key,
             Body=(existing_content + "\n\n" + final_output).encode("utf-8"),
             ContentType="text/plain",
-            Metadata=user_id
+            Metadata={"user_id": user_id}
         )
 
-        # Update status as completed
         update_campaign_status(
             campaign_id,
             project_id,
@@ -204,7 +192,6 @@ def lambda_handler(event, context):
             status="Web Scrapped Completed"
         )
 
-        # Return synchronous response to frontend
         return build_response(200, {
             "message": "Web scraping completed",
             "s3_path": f"s3://{BUCKET_NAME}/{s3_key}"

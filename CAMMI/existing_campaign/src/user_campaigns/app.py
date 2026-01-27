@@ -17,13 +17,17 @@ def lambda_handler(event, context):
     Fetch all campaigns for a given project_id
     and return them as a clean list.
     """
+
+    # ✅ Handle CORS preflight
+    if event.get("httpMethod") == "OPTIONS":
+        return _response(200, {"message": "CORS preflight"})
+
     body = event.get("body")
     if body:
         try:
             event = json.loads(body)
         except json.JSONDecodeError:
             return _response(400, {"error": "Invalid JSON in request body"})
-
 
     # 1. Extract inputs
     session_id = event.get('session_id')
@@ -39,7 +43,7 @@ def lambda_handler(event, context):
         # 2. Query using GSI (pagination-safe)
         items = _query_by_project_id(project_id)
 
-        # 3. Format campaigns (no grouping needed)
+        # 3. Format campaigns
         campaigns = _format_campaigns(items)
 
         # 4. Success response
@@ -77,7 +81,6 @@ def _query_by_project_id(project_id):
             query_params["ExclusiveStartKey"] = exclusive_start_key
 
         response = table.query(**query_params)
-
         items.extend(response.get('Items', []))
 
         exclusive_start_key = response.get('LastEvaluatedKey')
@@ -101,11 +104,14 @@ def _format_campaigns(items):
 
 
 def _response(status_code, body):
-    """Standardized HTTP response"""
+    """Standardized HTTP response with CORS"""
     return {
         "statusCode": status_code,
         "headers": {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization"
         },
         "body": json.dumps(body, default=str)
     }

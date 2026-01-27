@@ -18,12 +18,16 @@ def lambda_handler(event, context):
     return them as a numbered post map.
     """
 
+    # ✅ Handle CORS preflight
+    if event.get("httpMethod") == "OPTIONS":
+        return _response(200, {"message": "CORS preflight"})
+
     body = event.get("body")
     if body:
         try:
             event = json.loads(body)
         except json.JSONDecodeError:
-            return _response(400, {"error": "Invalid JSON in request body"})    
+            return _response(400, {"error": "Invalid JSON in request body"})
 
     # 1. Extract input
     campaign_id = event.get('campaign_id')
@@ -102,9 +106,14 @@ def _format_numbered_posts(items):
 
 
 def _response(status_code, body):
-    """Standardized HTTP response"""
+    """Standardized HTTP response with CORS"""
     return {
         "statusCode": status_code,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization"
+        },
         "body": json.dumps(body, default=str)
     }

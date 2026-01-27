@@ -116,7 +116,7 @@ Outputs:
 
   BulkPublishFunctionArn:
     Description: ARN of PDF extraction Lambda
-    Value: !GetAttBulkPublishFunction.Arn
+    Value: !GetAtt BulkPublishFunction.Arn
     Export:
       Name:BulkPublishFunctionArn                     
       

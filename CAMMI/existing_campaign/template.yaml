@@ -38,7 +38,56 @@ Resources:
       Role: !ImportValue CAMMI-LambdaRoleArn 
       Environment:
         Variables:
-          S3_BUCKET_NAME: !Ref S3BucketName       
+          S3_BUCKET_NAME: !Ref S3BucketName     
+
+  SaveAsDraftFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: save_as_draft
+      Handler: app.lambda_handler
+      CodeUri: src/save_as_draft/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName   
+
+  AddPostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: add_post
+      Handler: app.lambda_handler
+      CodeUri: src/add_post/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName    
+
+  BulkPublishFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: bulk_publish
+      Handler: app.lambda_handler
+      CodeUri: src/bulk_publish/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName                         
+
 
 Outputs:
   UserCampaignsFunctionArn:
@@ -51,5 +100,23 @@ Outputs:
     Description: ARN of PDF extraction Lambda
     Value: !GetAtt CampaignPostsFunction.Arn
     Export:
-      Name: CampaignPostsFunctionArn     
+      Name: CampaignPostsFunctionArn 
+
+  SaveAsDraftFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt SaveAsDraftFunction.Arn
+    Export:
+      Name: SaveAsDraftFunctionArn  
+
+  AddPostFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt AddPostFunction.Arn
+    Export:
+      Name: AddPostFunctionArn   
+
+  BulkPublishFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAttBulkPublishFunction.Arn
+    Export:
+      Name:BulkPublishFunctionArn                     
       

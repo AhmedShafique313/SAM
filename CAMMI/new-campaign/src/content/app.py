@@ -165,8 +165,12 @@ Creative Brief: {creative_brief}
                         best_post_time = :best_post_time,
                         best_post_day = :best_post_day,
                         scheduled_time = :scheduled_time,
-                        generated_at = :generated_at
+                        generated_at = :generated_at,
+                        #s = :status
                 """,
+                ExpressionAttributeNames={
+                    "#s": "status"   # best practice (status is a common reserved word)
+                },
                 ExpressionAttributeValues={
                     ":title": post.get("title"),
                     ":description": post.get("description"),
@@ -175,7 +179,8 @@ Creative Brief: {creative_brief}
                     ":best_post_time": post.get("best_post_time"),
                     ":best_post_day": post.get("best_post_day"),
                     ":scheduled_time": scheduled_time,
-                    ":generated_at": datetime.utcnow().isoformat()
+                    ":generated_at": datetime.utcnow().isoformat(),
+                    ":status": "Generated"
                 }
             )
             all_posts.append({

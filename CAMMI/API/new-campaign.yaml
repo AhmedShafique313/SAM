@@ -475,18 +475,18 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
 
-  PostFunctionResource:
+  PostFunction1Resource:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt NewCampaignResource.ResourceId
       PathPart: publish-now
       RestApiId: !Ref RestApiId
 
-  PostFunctionResourcePOSTMethod:
+  PostFunction1ResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
-      ResourceId: !Ref PostFunctionResource
+      ResourceId: !Ref PostFunction1Resource
       HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
@@ -495,16 +495,16 @@ Resources:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub
-          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostFunctionArn}/invocations
-          - PostFunctionArn: !ImportValue PostFunctionArn
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostFunction1Arn}/invocations
+          - PostFunction1Arn: !ImportValue PostFunction1Arn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  PostFunctionResourceOPTIONSMethod:
+  PostFunction1ResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
-      ResourceId: !Ref PostFunctionResource
+      ResourceId: !Ref PostFunction1Resource
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       Integration:

@@ -211,7 +211,7 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
 
-  PostFunction:
+  PostFunction1:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: publish-now
@@ -285,8 +285,8 @@ Outputs:
     Export:
       Name: DeleteContentFunctionArn
 
-  PostFunctionArn:
+  PostFunction1Arn:
     Description: ARN of publishing of campaign cammi content Lambda
     Value: !GetAtt PostFunction.Arn
     Export:
-      Name: PostFunctionArn
+      Name: PostFunction1Arn

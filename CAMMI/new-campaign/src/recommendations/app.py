@@ -7,10 +7,13 @@ from boto3.dynamodb.conditions import Key
 s3 = boto3.client("s3")
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 dynamodb = boto3.resource("dynamodb")
+
 BUCKET_NAME = "cammi-devprod"
 DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+
 users_table = dynamodb.Table("users-table")
 campaigns_table = dynamodb.Table("user-campaigns")
+
 
 def llm_calling(prompt: str, model_id: str) -> str:
     response = bedrock_runtime.converse(
@@ -32,6 +35,7 @@ def llm_calling(prompt: str, model_id: str) -> str:
 
 def lambda_handler(event, context):
     body = json.loads(event.get("body", "{}"))
+
     session_id = body.get("session_id")
     project_id = body.get("project_id")
     campaign_id = body.get("campaign_id")
@@ -61,6 +65,17 @@ def lambda_handler(event, context):
             ":c": {campaign_id}
         }
     )
+
+    # ✅ Fetch campaign name
+    campaign_resp = campaigns_table.get_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        }
+    )
+
+    campaign_item = campaign_resp.get("Item", {})
+    campaign_name = campaign_item.get("campaign_name", "")
 
     s3_key = f"knowledgebase/{user_id}/{user_id}_campaign_data.txt"
     s3_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
@@ -163,6 +178,8 @@ Required JSON format:
         200,
         {
             "message": "Cammi is analyzing your input",
+            "campaign_name": campaign_name,
+            "campaign_goal_type": campaign_goal_type,
             "data": generated_campaign
         }
     )

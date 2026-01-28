@@ -211,6 +211,24 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
 
+  PostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: publish-now
+      Handler: app.lambda_handler
+      CodeUri: src/publish-now/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles campaign cammi post publish now feature
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          CAMPAIGNS_TABLE: !ImportValue CAMMI-CampaignsTableName
+
 
 Outputs:
   LinkParsingFunctionArn:
@@ -266,3 +284,9 @@ Outputs:
     Value: !GetAtt DeleteContentFunction.Arn
     Export:
       Name: DeleteContentFunctionArn
+
+  PostFunctionArn:
+    Description: ARN of publishing of campaign cammi content Lambda
+    Value: !GetAtt PostFunction.Arn
+    Export:
+      Name: PostFunctionArn

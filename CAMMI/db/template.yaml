@@ -85,13 +85,18 @@ Resources:
     Properties:
       TableName: projects-table
       BillingMode: PAY_PER_REQUEST
+
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
+        - AttributeName: project_name
+          AttributeType: S
+
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-      GlobalSecondaryIndexes:    
+
+      GlobalSecondaryIndexes:
         - IndexName: project_name-index
           KeySchema:
             - AttributeName: project_name

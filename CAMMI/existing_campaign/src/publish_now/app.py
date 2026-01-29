@@ -83,7 +83,6 @@ def lambda_handler(event, context):
             Item={
                 "sub": sub,
                 "post_time": updated_scheduled_time_str,
-                "post_id": post_id,
                 "message": message,
                 "image_keys": image_keys,
                 "scheduled_time": updated_scheduled_time_str,

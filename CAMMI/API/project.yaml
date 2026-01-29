@@ -21,7 +21,7 @@ Resources:
   ProjectCreationFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt ProjectOrganizationParentResource.ResourceId
+      ParentId: !GetAtt ProjectParentResource.ResourceId
       PathPart: project-creation
       RestApiId: !Ref RestApiId      
 
@@ -39,8 +39,8 @@ Resources:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub
-          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateProjectFunctionArn}/invocations
-          - CreateProjectFunctionArn: !ImportValue CreateProjectFunctionArn
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ProjectCreationFunctionArn}/invocations
+          - ProjectCreationFunctionArn: !ImportValue ProjectCreationFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 

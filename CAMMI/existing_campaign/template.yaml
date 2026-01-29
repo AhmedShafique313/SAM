@@ -88,6 +88,37 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName                         
 
+  PublishNowFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: publish_now
+      Handler: app.lambda_handler
+      CodeUri: src/publish_now/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName  
+
+  DraftPostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: draft_post
+      Handler: app.lambda_handler
+      CodeUri: src/draft_post/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName            
 
 Outputs:
   UserCampaignsFunctionArn:
@@ -120,3 +151,14 @@ Outputs:
     Export:
       Name: BulkPublishFunctionArn                     
       
+  PublishNowFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt PublishNowFunction.Arn
+    Export:
+      Name: PublishNowFunctionArn        
+
+  DraftPostFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt DraftPostFunction.Arn
+    Export:
+      Name: DraftPostFunctionArn        

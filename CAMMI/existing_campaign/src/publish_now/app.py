@@ -72,7 +72,7 @@ def lambda_handler(event, context):
             },
             ExpressionAttributeValues={
                 ":st": updated_scheduled_time_str,
-                ":status": "scheduled"
+                ":status": "published"
             }
         )
 

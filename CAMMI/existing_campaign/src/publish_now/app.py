@@ -15,6 +15,12 @@ linkedin_table = dynamodb.Table(LINKEDIN_TABLE)
 def lambda_handler(event, context):
     try:
         # -------------------------------
+        # Handle CORS preflight
+        # -------------------------------
+        if event.get("httpMethod") == "OPTIONS":
+            return response(200, {})
+
+        # -------------------------------
         # 1. Extract input from API event
         # -------------------------------
         body = json.loads(event.get("body", "{}"))
@@ -83,6 +89,8 @@ def lambda_handler(event, context):
             Item={
                 "sub": sub,
                 "post_time": updated_scheduled_time_str,
+                "post_id": post_id,
+                "campaign_id": campaign_id,
                 "message": message,
                 "image_keys": image_keys,
                 "scheduled_time": updated_scheduled_time_str,
@@ -103,7 +111,10 @@ def response(status_code, body):
     return {
         "statusCode": status_code,
         "headers": {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization"
         },
         "body": json.dumps(body)
     }

@@ -44,6 +44,9 @@ def lambda_handler(event, context):
         if not scheduled_time:
             continue
 
+        post_id = post.get("post_id")            # ✅ GET post_id
+        campaign_id = post.get("campaign_id")    # ✅ GET campaign_id
+
         title = post.get("title", "")
         description = post.get("description", "")
 
@@ -59,6 +62,8 @@ def lambda_handler(event, context):
         item = {
             "sub": sub,
             "post_time": scheduled_time,      # Sort Key
+            "post_id": post_id,               # ✅ ADDED
+            "campaign_id": campaign_id,       # ✅ ADDED
             "scheduled_time": scheduled_time,
             "message": message,
             "status": "scheduled"
@@ -70,11 +75,11 @@ def lambda_handler(event, context):
         # Insert into linkedin-posts-table
         linkedin_posts_table.put_item(Item=item)
 
-        # 🔥 ONLY NEW CHANGE: update status in posts-table
+        # Update status in posts-table
         posts_table.update_item(
             Key={
-                "post_id": post["post_id"],   # partition key
-                "campaign_id": post["campaign_id"]  # sort key (if applicable)
+                "post_id": post["post_id"],        # partition key
+                "campaign_id": post["campaign_id"] # sort key
             },
             UpdateExpression="SET #st = :scheduled",
             ExpressionAttributeNames={

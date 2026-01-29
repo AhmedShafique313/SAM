@@ -70,7 +70,7 @@ def lambda_handler(event, context):
         return _response(
             200,
             {
-                "message": "Posts updated successfully",
+                "message": "Posts updated to draft",
                 "campaign_id": campaign_id,
                 "updated_posts": updated_posts
             }

@@ -91,6 +91,14 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      GlobalSecondaryIndexes:    
+        - IndexName: project_name-index
+          KeySchema:
+            - AttributeName: project_name
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
 
   ###################################################
   # Stripe Table

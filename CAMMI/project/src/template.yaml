@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Projects feature for CAMMI
+
+Resources:
+  # create project
+  ProjectCreationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: project-creation
+      Handler: app.lambda_handler
+      CodeUri: src/project-creation/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles project creation
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
+
+Outputs:
+  ProjectCreationFunctionArn:
+    Description: ARN of ProjectCreationFunction Lambda
+    Value: !GetAtt ProjectCreationFunction.Arn
+    Export: 
+      Name: ProjectCreationFunctionArn    

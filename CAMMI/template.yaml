@@ -321,7 +321,15 @@ Resources:
     Properties:
       Location: existing_campaign/template.yaml   
       Parameters:
-        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName                  
+        S3BucketName: !GetAtt S3Stack.Outputs.CammiBucketName      
+
+  ProjectFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - IAMStack
+      - DynamoDBStack
+    Properties:
+      Location: project/template.yaml                    
 
 Outputs:
   IAMStackOutput:
@@ -459,3 +467,7 @@ Outputs:
   ExistingCampaignFeatureOutput:
     Description: Outputs from the execution ready campaigns feature
     Value: !Ref ExistingCampaignFeature  
+    
+  ProjectFeatureOutput:
+    Description: Outputs from Project feature
+    Value: !Ref ProjectFeature    

@@ -1,47 +1,119 @@
-import json, boto3, os
-from boto3.dynamodb.conditions import Attr
+import json
+import boto3
+import os
+from datetime import datetime
+from boto3.dynamodb.conditions import Key
 
 s3 = boto3.client("s3")
+BUCKET_NAME = "cammi-devprod"
+dynamodb = boto3.resource("dynamodb")
+users_table = dynamodb.Table("users-table")
+campaigns_table = dynamodb.Table("user-campaigns")
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
-lambda_client = boto3.client("lambda")
-BUCKET_NAME = "cammi-devprod" 
- 
-def llm_calling(prompt, model_id):
-    conversation = [
-        {
-            "role": "user",
-            "content": [{"text": str(prompt)}]
+
+def build_response(status, body):
+    return {
+        "statusCode": status,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization"
+        },
+        "body": json.dumps(body)
+    }
+
+def get_http_method(event):
+    if "httpMethod" in event:
+        return event["httpMethod"]
+    return event.get("requestContext", {}).get("http", {}).get("method", "")
+
+def update_campaign_status(campaign_id, project_id, user_id, status):
+    campaigns_table.update_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        },
+        UpdateExpression="""
+            SET input_data_status = :status,
+                user_id = :uid,
+                updated_at = :updated_at
+        """,
+        ExpressionAttributeValues={
+            ":status": status,
+            ":uid": user_id,
+            ":updated_at": datetime.utcnow().isoformat()
         }
-    ]
+    )
+
+def get_campaign_name(campaign_id, project_id):
+    response = campaigns_table.get_item(
+        Key={
+            "campaign_id": campaign_id,
+            "project_id": project_id
+        }
+    )
+    item = response.get("Item")
+    if not item or "campaign_name" not in item:
+        raise Exception("campaign_name not found for campaign_id")
+    return item["campaign_name"]
+
+def llm_calling(prompt, model_id):
     response = bedrock_runtime.converse(
         modelId=model_id,
-        messages=conversation,
+        messages=[{
+            "role": "user",
+            "content": [{"text": str(prompt)}]
+        }],
         inferenceConfig={
             "maxTokens": 60000,
             "temperature": 0.7,
             "topP": 0.9
         }
     )
-    response_text = response["output"]["message"]["content"][0]["text"]
-    return response_text.strip()
- 
-def get_http_method(event):
-    if "httpMethod" in event:
-        return event["httpMethod"]
-    return event.get("requestContext", {}).get("http", {}).get("method", "")
- 
- 
+    return response["output"]["message"]["content"][0]["text"].strip()
+
 def lambda_handler(event, context):
     method = get_http_method(event)
 
     if method == "OPTIONS":
-        return build_response(200, {"message": "CORS preflight OK"})
+        return build_response(200, {"message": "CORS OK"})
 
-    if event.get("action") == "process":
-        user_input = event["user_input"]
-        campaign_name = event["campaign_name"]
-        model_id = event.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
- 
+    if method == "POST":
+        body = json.loads(event.get("body", "{}"))
+        session_id = body.get("session_id")
+        project_id = body.get("project_id")
+        campaign_id = body.get("campaign_id")
+        user_input = body.get("user_input")
+        model_id = body.get(
+            "model_id",
+            "us.anthropic.claude-sonnet-4-20250514-v1:0"
+        )
+
+        if not all([session_id, project_id, campaign_id]):
+            return build_response(400, {
+                "error": "session_id, project_id, campaign_id are required"
+            })
+
+        user_resp = users_table.query(
+            IndexName="session_id-index",
+            KeyConditionExpression=Key("session_id").eq(session_id),
+            Limit=1
+        )
+
+        if not user_resp.get("Items"):
+            return build_response(404, {"error": "User not found"})
+
+        user_id = user_resp["Items"][0]["id"]
+
+        update_campaign_status(
+            campaign_id,
+            project_id,
+            user_id,
+            status="User Input",
+        )
+
+        campaign_name = get_campaign_name(campaign_id, project_id)
         prompt_relevancy = f"""
 You are a senior business and marketing analyst with deep experience in execution-ready B2B and B2C social media campaigns.
 
@@ -76,7 +148,7 @@ Output the extracted information clearly labeled from 1 to 8.
 
         refined_info = llm_calling(prompt_relevancy, model_id)
  
-        s3_key = f"execution - ready campaigns/{campaign_name}/data.txt"
+        s3_key = f"knowledgebase/{user_id}/{user_id}_campaign_data.txt"
 
         try:
             existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
@@ -90,48 +162,20 @@ Output the extracted information clearly labeled from 1 to 8.
             Bucket=BUCKET_NAME,
             Key=s3_key,
             Body=combined_content.encode("utf-8"),
-            ContentType="text/plain"
-        )
-        return {"ok": True}
-
-    if method == "POST":
-        body = json.loads(event.get("body", "{}"))
-
-        user_input = body.get("user_input")
-        campaign_name = body.get("campaign_name")
-        model_id = body.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
- 
-        if not campaign_name or not user_input:
-            return build_response(400, {"error": "Missing required fields: campaign_name, user_input"})
- 
-        payload = {
-            "action": "process",               
-            "campaign_name": campaign_name,
-            "user_input": user_input,
-            "model_id": model_id
-        }
-        lambda_client.invoke(
-            FunctionName=context.invoked_function_arn,
-            InvocationType="Event",   
-            Payload=json.dumps(payload).encode("utf-8")
+            ContentType="text/plain",
+            Metadata={"user_id": user_id}
         )
 
-        return build_response(202, {  
-            "message": "Information processing started — Cammi has got your data."
+        update_campaign_status(
+            campaign_id,
+            project_id,
+            user_id,
+            status="Input Refinement Completed"
+        )
+
+        return build_response(200, {
+            "message": "Input refinement completed for Execution Ready Campaigns",
+            "s3_path": f"s3://{BUCKET_NAME}/{s3_key}"
         })
  
     return build_response(405, {"error": "Method not allowed"})
- 
- 
-def build_response(status, body):
-    """Helper to build API Gateway compatible response."""
-    return {
-        "statusCode": status,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",  
-            "Access-Control-Allow-Headers": "Content-Type",
-        },
-        "body": json.dumps(body)
-    }

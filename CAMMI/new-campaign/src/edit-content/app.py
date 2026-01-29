@@ -24,6 +24,7 @@ def lambda_handler(event, context):
         "image_generation_prompt": body.get("image_generation_prompt"),
         "best_post_day": body.get("best_post_day"),
         "best_post_time": body.get("best_post_time"),
+        "scheduled_time": body.get("scheduled_time")
     }
 
     # Check if post exists

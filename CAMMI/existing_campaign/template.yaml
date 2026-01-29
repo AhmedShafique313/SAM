@@ -118,7 +118,55 @@ Resources:
       Role: !ImportValue CAMMI-LambdaRoleArn 
       Environment:
         Variables:
-          S3_BUCKET_NAME: !Ref S3BucketName            
+          S3_BUCKET_NAME: !Ref S3BucketName 
+
+  ScheduleNowFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: schedule_now
+      Handler: app.lambda_handler
+      CodeUri: src/schedule_now/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName 
+
+  CampaignStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: campaign_status
+      Handler: app.lambda_handler
+      CodeUri: src/campaign_status/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName    
+
+  PostStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: post_status
+      Handler: app.lambda_handler
+      CodeUri: src/post_status/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName                                           
 
 Outputs:
   UserCampaignsFunctionArn:
@@ -161,4 +209,22 @@ Outputs:
     Description: ARN of PDF extraction Lambda
     Value: !GetAtt DraftPostFunction.Arn
     Export:
-      Name: DraftPostFunctionArn        
+      Name: DraftPostFunctionArn     
+
+  ScheduleNowFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt ScheduleNowFunction.Arn
+    Export:
+      Name: ScheduleNowFunctionArn  
+
+  CampaignStatusFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt CampaignStatusFunction.Arn
+    Export:
+      Name: CampaignStatusFunctionArn   
+
+  PostStatusFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt PostStatusFunction.Arn
+    Export:
+      Name: PostStatusFunctionArn                              

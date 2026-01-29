@@ -21,9 +21,33 @@ Resources:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName
 
+  # Get project
+  GetProjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: get-project
+      Handler: app.lambda_handler
+      CodeUri: src/get-project/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles project creation
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          PROJECTS_TABLE: !ImportValue CAMMI-ProjectsTableName          
+
 Outputs:
   ProjectCreationFunctionArn:
     Description: ARN of ProjectCreationFunction Lambda
     Value: !GetAtt ProjectCreationFunction.Arn
     Export: 
-      Name: ProjectCreationFunctionArn    
+      Name: ProjectCreationFunctionArn  
+
+  GetProjectFunctionArn:
+    Description: ARN of GetProjectFunction Lambda
+    Value: !GetAtt GetProjectFunction.Arn
+    Export: 
+      Name: GetProjectFunctionArn           

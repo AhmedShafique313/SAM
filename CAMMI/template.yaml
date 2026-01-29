@@ -92,6 +92,7 @@ Resources:
       - QuickPostFeature
       - NewCampaignFeature
       - ExistingCampaignFeature
+      - ProjectFeature
     Properties:
       Location: API/template.yaml
 

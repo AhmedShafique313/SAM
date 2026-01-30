@@ -96,10 +96,12 @@ def lambda_handler(event, context):
 
         linkedin_posts = attach_images(linkedin_posts)
 
+        # ✅ ONLY CHANGE: merge both into a single posts array
+        all_posts = draft_posts + linkedin_posts
+
         return response(200, {
             "campaign_id": campaign_id,
-            "draft_posts": draft_posts,
-            "linkedin_posts": linkedin_posts
+            "posts": all_posts
         })
 
     except Exception as e:

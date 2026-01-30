@@ -91,6 +91,8 @@ Resources:
           AttributeType: S
         - AttributeName: project_name
           AttributeType: S
+        - AttributeName: user_id
+          AttributeType: S          
 
       KeySchema:
         - AttributeName: id

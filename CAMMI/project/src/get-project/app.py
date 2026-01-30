@@ -69,13 +69,21 @@ def lambda_handler(event, context):
             if not last_evaluated_key:
                 break
 
+        filtered_projects = [
+        {
+        "projectId": project.get("id"),
+        "projectName": project.get("project_name")
+        }
+        for project in projects
+        ]        
+
         # ----------------------------------
         # 4. Success response
         # ----------------------------------
         return response(200, {
             "session_id": session_id,
             "user_id": user_id,
-            "projects": projects
+            "projects": filtered_projects
         })
 
     except ClientError as e:

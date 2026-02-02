@@ -17,16 +17,12 @@ LINKEDIN_CAMPAIGN_GSI = "campaign_id-index"
 posts_table = dynamodb.Table(POSTS_TABLE)
 linkedin_table = dynamodb.Table(LINKEDIN_TABLE)
 
-# ---------- Default S3 Bucket (used if bucket not in key) ----------
+# ---------- Default S3 Bucket ----------
 DEFAULT_BUCKET = "cammi-devprod"
 
 
+# ---------- S3 IMAGE HELPERS ----------
 def download_and_base64(image_key: str):
-    """
-    image_key formats supported:
-    - bucket-name/path/to/image.png
-    - path/to/image.png (uses DEFAULT_BUCKET)
-    """
     try:
         if "/" in image_key and image_key.split("/")[0].count("-") >= 1:
             bucket, key = image_key.split("/", 1)
@@ -36,7 +32,6 @@ def download_and_base64(image_key: str):
 
         obj = s3.get_object(Bucket=bucket, Key=key)
         content = obj["Body"].read()
-
         return base64.b64encode(content).decode("utf-8")
 
     except Exception:
@@ -44,9 +39,6 @@ def download_and_base64(image_key: str):
 
 
 def attach_images(items):
-    """
-    Adds image_base64 field if image_keys exist
-    """
     for item in items:
         image_keys = item.get("image_keys")
 
@@ -64,6 +56,33 @@ def attach_images(items):
     return items
 
 
+# ---------- NORMALIZATION ----------
+def normalize_linkedin_post(item):
+    """
+    Converts LinkedIn posts to match draft post schema
+    """
+    # ---- MESSAGE → TITLE / DESCRIPTION ----
+    message = item.get("message", "")
+    parts = [p.strip() for p in message.split("\n\n") if p.strip()]
+
+    item["title"] = item.get("title") or (parts[0] if len(parts) > 0 else "")
+    item["description"] = item.get("description") or (parts[1] if len(parts) > 1 else "")
+
+    # ---- HASHTAG NORMALIZATION ----
+    hashtag_str = item.get("hashtag", "")
+    if hashtag_str:
+        item["hashtags"] = hashtag_str.split()
+    else:
+        item["hashtags"] = []
+
+    # ---- CLEANUP ----
+    item.pop("message", None)
+    item.pop("hashtag", None)
+
+    return item
+
+
+# ---------- LAMBDA ----------
 def lambda_handler(event, context):
     try:
         body = json.loads(event.get("body", "{}"))
@@ -72,6 +91,7 @@ def lambda_handler(event, context):
         if not campaign_id:
             return response(400, {"error": "campaign_id is required"})
 
+        # ---------- DRAFT POSTS ----------
         posts_result = posts_table.query(
             IndexName=POSTS_CAMPAIGN_GSI,
             KeyConditionExpression=Key("campaign_id").eq(campaign_id)
@@ -84,19 +104,21 @@ def lambda_handler(event, context):
 
         draft_posts = attach_images(draft_posts)
 
+        # ---------- LINKEDIN POSTS ----------
         linkedin_result = linkedin_table.query(
             IndexName=LINKEDIN_CAMPAIGN_GSI,
             KeyConditionExpression=Key("campaign_id").eq(campaign_id)
         )
 
         linkedin_posts = [
-            item for item in linkedin_result.get("Items", [])
+            normalize_linkedin_post(item)
+            for item in linkedin_result.get("Items", [])
             if item.get("status") in ["scheduled", "published"]
         ]
 
         linkedin_posts = attach_images(linkedin_posts)
 
-        # ✅ ONLY CHANGE: merge both into a single posts array
+        # ---------- MERGE ----------
         all_posts = draft_posts + linkedin_posts
 
         return response(200, {
@@ -111,6 +133,7 @@ def lambda_handler(event, context):
         })
 
 
+# ---------- RESPONSE ----------
 def response(status_code, body):
     return {
         "statusCode": status_code,

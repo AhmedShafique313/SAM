@@ -56,6 +56,22 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName
 
+  AnswerFactExtractionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: answer-fact-extraction
+      Handler: app.lambda_handler
+      CodeUri: src/answer-fact-extraction/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles frontend_to_s3
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName          
+
 
 
 Outputs:
@@ -74,4 +90,10 @@ Outputs:
     Value: !GetAtt UploadFunction.Arn
     Export:
       Name: UploadFunctionArn
+
+  AnswerFactExtractionFunctionArn:
+    Description: ARN of pdf AnswerFactExtraction lambda
+    Value: !GetAtt AnswerFactExtractionFunction.Arn
+    Export:
+      Name: AnswerFactExtractionFunctionArn      
       

@@ -1,218 +1,221 @@
 import json
 import boto3
-import pdfplumber
-import io
-from boto3.dynamodb.conditions import Key, Attr
+import os
+from datetime import datetime
+from typing import List, Dict
 
-s3 = boto3.client('s3')
-dynamodb = boto3.resource('dynamodb')
-bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
+# ---------------------------
+# AWS Clients
+# ---------------------------
+dynamodb = boto3.resource("dynamodb")
+bedrock_runtime = boto3.client(
+    "bedrock-runtime",
+    region_name=os.environ.get("BEDROCK_REGION", "us-east-1")
+)
 
-# Constants
-BUCKET_NAME = "cammi-devprod"
-USERS_TABLE = "users-table"
+# ---------------------------
+# Environment
+# ---------------------------
+FACTS_TABLE_NAME = os.environ.get("FACTS_TABLE_NAME", "facts-table")
+BEDROCK_MODEL_ID = os.environ.get(
+    "BEDROCK_MODEL_ID",
+    "anthropic.claude-3-sonnet-20240229-v1:0"
+)
 
-# 🧠 Bedrock LLM call
-def llm_calling(prompt, model_id, session_id="default-session"):
-    """Call AWS Bedrock LLM. (No try/except — errors will propagate for visibility.)"""
-    conversation = [
-        {
-            "role": "user",
-            "content": [{"text": str(prompt)}]
-        }
-    ]
+facts_table = dynamodb.Table(FACTS_TABLE_NAME)
 
-    response = bedrock_runtime.converse(
-        modelId=model_id,
-        messages=conversation,
-        inferenceConfig={
-            "temperature": 0.7,
-            "topP": 0.9
-        },
-        requestMetadata={
-            "sessionId": session_id
-        }
-    )
+# ---------------------------
+# FACT UNIVERSE (example – keep full version from your code)
+# ---------------------------
+FACT_UNIVERSE = {
+    "business.name": "Legal or common name of the business",
+    "business.description_long": "Detailed business description",
+    "product.core_offering": "Main product or service",
+    "customer.primary_customer": "Primary target customer",
+    "market.competitors": "Direct competitors",
+    "strategy.short_term_goals": "Goals for next 12 months"
+}
 
-    response_text = response["output"]["message"]["content"][0]["text"]
-    return response_text.strip()
-
-# 🧾 Prompt builder for business profile extraction
-def call_llm_extract_profile(all_content: str) -> str:
-    prompt_relevancy = f"""
-You are an expert business and marketing analyst specializing in B2B brand strategy.
- 
-You are given structured company information (scraped and pre-organized in JSON or markdown):
-{str(all_content)}
- 
-Your task:
-1. Extract all key information relevant to building a detailed and personalized business profile.
-2. Use only factual data found in the input. Do not infer or invent data.
-3. Return the response in the exact format below using the same headings and order.
-4. If any field cannot be determined confidently, leave it blank (do not make assumptions).
- 
-Return your answer in this format exactly:
- 
-Business Name:
-Industry / Sector:
-Mission:
-Vision:
-Objective / Purpose Statement:
-Business Concept:
-Products or Services Offered:
-Target Market:
-Who They Currently Sell To:
-Value Proposition:
-Top Business Goals:
-Challenges:
-Company Overview / About Summary:
-Core Values / Brand Personality:
-Unique Selling Points (USPs):
-Competitive Advantage / What Sets Them Apart:
-Market Positioning Statement:
-Customer Segments:
-Proof Points / Case Studies / Testimonials Summary:
-Key Differentiators:
-Tone of Voice / Brand Personality Keywords:
-Core Features / Capabilities:
-Business Model:
-Technology Stack / Tools / Platform:
-Geographic Presence:
-Leadership / Founder Info:
-Company Values / Culture:
-Strategic Initiatives / Future Plans:
-Awards / Recognition / Partnerships:
-Press Mentions or Achievements:
-Client or Industry Verticals Served:
- 
-Notes:
-- Keep responses concise and factual.
-- Avoid any assumptions or generation of new data.
-- Use sentence form, not bullet lists, except where lists are explicitly more natural.
-    """.strip()
-
-    return llm_calling(prompt_relevancy, model_id="us.anthropic.claude-sonnet-4-20250514-v1:0")
-
-# 🧩 Lambda entrypoint (triggered by S3 PUT event)
-def lambda_handler(event, context):
-    print("Received S3 event:", json.dumps(event))
-
-    # Extract bucket and object key from event
-    record = event["Records"][0]
-    bucket_name = record["s3"]["bucket"]["name"]
-    object_key = record["s3"]["object"]["key"]
-
-    # Ensure correct bucket
-    if bucket_name != BUCKET_NAME:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"message": f"Unexpected bucket: {bucket_name}"})
-        }
-
-    # ✅ Extract project_id and session_id from object_key
-    # Expected pattern: pdf_files/{project_id}/{session_id}/{file_name}
-    parts = object_key.split("/")
-    if len(parts) < 4 or parts[0] != "pdf_files":
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"message": f"Invalid S3 key structure: {object_key}"})
-        }
-
-    project_id = parts[1]
-    session_id = parts[2]
-    file_name = parts[3]
-
-    print(f"Extracted project_id: {project_id}, session_id: {session_id}, file_name: {file_name}")
-
-    # ✅ Fetch PDF file from S3
-    pdf_obj = s3.get_object(Bucket=bucket_name, Key=object_key)
-    pdf_bytes = pdf_obj["Body"].read()
-
-    print(f"Reading file from S3: {object_key}")
-    print(f"File size: {len(pdf_bytes)} bytes")
-
-    # ✅ Extract text from PDF
-    all_text = ""
-    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        print(f"Total pages: {len(pdf.pages)}")
-        for i, page in enumerate(pdf.pages):
-            print(f"Extracting page {i + 1} ...")
-            text = page.extract_text()
-            if text:
-                all_text += text + "\n" + "-" * 80 + "\n"
-
-    # 🧠 Call Bedrock LLM
-    print("Calling Bedrock LLM to generate structured business profile...")
-    parsed_profile = call_llm_extract_profile(all_text)
-    print("LLM processing completed.")
-
-    # ✅ Get user_id from DynamoDB
-    table = dynamodb.Table(USERS_TABLE)
-    try:
-        response = table.query(
-            IndexName="session_id-index",
-            KeyConditionExpression=Key("session_id").eq(session_id)
-        )
-        if not response.get("Items"):
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"message": f"No user found for session_id {session_id}"})
-            }
-        user_id = response["Items"][0]["id"]
-        print(f"User found via GSI: {user_id}")
-    except Exception as e:
-        print(f"GSI not found or query failed, fallback to scan: {e}")
-        response = table.scan(
-            FilterExpression=Attr("session_id").eq(session_id)
-        )
-        if not response.get("Items"):
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"message": f"No user found for session_id {session_id}"})
-            }
-        user_id = response["Items"][0]["id"]
-        print(f"User found via scan: {user_id}")
-
-    # ✅ Upload extracted + parsed text to S3 (append if exists)
-    s3_key = f"url_parsing/{project_id}/{user_id}/web_scraping.txt"
-    knowledgebase_output = f"knowledgebase/{user_id}/{user_id}_data.txt"
-
-    try:
-        existing_obj = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
-        existing_content = existing_obj["Body"].read().decode("utf-8")
-        print("Existing file found. Appending new content...")
-    except s3.exceptions.NoSuchKey:
-        existing_content = ""
-        print("No existing file found. Creating a new one...")
-
-    final_output = (
-        existing_content + "\n\n--- NEW PDF EXTRACT ---\n\n" + parsed_profile
-        if existing_content
-        else parsed_profile
-    )
-
-    s3.put_object(
-        Bucket=BUCKET_NAME,
-        Key=s3_key,
-        Body=final_output.encode("utf-8"),
-        ContentType="text/plain"
-    )
-
-    s3.put_object(
-        Bucket=BUCKET_NAME,
-        Key=knowledgebase_output,
-        Body=final_output.encode("utf-8"),
-        ContentType="text/plain"
-    )    
-
-    s3_url = f"s3://{BUCKET_NAME}/{s3_key}"
-
+# ---------------------------
+# CORS Response Helper
+# ---------------------------
+def response(status: int, body: dict):
     return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "Triggered by S3: PDF processed successfully and profile saved.",
-            "project_id": project_id,
-            "session_id": session_id,
-            "url": s3_url
-        })
+        "statusCode": status,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization",
+            "Access-Control-Allow-Methods": "OPTIONS,POST"
+        },
+        "body": json.dumps(body)
     }
+
+# ---------------------------
+# Bedrock Invocation
+# ---------------------------
+def invoke_claude(system_prompt: str, user_prompt: str) -> str:
+    payload = {
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1500,
+        "temperature": 0.2,
+        "system": system_prompt,
+        "messages": [
+            {"role": "user", "content": user_prompt}
+        ]
+    }
+
+    res = bedrock_runtime.invoke_model(
+        modelId=BEDROCK_MODEL_ID,
+        body=json.dumps(payload)
+    )
+
+    data = json.loads(res["body"].read())
+    return data["content"][0]["text"]
+
+# ---------------------------
+# Industry-Standard Fact Extraction
+# ---------------------------
+def extract_facts(question_text: str) -> List[Dict[str, str]]:
+    fact_list = "\n".join(
+        [f"- {fid}: {desc}" for fid, desc in FACT_UNIVERSE.items()]
+    )
+
+    prompt = f"""
+You are the FACT EXTRACTION layer of a production business-intelligence system.
+
+Your ONLY responsibility is to extract high-confidence, structured business facts
+from the user's latest message.
+
+────────────────────────────────
+STRICT EXTRACTION RULES
+
+1. Extract ONLY facts explicitly stated in the LATEST user message
+2. DO NOT infer, guess, assume, or complete missing information
+3. DO NOT extract vague, uncertain, or implied information
+4. DO NOT extract opinions, intentions, or future possibilities
+5. DO NOT rewrite or normalize the user’s language unnecessarily
+6. Use ONLY the provided fact_id list
+7. NEVER invent new fact_ids
+8. If no facts can be extracted with high confidence, return an empty list
+9. If a fact value is ambiguous, DO NOT extract it
+
+────────────────────────────────
+AVAILABLE FACT IDs
+
+{fact_list}
+
+────────────────────────────────
+LATEST USER MESSAGE
+
+{question_text}
+
+────────────────────────────────
+OUTPUT FORMAT (STRICT JSON)
+
+{{
+  "extracted_facts": [
+    {{
+      "fact_id": "business.name",
+      "value": "Exact phrase used by the user"
+    }}
+  ]
+}}
+
+If no facts are extractable:
+
+{{
+  "extracted_facts": []
+}}
+
+────────────────────────────────
+IMPORTANT
+
+- Output ONLY valid JSON
+- No markdown
+- No explanations
+- No commentary
+"""
+
+    raw = invoke_claude(
+        system_prompt="You are a deterministic fact extraction engine.",
+        user_prompt=prompt
+    ).strip()
+
+    # Defensive cleanup
+    if raw.startswith("```"):
+        raw = raw.split("```")[1].strip()
+
+    parsed = json.loads(raw)
+    return parsed.get("extracted_facts", [])
+
+# ---------------------------
+# DynamoDB Upsert
+# ---------------------------
+def upsert_fact(project_id: str, fact_id: str, value: str):
+    facts_table.update_item(
+        Key={
+            "project_id": project_id,
+            "fact_id": fact_id
+        },
+        UpdateExpression="""
+            SET #val = :val,
+                #src = :src,
+                #updated = :updated
+        """,
+        ExpressionAttributeNames={
+            "#val": "value",
+            "#src": "source",
+            "#updated": "updated_at"
+        },
+        ExpressionAttributeValues={
+            ":val": value,
+            ":src": "chat",
+            ":updated": datetime.utcnow().isoformat()
+        }
+    )
+
+# ---------------------------
+# Lambda Handler
+# ---------------------------
+def lambda_handler(event, context):
+
+    # CORS preflight
+    if event.get("httpMethod") == "OPTIONS":
+        return response(200, {})
+
+    try:
+        body = json.loads(event.get("body", "{}"))
+
+        session_id = body.get("session_id")
+        project_id = body.get("project_id")
+        question_text = body.get("question_text")
+
+        if not all([session_id, project_id, question_text]):
+            return response(400, {
+                "error": "session_id, project_id, and question_text are required"
+            })
+
+        # Extract facts
+        extracted_facts = extract_facts(question_text)
+
+        # Persist facts
+        for fact in extracted_facts:
+            upsert_fact(
+                project_id=project_id,
+                fact_id=fact["fact_id"],
+                value=fact["value"]
+            )
+
+        return response(200, {
+            "session_id": session_id,
+            "project_id": project_id,
+            "facts_saved": extracted_facts,
+            "count": len(extracted_facts)
+        })
+
+    except Exception as e:
+        print("ERROR:", str(e))
+        return response(500, {
+            "error": "Internal server error",
+            "details": str(e)
+        })

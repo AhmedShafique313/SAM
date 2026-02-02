@@ -168,6 +168,22 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName                                           
 
+  PublishNowEditFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: publish-now-edit
+      Handler: app.lambda_handler
+      CodeUri: src/publish-now-edit/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName 
+
 Outputs:
   UserCampaignsFunctionArn:
     Description: ARN of web scrapping Lambda
@@ -227,4 +243,10 @@ Outputs:
     Description: ARN of PDF extraction Lambda
     Value: !GetAtt PostStatusFunction.Arn
     Export:
-      Name: PostStatusFunctionArn                              
+      Name: PostStatusFunctionArn  
+
+  PublishNowEditFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt PublishNowEditFunction.Arn
+    Export:
+      Name: PublishNowEditFunctionArn                                   

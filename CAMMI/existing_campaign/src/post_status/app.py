@@ -2,6 +2,18 @@ import json
 import boto3
 import base64
 from boto3.dynamodb.conditions import Key
+from decimal import Decimal
+
+def decimal_to_native(value):
+    if isinstance(value, list):
+        return [decimal_to_native(v) for v in value]
+    elif isinstance(value, dict):
+        return {k: decimal_to_native(v) for k, v in value.items()}
+    elif isinstance(value, Decimal):
+        if value % 1 == 0:
+            return int(value)
+        return float(value)
+    return value
 
 # ---------- AWS Clients ----------
 dynamodb = boto3.resource("dynamodb")
@@ -10,12 +22,14 @@ s3 = boto3.client("s3")
 # ---------- Tables ----------
 POSTS_TABLE = "posts-table"
 LINKEDIN_TABLE = "linkedin-posts-table"
+USER_CAMPAIGNS_TABLE = "user-campaigns"
 
 POSTS_CAMPAIGN_GSI = "campaign_id-index"
 LINKEDIN_CAMPAIGN_GSI = "campaign_id-index"
 
 posts_table = dynamodb.Table(POSTS_TABLE)
 linkedin_table = dynamodb.Table(LINKEDIN_TABLE)
+user_campaigns_table = dynamodb.Table(USER_CAMPAIGNS_TABLE)
 
 # ---------- Default S3 Bucket ----------
 DEFAULT_BUCKET = "cammi-devprod"
@@ -58,24 +72,15 @@ def attach_images(items):
 
 # ---------- NORMALIZATION ----------
 def normalize_linkedin_post(item):
-    """
-    Converts LinkedIn posts to match draft post schema
-    """
-    # ---- MESSAGE → TITLE / DESCRIPTION ----
     message = item.get("message", "")
     parts = [p.strip() for p in message.split("\n\n") if p.strip()]
 
     item["title"] = item.get("title") or (parts[0] if len(parts) > 0 else "")
     item["description"] = item.get("description") or (parts[1] if len(parts) > 1 else "")
 
-    # ---- HASHTAG NORMALIZATION ----
     hashtag_str = item.get("hashtag", "")
-    if hashtag_str:
-        item["hashtags"] = hashtag_str.split()
-    else:
-        item["hashtags"] = []
+    item["hashtags"] = hashtag_str.split() if hashtag_str else []
 
-    # ---- CLEANUP ----
     item.pop("message", None)
     item.pop("hashtag", None)
 
@@ -90,6 +95,13 @@ def lambda_handler(event, context):
 
         if not campaign_id:
             return response(400, {"error": "campaign_id is required"})
+
+        # ---------- USER CAMPAIGNS ----------
+        user_campaigns_result = user_campaigns_table.query(
+            KeyConditionExpression=Key("campaign_id").eq(campaign_id)
+        )
+
+        campaign_projects = user_campaigns_result.get("Items", [])
 
         # ---------- DRAFT POSTS ----------
         posts_result = posts_table.query(
@@ -123,6 +135,7 @@ def lambda_handler(event, context):
 
         return response(200, {
             "campaign_id": campaign_id,
+            "campaign_projects": campaign_projects,
             "posts": all_posts
         })
 
@@ -143,5 +156,5 @@ def response(status_code, body):
             "Access-Control-Allow-Headers": "Content-Type,Authorization",
             "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
         },
-        "body": json.dumps(body)
+        "body": json.dumps(decimal_to_native(body))
     }

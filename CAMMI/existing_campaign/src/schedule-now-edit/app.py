@@ -8,14 +8,19 @@ from boto3.dynamodb.conditions import Key
 # ---------- AWS Clients ----------
 dynamodb = boto3.resource("dynamodb")
 s3 = boto3.client("s3")
+scheduler = boto3.client("scheduler")  # EventBridge Scheduler
 
 # ---------- Tables & Bucket ----------
 POSTS_TABLE = "posts-table"
 LINKEDIN_TABLE = "linkedin-posts-table"
-S3_BUCKET = "cammi-devprod"   # <-- CHANGE THIS
+S3_BUCKET = "cammi-devprod"   # <-- CHANGE THIS IF NEEDED
 
 posts_table = dynamodb.Table(POSTS_TABLE)
 linkedin_table = dynamodb.Table(LINKEDIN_TABLE)
+
+# ---------- Lambda & Role ARNs ----------
+STATUS_LAMBDA_ARN = "arn:aws:lambda:us-east-1:687088702813:function:status"
+EVENTBRIDGE_ROLE_ARN = "arn:aws:iam::687088702813:role/scheduler-invoke-lambda-role"
 
 # ---------- Timezone (PKT / UTC+5) ----------
 PKT = timezone(timedelta(hours=5))
@@ -45,11 +50,10 @@ def lambda_handler(event, context):
         # Validate + normalize scheduled_time (PKT)
         # -----------------------------------------
         scheduled_dt = datetime.fromisoformat(scheduled_time_input)
-
         if scheduled_dt.tzinfo is None:
             scheduled_dt = scheduled_dt.replace(tzinfo=PKT)
 
-        scheduled_time_str = scheduled_dt.isoformat()
+        scheduled_time_str = scheduled_dt.isoformat()  # PKT / UTC+5
 
         # -----------------------------------------
         # Fetch post
@@ -68,10 +72,8 @@ def lambda_handler(event, context):
         # Handle images (optional)
         # -----------------------------------------
         image_keys = None
-
         if images:
             image_keys = []
-
             for img_base64 in images:
                 image_bytes = base64.b64decode(img_base64)
                 image_name = f"images/{uuid.uuid4().hex}.jpg"
@@ -136,9 +138,31 @@ def lambda_handler(event, context):
             }
         )
 
+        # -----------------------------------------
+        # EventBridge Scheduler
+        # Convert PKT -> UTC for scheduler
+        # -----------------------------------------
+        scheduled_utc = scheduled_dt.astimezone(timezone.utc)
+        utc_str = scheduled_utc.isoformat()  # e.g. 2026-02-03T09:00:00+00:00
+
+        schedule_name = f"linkedin_post_{sub}_{int(datetime.now().timestamp())}"
+
+        scheduler.create_schedule(
+            Name=schedule_name,
+            GroupName="default",
+            FlexibleTimeWindow={"Mode": "OFF"},
+            ScheduleExpression=f"at({utc_str})",
+            Target={
+                "Arn": STATUS_LAMBDA_ARN,
+                "RoleArn": EVENTBRIDGE_ROLE_ARN,
+                "Input": json.dumps(post_item)   # 🔑 same object
+            }
+        )
+
         return response(200, {
             "message": "Post scheduled successfully",
-            "scheduled_time": scheduled_time_str
+            "scheduled_time": scheduled_time_str,
+            "schedule_name": schedule_name
         })
 
     except Exception as e:

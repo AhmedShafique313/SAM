@@ -8,12 +8,12 @@ from boto3.dynamodb.conditions import Key
 # ---------- AWS Clients ----------
 dynamodb = boto3.resource("dynamodb")
 s3 = boto3.client("s3")
-scheduler = boto3.client("scheduler")  # EventBridge Scheduler
+scheduler = boto3.client("scheduler")
 
 # ---------- Tables & Bucket ----------
 POSTS_TABLE = "posts-table"
 LINKEDIN_TABLE = "linkedin-posts-table"
-S3_BUCKET = "cammi-devprod"   # <-- CHANGE THIS IF NEEDED
+S3_BUCKET = "cammi-devprod"
 
 posts_table = dynamodb.Table(POSTS_TABLE)
 linkedin_table = dynamodb.Table(LINKEDIN_TABLE)
@@ -40,20 +40,20 @@ def lambda_handler(event, context):
         if not post_id or not sub or not scheduled_time_input:
             return response(400, "post_id, sub, and scheduled_time are required")
 
-        # Optional inputs
         title = body.get("title")
         description = body.get("description")
         hashtag = body.get("hashtag")
         images = body.get("images", [])
 
         # -----------------------------------------
-        # Validate + normalize scheduled_time (PKT)
+        # Normalize scheduled_time (PKT)
         # -----------------------------------------
         scheduled_dt = datetime.fromisoformat(scheduled_time_input)
+
         if scheduled_dt.tzinfo is None:
             scheduled_dt = scheduled_dt.replace(tzinfo=PKT)
 
-        scheduled_time_str = scheduled_dt.isoformat()  # PKT / UTC+5
+        scheduled_time_str = scheduled_dt.isoformat()
 
         # -----------------------------------------
         # Fetch post
@@ -88,7 +88,7 @@ def lambda_handler(event, context):
                 image_keys.append(image_name)
 
         # -----------------------------------------
-        # Update posts-table (NO time mutation)
+        # Update posts-table
         # -----------------------------------------
         posts_table.update_item(
             Key={
@@ -103,32 +103,26 @@ def lambda_handler(event, context):
                     hashtag = :tag,
                     image_keys = :imgs
             """,
-            ExpressionAttributeNames={
-                "#status": "status"
-            },
+            ExpressionAttributeNames={"#status": "status"},
             ExpressionAttributeValues={
                 ":st": scheduled_time_str,
                 ":status": "scheduled",
-                ":title": title if title is not None else None,
-                ":desc": description if description is not None else None,
-                ":tag": hashtag if hashtag is not None else None,
-                ":imgs": image_keys if image_keys is not None else None
+                ":title": title,
+                ":desc": description,
+                ":tag": hashtag,
+                ":imgs": image_keys
             }
         )
 
         # -----------------------------------------
-        # Build LinkedIn message
+        # LinkedIn table
         # -----------------------------------------
         message = f"{title or ''}\n\n{description or ''}\n\n{hashtag or ''}"
 
-        # -----------------------------------------
-        # Update linkedin-posts-table
-        # scheduled_time == post_time (source of truth)
-        # -----------------------------------------
         linkedin_table.put_item(
             Item={
                 "sub": sub,
-                "post_time": scheduled_time_str,   # 🔑 SAME AS FIRST CODE
+                "post_time": scheduled_time_str,
                 "post_id": post_id,
                 "campaign_id": campaign_id,
                 "message": message,
@@ -139,11 +133,12 @@ def lambda_handler(event, context):
         )
 
         # -----------------------------------------
-        # EventBridge Scheduler
-        # Convert PKT -> UTC for scheduler
+        # EventBridge Scheduler (UTC, NO TZ)
         # -----------------------------------------
         scheduled_utc = scheduled_dt.astimezone(timezone.utc)
-        utc_str = scheduled_utc.isoformat()  # e.g. 2026-02-03T09:00:00+00:00
+
+        # ✅ ONLY FORMAT THAT WORKS
+        utc_str = scheduled_utc.strftime("%Y-%m-%dT%H:%M:%S")
 
         schedule_name = f"linkedin_post_{sub}_{int(datetime.now().timestamp())}"
 
@@ -155,7 +150,7 @@ def lambda_handler(event, context):
             Target={
                 "Arn": STATUS_LAMBDA_ARN,
                 "RoleArn": EVENTBRIDGE_ROLE_ARN,
-                "Input": json.dumps(post_item)   # 🔑 same object
+                "Input": json.dumps(post_item)
             }
         )
 

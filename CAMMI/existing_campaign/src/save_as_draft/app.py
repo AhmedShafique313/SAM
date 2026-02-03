@@ -49,23 +49,24 @@ def lambda_handler(event, context):
                 }
             )
 
-        # Update posts
+        # Update only posts with status "Generated"
         updated_posts = 0
         for post in posts:
-            table.update_item(
-                Key={
-                    "post_id": post["post_id"],
-                    "campaign_id": post["campaign_id"]
-                },
-                UpdateExpression="SET #status = :draft",
-                ExpressionAttributeNames={
-                    "#status": "status"
-                },
-                ExpressionAttributeValues={
-                    ":draft": "draft"
-                }
-            )
-            updated_posts += 1
+            if post.get("status") == "Generated":
+                table.update_item(
+                    Key={
+                        "post_id": post["post_id"],
+                        "campaign_id": post["campaign_id"]
+                    },
+                    UpdateExpression="SET #status = :draft",
+                    ExpressionAttributeNames={
+                        "#status": "status"
+                    },
+                    ExpressionAttributeValues={
+                        ":draft": "draft"
+                    }
+                )
+                updated_posts += 1
 
         return _response(
             200,

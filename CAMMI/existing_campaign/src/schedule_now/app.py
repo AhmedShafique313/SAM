@@ -1,12 +1,16 @@
 import json
 import boto3
-from datetime import datetime, timedelta
-from boto3.dynamodb.conditions import Key
+from datetime import datetime, timedelta, timezone
 
 dynamodb = boto3.resource("dynamodb")
+scheduler = boto3.client("scheduler")  # EventBridge Scheduler client
 
 POSTS_TABLE = "posts-table"
 LINKEDIN_TABLE = "linkedin-posts-table"
+
+STATUS_LAMBDA_ARN = "arn:aws:lambda:us-east-1:687088702813:function:status"
+EVENTBRIDGE_ROLE_ARN = "arn:aws:iam::687088702813:role/scheduler-invoke-lambda-role"
+S3_BUCKET = "cammi-devprod"
 
 posts_table = dynamodb.Table(POSTS_TABLE)
 linkedin_table = dynamodb.Table(LINKEDIN_TABLE)
@@ -34,7 +38,7 @@ def lambda_handler(event, context):
         # 2. Query posts-table using post_id
         # -----------------------------------------
         query_resp = posts_table.query(
-            KeyConditionExpression=Key("post_id").eq(post_id)
+            KeyConditionExpression=boto3.dynamodb.conditions.Key("post_id").eq(post_id)
         )
 
         if not query_resp["Items"]:
@@ -56,10 +60,19 @@ def lambda_handler(event, context):
 
         # -----------------------------------------
         # 4. Add 2 minutes to scheduled_time
+        #    and convert to UTC+5 for DynamoDB
         # -----------------------------------------
         scheduled_time = datetime.fromisoformat(scheduled_time_str)
         updated_scheduled_time = scheduled_time + timedelta(minutes=2)
-        updated_scheduled_time_str = updated_scheduled_time.isoformat()
+
+        # Convert to UTC+5 for DynamoDB
+        PKT = timezone(timedelta(hours=5))
+        updated_scheduled_time_pkt = updated_scheduled_time.astimezone(PKT)
+        updated_scheduled_time_pkt_str = updated_scheduled_time_pkt.isoformat()
+
+        # Convert to UTC for EventBridge Scheduler
+        updated_scheduled_time_utc = updated_scheduled_time_pkt.astimezone(timezone.utc)
+        utc_str = updated_scheduled_time_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # -----------------------------------------
         # 5. Update posts-table
@@ -77,7 +90,7 @@ def lambda_handler(event, context):
                 "#status": "status"
             },
             ExpressionAttributeValues={
-                ":st": updated_scheduled_time_str,
+                ":st": updated_scheduled_time_pkt_str,
                 ":status": "scheduled"
             }
         )
@@ -88,19 +101,40 @@ def lambda_handler(event, context):
         linkedin_table.put_item(
             Item={
                 "sub": sub,
-                "post_time": updated_scheduled_time_str,
+                "post_time": updated_scheduled_time_pkt_str,
                 "post_id": post_id,
                 "campaign_id": campaign_id,
                 "message": message,
                 "image_keys": image_keys,
-                "scheduled_time": updated_scheduled_time_str,
+                "scheduled_time": updated_scheduled_time_pkt_str,
                 "status": "scheduled"
             }
         )
 
+        # -----------------------------------------
+        # 7. Create EventBridge schedule
+        # -----------------------------------------
+        schedule_name = f"linkedin_post_{sub}_{int(datetime.now().timestamp())}"
+
+        scheduler.create_schedule(
+            Name=schedule_name,
+            GroupName="default",
+            FlexibleTimeWindow={"Mode": "OFF"},
+            ScheduleExpression=f"at({utc_str})",
+            Target={
+                "Arn": STATUS_LAMBDA_ARN,
+                "RoleArn": EVENTBRIDGE_ROLE_ARN,
+                "Input": json.dumps(post_item)  # Send original post_item
+            }
+        )
+
+        # -----------------------------------------
+        # 8. Return response with schedule_name
+        # -----------------------------------------
         return response(200, {
             "message": "Post scheduled successfully",
-            "scheduled_time": updated_scheduled_time_str
+            "scheduled_time": updated_scheduled_time_pkt_str,
+            "schedule_name": schedule_name
         })
 
     except Exception as e:

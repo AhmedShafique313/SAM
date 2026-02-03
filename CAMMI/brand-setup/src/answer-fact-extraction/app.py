@@ -17,15 +17,17 @@ bedrock_runtime = boto3.client(
 # Environment
 # ---------------------------
 FACTS_TABLE_NAME = os.environ.get("FACTS_TABLE_NAME", "facts-table")
+PROJECTS_TABLE_NAME = os.environ.get("PROJECTS_TABLE_NAME", "projects-table")
 BEDROCK_MODEL_ID = os.environ.get(
     "BEDROCK_MODEL_ID",
     "anthropic.claude-3-sonnet-20240229-v1:0"
 )
 
 facts_table = dynamodb.Table(FACTS_TABLE_NAME)
+projects_table = dynamodb.Table(PROJECTS_TABLE_NAME)
 
 # ---------------------------
-# FACT UNIVERSE (example – keep full version from your code)
+# FACT UNIVERSE
 # ---------------------------
 FACT_UNIVERSE = {
     "business.name": "Legal or common name of the business",
@@ -141,7 +143,6 @@ IMPORTANT
         user_prompt=prompt
     ).strip()
 
-    # Defensive cleanup
     if raw.startswith("```"):
         raw = raw.split("```")[1].strip()
 
@@ -175,6 +176,16 @@ def upsert_fact(project_id: str, fact_id: str, value: str):
     )
 
 # ---------------------------
+# Project Existence Check
+# ---------------------------
+def project_exists(project_id: str) -> bool:
+    resp = projects_table.get_item(
+        Key={"id": project_id},
+        ProjectionExpression="id"
+    )
+    return "Item" in resp
+
+# ---------------------------
 # Lambda Handler
 # ---------------------------
 def lambda_handler(event, context):
@@ -195,10 +206,23 @@ def lambda_handler(event, context):
                 "error": "session_id, project_id, and question_text are required"
             })
 
-        # Extract facts
+        # ---------------------------
+        # NEW: Project existence guard
+        # ---------------------------
+        if not project_exists(project_id):
+            return response(200, {
+                "session_id": session_id,
+                "project_id": project_id,
+                "facts_saved": [],
+                "count": 0,
+                "message": "Project does not exist. No facts extracted."
+            })
+
+        # ---------------------------
+        # Existing behavior (unchanged)
+        # ---------------------------
         extracted_facts = extract_facts(question_text)
 
-        # Persist facts
         for fact in extracted_facts:
             upsert_fact(
                 project_id=project_id,

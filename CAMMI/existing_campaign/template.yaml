@@ -184,6 +184,54 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName 
 
+  ScheduleNowEditFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: schedule-now-edit
+      Handler: app.lambda_handler
+      CodeUri: src/schedule-now-edit/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName   
+
+  SaveDraftNewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: save-draft-new
+      Handler: app.lambda_handler
+      CodeUri: src/save-draft-new/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName      
+
+  CreatePostNewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: create-post-new
+      Handler: app.lambda_handler
+      CodeUri: src/create-post-new/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles PDF extraction for brand setup
+      Role: !ImportValue CAMMI-LambdaRoleArn 
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref S3BucketName                          
+
 Outputs:
   UserCampaignsFunctionArn:
     Description: ARN of web scrapping Lambda
@@ -249,4 +297,22 @@ Outputs:
     Description: ARN of PDF extraction Lambda
     Value: !GetAtt PublishNowEditFunction.Arn
     Export:
-      Name: PublishNowEditFunctionArn                                   
+      Name: PublishNowEditFunctionArn  
+
+  ScheduleNowEditFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt ScheduleNowEditFunction.Arn
+    Export:
+      Name: ScheduleNowEditFunctionArn   
+
+  SaveDraftNewFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt SaveDraftNewFunction.Arn
+    Export:
+      Name: SaveDraftNewFunctionArn      
+
+  CreatePostNewFunctionArn:
+    Description: ARN of PDF extraction Lambda
+    Value: !GetAtt CreatePostNewFunction.Arn
+    Export:
+      Name: CreatePostNewFunctionArn                                              

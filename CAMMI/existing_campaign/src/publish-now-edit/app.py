@@ -68,38 +68,29 @@ def lambda_handler(event, context):
         scheduled_time = body.get("scheduled_time")
         status = "published"
         title = body.get("title")
-
         images = body.get("images", [])
 
         # ---------- Upload Images to S3 ----------
         image_keys = []
-
         for img_b64 in images:
             if not img_b64:
                 continue
-
             if "," in img_b64:
                 img_b64 = img_b64.split(",", 1)[1]
-
             image_bytes = base64.b64decode(img_b64)
             image_id = str(uuid.uuid4())
             s3_key = f"images/{post_id}/{image_id}.jpg"
-
             s3.put_object(
                 Bucket=IMAGE_BUCKET,
                 Key=s3_key,
                 Body=image_bytes,
                 ContentType="image/jpeg"
             )
-
             image_keys.append({"s3_key": s3_key})
 
-        # ---------- UPDATE posts-table FIRST ----------
+        # ---------- UPDATE posts-table ----------
         posts_table.update_item(
-            Key={
-                "post_id": post_id,
-                "campaign_id": campaign_id
-            },
+            Key={"post_id": post_id, "campaign_id": campaign_id},
             UpdateExpression="""
                 SET best_post_day = :bpd,
                     best_post_time = :bpt,
@@ -112,9 +103,7 @@ def lambda_handler(event, context):
                     title = :title,
                     image_keys = :ik
             """,
-            ExpressionAttributeNames={
-                "#status": "status"
-            },
+            ExpressionAttributeNames={"#status": "status"},
             ExpressionAttributeValues={
                 ":bpd": best_post_day,
                 ":bpt": best_post_time,
@@ -129,16 +118,12 @@ def lambda_handler(event, context):
             }
         )
 
-        # ---------- Fetch Post (unchanged flow) ----------
-        post_resp = posts_table.get_item(
-            Key={"post_id": post_id, "campaign_id": campaign_id}
-        )
-
+        # ---------- Fetch Post ----------
+        post_resp = posts_table.get_item(Key={"post_id": post_id, "campaign_id": campaign_id})
         if "Item" not in post_resp:
             return response(404, "Post not found")
 
         post_item = post_resp["Item"]
-
         title = (post_item.get("title") or "").strip()
         description = (post_item.get("description") or "").strip()
         raw_hashtags = post_item.get("hashtags", [])
@@ -167,23 +152,17 @@ def lambda_handler(event, context):
 
         # ---------- Upload Images to LinkedIn ----------
         uploaded_assets = []
-
         for img in image_keys:
-            s3_obj = s3.get_object(
-                Bucket=IMAGE_BUCKET,
-                Key=img["s3_key"]
-            )
+            s3_obj = s3.get_object(Bucket=IMAGE_BUCKET, Key=img["s3_key"])
             image_bytes = s3_obj["Body"].read()
 
+            # Register upload
             reg_payload = {
                 "registerUploadRequest": {
                     "recipes": ["urn:li:digitalmediaRecipe:feedshare-image"],
                     "owner": f"urn:li:person:{linkedin_member_id}",
                     "serviceRelationships": [
-                        {
-                            "relationshipType": "OWNER",
-                            "identifier": "urn:li:userGeneratedContent"
-                        }
+                        {"relationshipType": "OWNER", "identifier": "urn:li:userGeneratedContent"}
                     ]
                 }
             }
@@ -198,54 +177,39 @@ def lambda_handler(event, context):
                 }
             )
 
+            if reg_res.status not in [200, 201]:
+                raise Exception(f"LinkedIn registerUpload failed: {reg_res.status} {reg_res.data.decode()}")
+
             reg_data = json.loads(reg_res.data.decode())
-            upload_url = reg_data["value"]["uploadMechanism"][
-                "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
-            ]["uploadUrl"]
+            upload_url = reg_data["value"]["uploadMechanism"]["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]["uploadUrl"]
             asset = reg_data["value"]["asset"]
 
-            http.request(
+            # Upload image
+            put_res = http.request(
                 "PUT",
                 upload_url,
                 body=image_bytes,
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Content-Type": "image/jpeg"
-                }
+                headers={"Authorization": f"Bearer {access_token}", "Content-Type": "image/jpeg"}
             )
 
-            uploaded_assets.append({
-                "asset": asset,
-                "filename": img["s3_key"].split("/")[-1]
-            })
+            if put_res.status not in [200, 201]:
+                raise Exception(f"LinkedIn image upload failed: {put_res.status} {put_res.data.decode()}")
 
-            time.sleep(2)
+            # Optional: wait for LinkedIn to process image
+            time.sleep(5)
+
+            uploaded_assets.append({"asset": asset, "filename": img["s3_key"].split("/")[-1]})
 
         # ---------- Create LinkedIn Post ----------
-        share_content = {
-            "shareCommentary": {"text": message},
-            "shareMediaCategory": "IMAGE" if uploaded_assets else "NONE"
-        }
-
+        share_content = {"shareCommentary": {"text": message}, "shareMediaCategory": "IMAGE" if uploaded_assets else "NONE"}
         if uploaded_assets:
-            share_content["media"] = [
-                {
-                    "status": "READY",
-                    "media": img["asset"],
-                    "title": {"text": img["filename"]}
-                }
-                for img in uploaded_assets
-            ]
+            share_content["media"] = [{"status": "READY", "media": img["asset"], "title": {"text": img["filename"]}} for img in uploaded_assets]
 
         post_payload = {
             "author": f"urn:li:person:{linkedin_member_id}",
             "lifecycleState": "PUBLISHED",
-            "specificContent": {
-                "com.linkedin.ugc.ShareContent": share_content
-            },
-            "visibility": {
-                "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
-            }
+            "specificContent": {"com.linkedin.ugc.ShareContent": share_content},
+            "visibility": {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"}
         }
 
         post_res = http.request(
@@ -259,9 +223,15 @@ def lambda_handler(event, context):
             }
         )
 
-        post_urn = json.loads(post_res.data.decode()).get("id")
+        if post_res.status not in [200, 201]:
+            raise Exception(f"LinkedIn post failed: {post_res.status} {post_res.data.decode()}")
 
-        # ---------- linkedin-posts-table ----------
+        post_data = json.loads(post_res.data.decode())
+        post_urn = post_data.get("id")
+        if not post_urn:
+            raise Exception(f"LinkedIn did not return post ID: {post_res.data.decode()}")
+
+        # ---------- Store in linkedin-posts-table ----------
         linkedin_table.put_item(
             Item={
                 "sub": sub,

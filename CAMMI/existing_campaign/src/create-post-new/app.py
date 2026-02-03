@@ -25,7 +25,8 @@ def lambda_handler(event, context):
             return response(400, "campaign_id is required")
 
         # ---------- Generate post_id ----------
-        post_id = uuid.uuid4().hex  # e.g. 7e29f6c38c5a...
+        # post_id = uuid.uuid4().hex
+        post_id = uuid.uuid4().hex[:12] 
 
         # ---------- Create dummy post ----------
         item = {

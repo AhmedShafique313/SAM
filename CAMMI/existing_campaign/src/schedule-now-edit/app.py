@@ -1,10 +1,158 @@
 import json
+import boto3
+import base64
+import uuid
+from datetime import datetime, timezone, timedelta
+from boto3.dynamodb.conditions import Key
+
+# ---------- AWS Clients ----------
+dynamodb = boto3.resource("dynamodb")
+s3 = boto3.client("s3")
+
+# ---------- Tables & Bucket ----------
+POSTS_TABLE = "posts-table"
+LINKEDIN_TABLE = "linkedin-posts-table"
+S3_BUCKET = "cammi-devprod"   # <-- CHANGE THIS
+
+posts_table = dynamodb.Table(POSTS_TABLE)
+linkedin_table = dynamodb.Table(LINKEDIN_TABLE)
+
+# ---------- Timezone (PKT / UTC+5) ----------
+PKT = timezone(timedelta(hours=5))
+
 
 def lambda_handler(event, context):
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "Hello, World!",
-            "input": event
+    try:
+        if event.get("httpMethod") == "OPTIONS":
+            return response(200, {})
+
+        body = json.loads(event.get("body", "{}"))
+
+        post_id = body.get("post_id")
+        sub = body.get("sub")
+        scheduled_time_input = body.get("scheduled_time")
+
+        if not post_id or not sub or not scheduled_time_input:
+            return response(400, "post_id, sub, and scheduled_time are required")
+
+        # Optional inputs
+        title = body.get("title")
+        description = body.get("description")
+        hashtag = body.get("hashtag")
+        images = body.get("images", [])
+
+        # -----------------------------------------
+        # Validate + normalize scheduled_time (PKT)
+        # -----------------------------------------
+        scheduled_dt = datetime.fromisoformat(scheduled_time_input)
+
+        if scheduled_dt.tzinfo is None:
+            scheduled_dt = scheduled_dt.replace(tzinfo=PKT)
+
+        scheduled_time_str = scheduled_dt.isoformat()
+
+        # -----------------------------------------
+        # Fetch post
+        # -----------------------------------------
+        query_resp = posts_table.query(
+            KeyConditionExpression=Key("post_id").eq(post_id)
+        )
+
+        if not query_resp["Items"]:
+            return response(404, "Post not found")
+
+        post_item = query_resp["Items"][0]
+        campaign_id = post_item["campaign_id"]
+
+        # -----------------------------------------
+        # Handle images (optional)
+        # -----------------------------------------
+        image_keys = None
+
+        if images:
+            image_keys = []
+
+            for img_base64 in images:
+                image_bytes = base64.b64decode(img_base64)
+                image_name = f"images/{uuid.uuid4().hex}.jpg"
+
+                s3.put_object(
+                    Bucket=S3_BUCKET,
+                    Key=image_name,
+                    Body=image_bytes,
+                    ContentType="image/jpeg"
+                )
+
+                image_keys.append(image_name)
+
+        # -----------------------------------------
+        # Update posts-table (NO time mutation)
+        # -----------------------------------------
+        posts_table.update_item(
+            Key={
+                "post_id": post_id,
+                "campaign_id": campaign_id
+            },
+            UpdateExpression="""
+                SET scheduled_time = :st,
+                    #status = :status,
+                    title = :title,
+                    description = :desc,
+                    hashtag = :tag,
+                    image_keys = :imgs
+            """,
+            ExpressionAttributeNames={
+                "#status": "status"
+            },
+            ExpressionAttributeValues={
+                ":st": scheduled_time_str,
+                ":status": "scheduled",
+                ":title": title if title is not None else None,
+                ":desc": description if description is not None else None,
+                ":tag": hashtag if hashtag is not None else None,
+                ":imgs": image_keys if image_keys is not None else None
+            }
+        )
+
+        # -----------------------------------------
+        # Build LinkedIn message
+        # -----------------------------------------
+        message = f"{title or ''}\n\n{description or ''}\n\n{hashtag or ''}"
+
+        # -----------------------------------------
+        # Update linkedin-posts-table
+        # scheduled_time == post_time (source of truth)
+        # -----------------------------------------
+        linkedin_table.put_item(
+            Item={
+                "sub": sub,
+                "post_time": scheduled_time_str,   # 🔑 SAME AS FIRST CODE
+                "post_id": post_id,
+                "campaign_id": campaign_id,
+                "message": message,
+                "image_keys": image_keys,
+                "scheduled_time": scheduled_time_str,
+                "status": "scheduled"
+            }
+        )
+
+        return response(200, {
+            "message": "Post scheduled successfully",
+            "scheduled_time": scheduled_time_str
         })
+
+    except Exception as e:
+        return response(500, str(e))
+
+
+def response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization"
+        },
+        "body": json.dumps(body)
     }

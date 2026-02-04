@@ -74,6 +74,10 @@ def lambda_handler(event, context):
         if images:
             for idx, img_b64 in enumerate(images):
                 img_data = base64.b64decode(img_b64)
+                if "," in img_b64:
+                    img_b64 = img_b64.split(",")[1]
+
+                img_data = base64.b64decode(img_b64)
                 filename = f"images/{post_id}_{uuid.uuid4().hex}_{idx}.jpg"
                 s3.put_object(Bucket=S3_BUCKET, Key=filename, Body=img_data, ContentType="image/jpeg")
                 image_keys.append(filename)

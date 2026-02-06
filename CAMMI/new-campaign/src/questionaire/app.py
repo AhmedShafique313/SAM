@@ -115,35 +115,36 @@ def lambda_handler(event, context):
 
         campaign_name = get_campaign_name(campaign_id, project_id)
         prompt_relevancy = f"""
-You are a senior business and marketing analyst with deep experience in execution-ready B2B and B2C social media campaigns.
-
-You are given raw, unstructured user input that may include ideas, descriptions, opinions, or partial information:
+You are a senior business and marketing analyst with deep expertise in execution-ready social media campaigns.
+You will be given raw, unstructured user input. This input may contain ideas, descriptions, opinions, partial details, or complete information about the user's business or product. The user-provided information is as follows:
 {str(user_input)}
 
 Your task is to carefully READ and EXTRACT only the information that is EXPLICITLY stated by the user.
-Do NOT infer, assume, guess, or generate missing details.
+STRICT RULES:
+- Do NOT infer, assume, guess, or generate missing information.
+- Do NOT add interpretations, improvements, or suggestions.
+- Preserve the user's original wording as closely as possible.
+- Maintain the implied brand tone and brand voice.
+- Do NOT summarize or rewrite the content.
+- Use complete sentences.
+- Avoid bullet points unless the user explicitly uses lists in their input.
 
-Extract the following information, only if it is clearly present in the input:
-
+Extract the following information ONLY if it is clearly and explicitly present in the user input:
 1. The specific product or service the user wants to promote.
 2. The ideal customer described or implied by the user.
 3. The main problem or pain point this product or service solves.
 4. The key reason the user believes customers should choose them over competitors.
 5. The social media platform(s) where the user indicates their audience spends time.
 6. The action the user wants people to take after seeing the ad.
-7. Any existing creatives or brand assets mentioned (e.g., logos, videos, testimonials).
-8. How the user defines success for this campaign (business outcomes, not vanity metrics).
+7. Any existing creatives or brand assets mentioned (for example: logos, videos, testimonials).
+8. How the user defines success for this campaign, focusing on business outcomes rather than vanity metrics.
 
-Additional Instructions:
-- Preserve the user's original wording as much as possible.
-- Maintain the implied brand tone and brand voice.
-- If a specific item is NOT mentioned, clearly write: "Not provided by the user."
-- Do NOT summarize, rewrite, or improve the content.
-- Do NOT add examples or suggestions.
-- Use complete sentences.
-- Avoid bullet points unless the user explicitly lists items in their input.
+If any of the above items are NOT explicitly mentioned, clearly write:
+"Not provided by the user."
 
-Output the extracted information clearly labeled from 1 to 8.
+OUTPUT FORMAT:
+- Present all extracted information together in a SINGLE paragraph.
+- The paragraph must be clear, concise, and practically useful.
 """
 
         refined_info = llm_calling(prompt_relevancy, model_id)

@@ -35,15 +35,39 @@ def llm_calling(prompt, model_id):
 
 def call_llm_extract_profile(all_content: str) -> str:
     prompt = f"""
-You are an expert business and marketing analyst specializing in B2B brand strategy.
+You are a senior business and marketing analyst with deep expertise in execution-ready social media campaigns.
 
-Input:
-{all_content}
+You will be given raw, unstructured user input. This input may contain ideas, descriptions, opinions, partial details, or complete information about the user's business or product. The user-provided information is as follows:
+{str(all_content)}
 
-Extract factual company profile only.
-Do not infer or invent data.
+Your task is to carefully READ and EXTRACT only the information that is EXPLICITLY stated by the user.
 
-Return in exact structured format.
+STRICT RULES:
+- Do NOT infer, assume, guess, or generate missing information.
+- Do NOT add interpretations, improvements, or suggestions.
+- Preserve the user's original wording as closely as possible.
+- Maintain the implied brand tone and brand voice.
+- Do NOT summarize or rewrite the content.
+- Use complete sentences.
+- Avoid bullet points unless the user explicitly uses lists in their input.
+
+Extract the following information ONLY if it is clearly and explicitly present in the user input:
+
+1. The specific product or service the user wants to promote.
+2. The ideal customer described or implied by the user.
+3. The main problem or pain point this product or service solves.
+4. The key reason the user believes customers should choose them over competitors.
+5. The social media platform(s) where the user indicates their audience spends time.
+6. The action the user wants people to take after seeing the ad.
+7. Any existing creatives or brand assets mentioned (for example: logos, videos, testimonials).
+8. How the user defines success for this campaign, focusing on business outcomes rather than vanity metrics.
+
+If any of the above items are NOT explicitly mentioned, clearly write:
+"Not provided by the user."
+
+OUTPUT FORMAT:
+- Present all extracted information together in a SINGLE paragraph.
+- The paragraph must be clear, concise, and practically useful.
 """.strip()
 
     return llm_calling(

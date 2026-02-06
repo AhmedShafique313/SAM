@@ -160,12 +160,41 @@ def lambda_handler(event, context):
             all_content += f"\n\n--- Page: {link} ---\n{page_content}"
 
         structured_info = llm_calling(
-            f"Convert this into structured information:\n{all_content}",
-            model_id
-        )
+            f"""
+            You are a senior business and marketing analyst with deep expertise in execution-ready social media campaigns.
 
-        final_output = llm_calling(
-            f"Convert this into execution-ready campaign data:\n{structured_info}",
+You will be given raw, unstructured user input. This input may contain ideas, descriptions, opinions, partial details, or complete information about the user's business or product. The user-provided information is as follows:
+{str(all_content)}
+
+Your task is to carefully READ and EXTRACT only the information that is EXPLICITLY stated by the user.
+
+STRICT RULES:
+- Do NOT infer, assume, guess, or generate missing information.
+- Do NOT add interpretations, improvements, or suggestions.
+- Preserve the user's original wording as closely as possible.
+- Maintain the implied brand tone and brand voice.
+- Do NOT summarize or rewrite the content.
+- Use complete sentences.
+- Avoid bullet points unless the user explicitly uses lists in their input.
+
+Extract the following information ONLY if it is clearly and explicitly present in the user input:
+
+1. The specific product or service the user wants to promote.
+2. The ideal customer described or implied by the user.
+3. The main problem or pain point this product or service solves.
+4. The key reason the user believes customers should choose them over competitors.
+5. The social media platform(s) where the user indicates their audience spends time.
+6. The action the user wants people to take after seeing the ad.
+7. Any existing creatives or brand assets mentioned (for example: logos, videos, testimonials).
+8. How the user defines success for this campaign, focusing on business outcomes rather than vanity metrics.
+
+If any of the above items are NOT explicitly mentioned, clearly write:
+"Not provided by the user."
+
+OUTPUT FORMAT:
+- Present all extracted information together in a SINGLE paragraph.
+- The paragraph must be clear, concise, and practically useful.
+            """,
             model_id
         )
 
@@ -180,7 +209,7 @@ def lambda_handler(event, context):
         s3.put_object(
             Bucket=BUCKET_NAME,
             Key=s3_key,
-            Body=(existing_content + "\n\n" + final_output).encode("utf-8"),
+            Body=(existing_content + "\n\n" + structured_info).encode("utf-8"),
             ContentType="text/plain",
             Metadata={"user_id": user_id}
         )

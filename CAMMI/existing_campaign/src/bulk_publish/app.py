@@ -18,11 +18,11 @@ EVENTBRIDGE_ROLE_ARN = "arn:aws:iam::687088702813:role/scheduler-invoke-lambda-r
 
 # ---------- Lambda Handler ----------
 def lambda_handler(event, context):
-    # Handle CORS preflight
+
+    # ---------- CORS ----------
     if event.get("httpMethod") == "OPTIONS":
         return _cors_response(200, {})
 
-    # Parse request body
     body = json.loads(event.get("body") or "{}")
     sub = body.get("sub")
     campaign_id = body.get("campaign_id")
@@ -31,9 +31,8 @@ def lambda_handler(event, context):
         return _cors_response(400, {"error": "sub and campaign_id are required"})
 
     campaign_id = str(campaign_id).strip()
-    print("Querying posts for campaign_id:", repr(campaign_id))
 
-    # Query posts_table using GSI and filter only posts with status = Generated
+    # ---------- Query Posts ----------
     response = posts_table.query(
         IndexName="campaign_id-index",
         KeyConditionExpression=Key("campaign_id").eq(campaign_id),
@@ -41,28 +40,33 @@ def lambda_handler(event, context):
     )
 
     posts = response.get("Items", [])
-    print("Number of posts returned by DynamoDB:", len(posts))
-
     if not posts:
-        return _cors_response(200, {"message": "No posts with status 'Generated' found for this campaign"})
+        return _cors_response(200, {
+            "message": "No posts with status 'Generated' found"
+        })
 
     scheduled_count = 0
 
     for post in posts:
+
         scheduled_time = post.get("scheduled_time")
         if not scheduled_time:
             continue
 
-        # ---------- Correct timezone conversion ----------
-        # Parse ISO string (handles naive and timezone-aware datetimes)
+        # ---------- Parse PKT time ----------
         scheduled_dt = datetime.fromisoformat(scheduled_time)
 
-        # Convert to PKT for DynamoDB / front-end
-        scheduled_dt_pkt = scheduled_dt.astimezone(PKT)
-        scheduled_time_str = scheduled_dt_pkt.strftime("%Y-%m-%dT%H:%M:%S+05:00")
+        if scheduled_dt.tzinfo is None:
+            scheduled_dt = scheduled_dt.replace(tzinfo=PKT)
 
-        # Convert to UTC for EventBridge
-        utc_str = scheduled_dt_pkt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+        # ---------- Convert to UTC (NO Z) ----------
+        utc_time = scheduled_dt.astimezone(timezone.utc)
+        utc_str = utc_time.strftime("%Y-%m-%dT%H:%M:%S")
+
+        # ---------- Store PKT for DB ----------
+        scheduled_pkt_str = scheduled_dt.astimezone(PKT).strftime(
+            "%Y-%m-%dT%H:%M:%S+05:00"
+        )
 
         post_id = post.get("post_id")
         title = post.get("title", "")
@@ -70,70 +74,68 @@ def lambda_handler(event, context):
 
         hashtags_list = post.get("hashtags", [])
         hashtags = " ".join(
-            h.get("S") if isinstance(h, dict) and "S" in h else str(h)
+            h.get("S") if isinstance(h, dict) else str(h)
             for h in hashtags_list
         )
 
         message = f"{title}\n\n{description}\n\n{hashtags}".strip()
 
-        # ---------- Prepare item for linkedin-posts-table ----------
-        post_item = {
-            "sub": sub,
-            "post_time": scheduled_time_str,
-            "post_id": post_id,
-            "campaign_id": campaign_id,
-            "scheduled_time": scheduled_time_str,
-            "message": message,
-            "status": "scheduled"
-        }
+        image_keys = post.get("image_keys", [])
 
-        if post.get("image_keys"):
-            post_item["image_keys"] = post["image_keys"]
-
-        # Insert into linkedin-posts-table
-        linkedin_posts_table.put_item(Item=post_item)
+        # ---------- Insert into linkedin-posts-table ----------
+        linkedin_posts_table.put_item(
+            Item={
+                "sub": sub,
+                "post_id": post_id,
+                "campaign_id": campaign_id,
+                "scheduled_time": scheduled_pkt_str,
+                "post_time": scheduled_pkt_str,
+                "message": message,
+                "image_keys": image_keys,
+                "status": "scheduled"
+            }
+        )
 
         # ---------- EventBridge Schedule ----------
-        schedule_name = f"linkedin_post_{sub}_{post_id}_{int(time.time() * 1000)}"  # unique per post
+        schedule_name = f"linkedin_post_{sub}_{post_id}_{int(datetime.utcnow().timestamp())}"
 
-        try:
-            scheduler.create_schedule(
-                Name=schedule_name,
-                GroupName="default",
-                FlexibleTimeWindow={"Mode": "OFF"},
-                ScheduleExpression=f"at({utc_str})",
-                Target={
-                    "Arn": STATUS_LAMBDA_ARN,
-                    "RoleArn": EVENTBRIDGE_ROLE_ARN,
-                    "Input": json.dumps(post_item)
-                }
-            )
-        except scheduler.exceptions.ConflictException:
-            print(f"Schedule {schedule_name} already exists. Skipping creation.")
+        scheduler.create_schedule(
+            Name=schedule_name,
+            GroupName="default",
+            FlexibleTimeWindow={"Mode": "OFF"},
+            ScheduleExpression=f"at({utc_str})",
+            Target={
+                "Arn": STATUS_LAMBDA_ARN,
+                "RoleArn": EVENTBRIDGE_ROLE_ARN,
+                "Input": json.dumps({
+                    "sub": sub,
+                    "message": message,
+                    "scheduled_time": scheduled_pkt_str,
+                    "image_keys": image_keys
+                })
+            }
+        )
 
-        # ---------- Update status in posts-table ----------
+        # ---------- Update status ----------
         posts_table.update_item(
             Key={
                 "post_id": post_id,
                 "campaign_id": campaign_id
             },
-            UpdateExpression="SET #st = :scheduled",
+            UpdateExpression="SET #st = :s",
             ExpressionAttributeNames={"#st": "status"},
-            ExpressionAttributeValues={":scheduled": "scheduled"}
+            ExpressionAttributeValues={":s": "scheduled"}
         )
 
         scheduled_count += 1
 
-    return _cors_response(
-        200,
-        {
-            "message": "Posts scheduled successfully",
-            "scheduled_posts": scheduled_count
-        }
-    )
+    return _cors_response(200, {
+        "message": "All posts scheduled successfully",
+        "scheduled_posts": scheduled_count
+    })
 
 
-# ---------- CORS Response Helper ----------
+# ---------- CORS Helper ----------
 def _cors_response(status_code, body):
     return {
         "statusCode": status_code,

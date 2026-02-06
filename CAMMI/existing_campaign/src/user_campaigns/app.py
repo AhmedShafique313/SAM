@@ -51,6 +51,8 @@ def lambda_handler(event, context):
             if not posts:
                 continue
 
+            campaign["total_posts"] = len(posts)
+
             # 🔄 Determine campaign status
             new_status = _derive_campaign_status(posts)
 

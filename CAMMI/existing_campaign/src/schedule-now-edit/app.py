@@ -5,12 +5,12 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from boto3.dynamodb.conditions import Key
 
-# ---------- AWS clients
+# ---------- AWS clients ----------
 dynamodb = boto3.resource("dynamodb")
 s3 = boto3.client("s3")
 scheduler = boto3.client("scheduler")
 
-# ---------- Constants
+# ---------- Constants ----------
 POSTS_TABLE = "posts-table"
 LINKEDIN_TABLE = "linkedin-posts-table"
 S3_BUCKET = "cammi-devprod"
@@ -20,17 +20,18 @@ EVENTBRIDGE_ROLE_ARN = "arn:aws:iam::687088702813:role/scheduler-invoke-lambda-r
 
 PKT = timezone(timedelta(hours=5))
 
+# ---------- Tables ----------
 posts_table = dynamodb.Table(POSTS_TABLE)
 linkedin_table = dynamodb.Table(LINKEDIN_TABLE)
 
 
 def lambda_handler(event, context):
     try:
-        # ---------- CORS
+        # ---------- CORS ----------
         if event.get("httpMethod") == "OPTIONS":
             return response(200, {})
 
-        # ---------- Robust body parsing (works for Postman, Lambda test, API Gateway)
+        # ---------- Robust body parsing ----------
         if "body" in event:
             body = event["body"]
             if isinstance(body, str):
@@ -38,7 +39,7 @@ def lambda_handler(event, context):
         else:
             body = event
 
-        # ---------- Required fields
+        # ---------- Required fields ----------
         post_id = body.get("post_id")
         sub = body.get("sub")
         scheduled_time_input = body.get("scheduled_time")
@@ -46,47 +47,66 @@ def lambda_handler(event, context):
         if not post_id or not sub or not scheduled_time_input:
             return response(400, "post_id, sub, and scheduled_time are required")
 
-        # ---------- Optional fields
-        title = body.get("title")
-        description = body.get("description")
-        hashtags = body.get("hashtags") or body.get("hashtag")
+        # ---------- Optional fields ----------
+        title = body.get("title", "")
+        description = body.get("description", "")
+        hashtags = body.get("hashtags") or body.get("hashtag") or ""
         images = body.get("images")
 
-        # ---------- scheduled_time (frontend is source of truth)
+        # ---------- 🔧 HASHTAGS FIX (ONLY CHANGE) ----------
+        if isinstance(hashtags, list):
+            hashtags = " ".join(
+                f"#{tag.lstrip('#')}" for tag in hashtags if tag
+            )
+        elif isinstance(hashtags, str):
+            hashtags = hashtags.strip()
+        else:
+            hashtags = ""
+        # ---------- 🔧 END FIX ----------
+
+        # ---------- Normalize scheduled_time ----------
         scheduled_dt = datetime.fromisoformat(scheduled_time_input)
         if scheduled_dt.tzinfo is None:
             scheduled_dt = scheduled_dt.replace(tzinfo=PKT)
 
         scheduled_time_str = scheduled_dt.isoformat()
 
-        # ---------- Fetch post
+        # ---------- Fetch post ----------
         query_resp = posts_table.query(
             KeyConditionExpression=Key("post_id").eq(post_id)
         )
+
         if not query_resp["Items"]:
             return response(404, "Post not found")
 
         post_item = query_resp["Items"][0]
         campaign_id = post_item["campaign_id"]
 
-        # ---------- Image handling
+        # ---------- Image handling ----------
         image_keys = post_item.get("image_keys", [])
+
         if images is not None:
             image_keys = []
             for img in images:
                 if "," in img:
-                    img = img.split(",", 1)[1]  # remove data:image/...;base64,
+                    img = img.split(",", 1)[1]
+
                 image_bytes = base64.b64decode(img)
                 key = f"images/{uuid.uuid4().hex}.jpg"
+
                 s3.put_object(
                     Bucket=S3_BUCKET,
                     Key=key,
                     Body=image_bytes,
                     ContentType="image/jpeg"
                 )
+
                 image_keys.append(key)
 
-        # ---------- Update posts-table
+        # ---------- Build message ----------
+        message = f"{title}\n\n{description}\n\n{hashtags}"
+
+        # ---------- Update posts-table ----------
         posts_table.update_item(
             Key={"post_id": post_id, "campaign_id": campaign_id},
             UpdateExpression="""
@@ -108,25 +128,25 @@ def lambda_handler(event, context):
             }
         )
 
-        # ---------- linkedin-posts-table
+        # ---------- Insert linkedin-posts-table ----------
         linkedin_table.put_item(
             Item={
                 "sub": sub,
+                "post_time": scheduled_time_str,
                 "post_id": post_id,
                 "campaign_id": campaign_id,
                 "scheduled_time": scheduled_time_str,
-                "post_time": scheduled_time_str,
-                "message": f"{title or ''}\n\n{description or ''}\n\n{hashtags or ''}",
+                "message": message,
                 "image_keys": image_keys,
                 "status": "scheduled"
             }
         )
 
-        # ---------- EventBridge Scheduler (UTC exact frontend time)
+        # ---------- EventBridge Scheduler ----------
         utc_time = scheduled_dt.astimezone(timezone.utc)
         utc_str = utc_time.strftime("%Y-%m-%dT%H:%M:%S")
 
-        schedule_name = f"linkedin_post_{sub}_{int(datetime.now().timestamp())}"
+        schedule_name = f"linkedin_post_{sub}_{int(datetime.utcnow().timestamp())}"
 
         scheduler.create_schedule(
             Name=schedule_name,
@@ -137,11 +157,10 @@ def lambda_handler(event, context):
                 "Arn": STATUS_LAMBDA_ARN,
                 "RoleArn": EVENTBRIDGE_ROLE_ARN,
                 "Input": json.dumps({
-                    "post_id": post_id,
-                    "campaign_id": campaign_id,
+                    "sub": sub,
+                    "message": message,
                     "scheduled_time": scheduled_time_str,
-                    "image_keys": image_keys,
-                    "status": "scheduled"
+                    "image_keys": image_keys
                 })
             }
         )
@@ -149,6 +168,7 @@ def lambda_handler(event, context):
         return response(200, {
             "message": "Post scheduled successfully",
             "scheduled_time": scheduled_time_str,
+            "scheduled_time_utc": utc_str,
             "schedule_name": schedule_name
         })
 

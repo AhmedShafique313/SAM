@@ -40,7 +40,7 @@ def lambda_handler(event, context):
             return response(400, "post_id and sub are required")
 
         # -------------------------------
-        # 2. Fetch post
+        # 2. Fetch post from posts-table
         # -------------------------------
         post_resp = posts_table.query(
             KeyConditionExpression=Key("post_id").eq(post_id)
@@ -62,25 +62,21 @@ def lambda_handler(event, context):
             return response(400, "scheduled_time missing in post")
 
         # -------------------------------
-        # 3. Build message
+        # 3. Build LinkedIn message
         # -------------------------------
         message = f"{title}\n\n{description}\n\n{hashtag}"
 
         # -------------------------------
-        # 4. Time handling (NO MODIFICATION)
+        # 4. Time handling (STRICT)
         # -------------------------------
-        pkt_time = datetime.fromisoformat(scheduled_time_str)
-
-        # Normalize to PKT (safety)
-        pkt_time = pkt_time.astimezone(PKT)
+        pkt_time = datetime.fromisoformat(scheduled_time_str).astimezone(PKT)
         pkt_time_str = pkt_time.isoformat()
 
-        # Convert to UTC for EventBridge
         utc_time = pkt_time.astimezone(timezone.utc)
-        utc_str = utc_time.strftime("%Y-%m-%dT%H:%M:%S")  # NO 'Z'
+        utc_str = utc_time.strftime("%Y-%m-%dT%H:%M:%S")  # NO Z
 
         # -------------------------------
-        # 5. Create EventBridge schedule FIRST
+        # 5. Create EventBridge schedule
         # -------------------------------
         schedule_name = f"linkedin_post_{sub}_{int(datetime.utcnow().timestamp())}"
 
@@ -92,10 +88,12 @@ def lambda_handler(event, context):
             Target={
                 "Arn": STATUS_LAMBDA_ARN,
                 "RoleArn": EVENTBRIDGE_ROLE_ARN,
+                # 🔑 EXACT PAYLOAD EXPECTED BY status LAMBDA
                 "Input": json.dumps({
-                    "post_id": post_id,
-                    "campaign_id": campaign_id,
-                    "sub": sub
+                    "sub": sub,
+                    "message": message,
+                    "scheduled_time": pkt_time_str,
+                    "image_keys": image_keys
                 })
             }
         )
@@ -108,16 +106,13 @@ def lambda_handler(event, context):
                 "post_id": post_id,
                 "campaign_id": campaign_id
             },
-            UpdateExpression="""
-                SET scheduled_time = :st,
-                    #status = :status
-            """,
+            UpdateExpression="SET scheduled_time = :st, #status = :s",
             ExpressionAttributeNames={
                 "#status": "status"
             },
             ExpressionAttributeValues={
                 ":st": pkt_time_str,
-                ":status": "scheduled"
+                ":s": "scheduled"
             }
         )
 
@@ -127,11 +122,11 @@ def lambda_handler(event, context):
         linkedin_table.put_item(
             Item={
                 "sub": sub,
+                "post_time": pkt_time_str,      # 🔑 SORT KEY MATCHES status lambda
                 "post_id": post_id,
                 "campaign_id": campaign_id,
                 "message": message,
                 "image_keys": image_keys,
-                "post_time": pkt_time_str,
                 "scheduled_time": pkt_time_str,
                 "status": "scheduled"
             }
@@ -143,6 +138,7 @@ def lambda_handler(event, context):
         return response(200, {
             "message": "Post scheduled successfully",
             "scheduled_time": pkt_time_str,
+            "scheduled_time_utc": utc_str,
             "schedule_name": schedule_name
         })
 

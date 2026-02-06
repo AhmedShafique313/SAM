@@ -114,7 +114,7 @@ def lambda_handler(event, context):
     for i in range(batches):
         current_batch = min(batch_size, total_posts - i * batch_size)
         prompt = f"""
-You are a senior social media strategist.
+You are a senior execution ready campaigns social media strategist.
 Generate EXACTLY {current_batch} posts.
 STRICT RULES:
 - Output MUST start with {{ and end with }}

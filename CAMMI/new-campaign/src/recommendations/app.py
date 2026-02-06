@@ -82,23 +82,30 @@ def lambda_handler(event, context):
     campaign_context = s3_obj["Body"].read().decode("utf-8")
 
     prompt = f"""
-You are a senior paid media and brand strategist.
+You are a senior execution-ready social media strategist with deep expertise in LinkedIn campaigns.
 
 Campaign Goal Type:
 {campaign_goal_type}
 
-Primary Platform: LinkedIn
+Primary Platform:
+LinkedIn
 
 Campaign Context:
+You will be provided with a file or block of text as campaign context.
+You MUST consider ONLY the latest or final paragraph in the provided content as the main and useful source of information.
+Ignore all earlier paragraphs completely.
+Use ONLY the last paragraph as the authoritative input and parse it carefully.
 {campaign_context}
 
 TASK:
-Generate a campaign execution plan.
+Generate a complete campaign execution plan for a LinkedIn social media campaign focused on promoting the given product or company.
+Ensure the plan aligns strictly with the campaign goal type and the provided context.
 
 OUTPUT RULES:
 - Return ONLY valid JSON.
-- Do NOT include explanations or markdown.
-- Do NOT add extra keys.
+- Do NOT include explanations, commentary, or markdown.
+- Do NOT add, remove, or rename any keys.
+- Do NOT include null values; use realistic, execution-ready values.
 
 Required JSON format:
 {{

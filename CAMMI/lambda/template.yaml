@@ -207,7 +207,26 @@ Resources:
         - Id: "KnowledgeBaseSyncTriggerEvent"
           RoleArn: !GetAtt S3EventRuleRoleNew.Arn
           Arn: !GetAtt  KnowledgeBaseSyncTriggerFunction.Arn
-
+         
+  KbRagErcFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: kb-rag-erc
+      Handler: app.lambda_handler
+      CodeUri: src/kb-rag-erc/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles doc_edit_complete with multiple small docs
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue DocLibrariesLayer1Arn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+          S3_BUCKET_NAME: !Ref S3BucketName
 
 ###################################################
 # Outputs
@@ -254,4 +273,10 @@ Outputs:
     Value: !GetAtt DownloadAsPDFFunction.Arn
     Export:
       Name: DownloadAsPDFFunctionArn
+
+  KbRagErcFunctionArn:
+    Description: ARN of KbRagErcFunction lambda
+    Value: !GetAtt KbRagErcFunction.Arn
+    Export:
+      Name: KbRagErcFunctionArn      
     

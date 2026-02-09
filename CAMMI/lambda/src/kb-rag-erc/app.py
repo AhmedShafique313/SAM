@@ -36,6 +36,21 @@ bedrock_agent_runtime = boto3.client(
 campaign_table = dynamodb.Table(CAMPAIGN_TABLE)
 
 # -------------------------------------------------
+# API Gateway Response Helper (🔥 CRITICAL)
+# -------------------------------------------------
+def api_response(status_code: int, body: dict):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "body": json.dumps(body)
+    }
+
+# -------------------------------------------------
 # Helpers
 # -------------------------------------------------
 def get_campaign_and_user(campaign_id: str) -> dict:
@@ -43,16 +58,13 @@ def get_campaign_and_user(campaign_id: str) -> dict:
         KeyConditionExpression=Key("campaign_id").eq(campaign_id),
         Limit=1
     )
-
     items = response.get("Items", [])
     if not items:
         raise ValueError("Campaign not found")
-
     return items[0]
 
 
 def retrieve_with_filter(user_id: str, query: str, max_results: int = 5):
-    """Primary retrieval attempt with metadata filter"""
     return bedrock_agent_runtime.retrieve(
         knowledgeBaseId=KNOWLEDGE_BASE_ID,
         retrievalQuery={"text": query},
@@ -71,7 +83,6 @@ def retrieve_with_filter(user_id: str, query: str, max_results: int = 5):
 
 
 def retrieve_without_filter(query: str, max_results: int = 5):
-    """Fallback retrieval (no filter)"""
     return bedrock_agent_runtime.retrieve(
         knowledgeBaseId=KNOWLEDGE_BASE_ID,
         retrievalQuery={"text": query},
@@ -85,10 +96,8 @@ def retrieve_without_filter(query: str, max_results: int = 5):
 
 def extract_chunks_and_log_metadata(response: dict):
     results = response.get("retrievalResults", [])
-
     for r in results:
         logger.info("KB METADATA FOUND: %s", json.dumps(r.get("metadata", {})))
-
     return [
         r["content"]["text"]
         for r in results
@@ -105,9 +114,7 @@ def call_llm(system_prompt: str, context: str) -> str:
         "messages": [
             {
                 "role": "user",
-                "content": [
-                    {"type": "text", "text": context}
-                ]
+                "content": [{"type": "text", "text": context}]
             }
         ]
     }
@@ -127,61 +134,41 @@ def lambda_handler(event, context):
     try:
         logger.info("Received event: %s", json.dumps(event))
 
-        # -----------------------------
-        # Parse Input
-        # -----------------------------
-        if "body" in event:
-            body = json.loads(event["body"])
-        else:
-            body = event
-
+        body = json.loads(event.get("body", "{}"))
         campaign_id = body.get("campaign_id")
-        if not campaign_id:
-            return {"statusCode": 400, "message": "campaign_id is required"}
 
-        # -----------------------------
+        if not campaign_id:
+            return api_response(400, {"message": "campaign_id is required"})
+
         # 1️⃣ Fetch Campaign
-        # -----------------------------
         campaign = get_campaign_and_user(campaign_id)
         user_id = campaign["user_id"]
 
         logger.info("Campaign resolved | user_id=%s", user_id)
 
-        # -----------------------------
-        # 2️⃣ Retrieve Knowledge (FILTERED)
-        # -----------------------------
+        # 2️⃣ Retrieve Knowledge
         retrieval_prompt = (
             "Generate execution-ready social media campaign strategy including "
             "content ideas, messaging, platform plan, CTA, and posting schedule."
         )
 
-        logger.info("Attempting KB retrieval WITH metadata filter")
-
         filtered_response = retrieve_with_filter(user_id, retrieval_prompt)
         chunks = extract_chunks_and_log_metadata(filtered_response)
 
-        # -----------------------------
-        # 3️⃣ Fallback if filter fails
-        # -----------------------------
         if not chunks:
-            logger.warning(
-                "No chunks found with metadata filter. Falling back to unfiltered retrieval."
-            )
-
+            logger.warning("Filtered retrieval empty. Falling back.")
             unfiltered_response = retrieve_without_filter(retrieval_prompt)
             chunks = extract_chunks_and_log_metadata(unfiltered_response)
 
         if not chunks:
-            return {
-                "statusCode": 404,
-                "message": "Knowledge Base contains no retrievable content"
-            }
+            return api_response(
+                404,
+                {"message": "Knowledge Base contains no retrievable content"}
+            )
 
         context_text = "\n\n".join(chunks)
 
-        # -----------------------------
-        # 4️⃣ System Prompt
-        # -----------------------------
+        # 3️⃣ System Prompt
         system_prompt = f"""
 You are a senior digital marketing strategist.
 
@@ -190,24 +177,12 @@ Campaign Goal: {campaign.get("campaign_goal_type")}
 Primary Platform: {campaign.get("platform_name")}
 
 Generate an execution-ready campaign plan using ONLY the provided knowledge.
-
-Output:
-1. Objective
-2. Target Audience
-3. Content Pillars
-4. Platform Execution
-5. CTA
-6. Posting Schedule
 """
 
-        # -----------------------------
-        # 5️⃣ Call LLM
-        # -----------------------------
+        # 4️⃣ Call LLM
         recommendations = call_llm(system_prompt, context_text)
 
-        # -----------------------------
-        # 6️⃣ Persist Result
-        # -----------------------------
+        # 5️⃣ Persist Result
         campaign_table.update_item(
             Key={
                 "campaign_id": campaign["campaign_id"],
@@ -217,18 +192,17 @@ Output:
             ExpressionAttributeValues={":val": recommendations}
         )
 
-        return {
-            "statusCode": 200,
+        return api_response(200, {
             "campaign_id": campaign_id,
             "project_id": campaign["project_id"],
             "user_id": user_id,
             "recommendations": recommendations
-        }
+        })
 
     except ClientError as e:
         logger.error("AWS error", exc_info=True)
-        return {"statusCode": 500, "message": str(e)}
+        return api_response(500, {"message": str(e)})
 
     except Exception as e:
         logger.error("Unhandled error", exc_info=True)
-        return {"statusCode": 500, "message": str(e)}
+        return api_response(500, {"message": str(e)})

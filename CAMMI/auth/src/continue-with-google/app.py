@@ -190,7 +190,7 @@ def callback_lambda(event, context):
             final_preview_status = False
             document_preview_status = False
 
-        dashboard_url = "http://localhost:3000/callback"
+        dashboard_url = "https://dev.d58o9xmomxg8r.amplifyapp.com/callback"
 
         redirect_query_params = {
             "token": credentials.token,

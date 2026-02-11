@@ -29,6 +29,114 @@ DOCUMENT_REQUIREMENTS = {
             "customer.information_sources", "customer.current_solutions",
             "market.alternatives"
         ]
+    },
+    "ICP2": {
+        "name": "Persona Deep Dive",
+        "required_facts": [
+            "customer.decision_maker", "customer.buyer_roles",
+            "customer.buyer_goals", "customer.buyer_pressures",
+            "customer.industries", "customer.company_size",
+            "customer.geography"
+        ],
+        "supporting_facts": [
+            "customer.information_sources", "customer.current_solutions"
+        ]
+    },
+    "MESSAGING": {
+        "name": "Messaging Document",
+        "required_facts": [
+            "product.value_proposition_long", "product.unique_differentiation",
+            "customer.primary_customer", "customer.buyer_roles",
+            "customer.problems", "brand.tone_personality"
+        ],
+        "supporting_facts": [
+            "brand.values_themes", "brand.key_messages", "market.alternatives"
+        ]
+    },
+    "BRAND": {
+        "name": "Brand",
+        "required_facts": [
+            "business.description_long", "brand.mission",
+            "brand.vision", "brand.tone_personality",
+            "brand.values_themes", "product.unique_differentiation"
+        ],
+        "supporting_facts": [
+            "brand.vibes_to_avoid", "brand.key_messages"
+        ]
+    },
+    "MR": {
+        "name": "Market Research",
+        "required_facts": [
+            "customer.problems", "customer.current_solutions",
+            "market.alternatives", "market.why_alternatives_fail",
+            "market.competitors"
+        ],
+        "supporting_facts": [
+            "market.trends_or_shifts", "market.market_size_estimate",
+            "market.opportunities", "market.threats"
+        ]
+    },
+    "KMF": {
+        "name": "Key Messaging Framework",
+        "required_facts": [
+            "business.description_long", "product.value_proposition_short",
+            "product.unique_differentiation", "customer.primary_customer",
+            "customer.problems", "brand.tone_personality"
+        ],
+        "supporting_facts": [
+            "brand.values_themes", "brand.key_messages"
+        ]
+    },
+    "SR": {
+        "name": "Strategy Roadmap",
+        "required_facts": [
+            "strategy.short_term_goals", "strategy.long_term_vision",
+            "strategy.priorities", "business.stage"
+        ],
+        "supporting_facts": [
+            "strategy.marketing_objectives", "strategy.user_growth_priorities",
+            "business.start_date", "business.end_date_or_milestone"
+        ]
+    },
+    "SMP": {
+        "name": "Strategic Marketing Plan",
+        "required_facts": [
+            "business.description_short", "product.value_proposition_short",
+            "customer.primary_customer", "customer.problems",
+            "strategy.long_term_vision"
+        ],
+        "supporting_facts": [
+            "strategy.success_definition", "strategy.marketing_objectives"
+        ]
+    },
+    "GTM": {
+        "name": "Go-to-Market Plan",
+        "required_facts": [
+            "business.description_long", "product.core_offering",
+            "product.unique_differentiation", "customer.primary_customer",
+            "customer.industries", "customer.geography",
+            "strategy.short_term_goals", "strategy.gtm_focus",
+            "market.competitors"
+        ],
+        "supporting_facts": [
+            "strategy.marketing_objectives", "strategy.marketing_tools",
+            "market.opportunities", "market.threats",
+            "revenue.pricing_position"
+        ]
+    },
+    "BS": {
+        "name": "Brand Strategy",
+        "required_facts": [
+            "business.name", "business.description_long",
+            "product.core_offering", "customer.primary_customer",
+            "market.competitors"
+        ],
+        "supporting_facts": [
+            "assets.approved_customers", "assets.case_studies",
+            "assets.quotes", "assets.brag_points",
+            "assets.spokesperson_name", "assets.spokesperson_role",
+            "assets.visual_assets"
+        ]
     }
 }
 
@@ -36,6 +144,22 @@ DOCUMENT_REQUIREMENTS = {
 # Lambda Handler
 # -------------------------------
 def lambda_handler(event, context):
+
+    # ✅ CORS Headers
+    headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Methods": "OPTIONS,POST"
+    }
+
+    # ✅ Handle Preflight OPTIONS Request
+    if event.get("httpMethod") == "OPTIONS":
+        return {
+            "statusCode": 200,
+            "headers": headers,
+            "body": json.dumps({"message": "CORS preflight successful"})
+        }
+
     try:
         # 1️⃣ Get input
         body = event.get("body")
@@ -48,6 +172,7 @@ def lambda_handler(event, context):
         if not session_id or not project_id:
             return {
                 "statusCode": 400,
+                "headers": headers,
                 "body": json.dumps({"error": "Missing session_id or project_id"})
             }
 
@@ -60,6 +185,7 @@ def lambda_handler(event, context):
         if not response.get("Items"):
             return {
                 "statusCode": 404,
+                "headers": headers,
                 "body": json.dumps({"error": "User not found for session_id"})
             }
 
@@ -74,6 +200,7 @@ def lambda_handler(event, context):
         if "Item" not in project_state:
             return {
                 "statusCode": 404,
+                "headers": headers,
                 "body": json.dumps({"error": "Project not found"})
             }
 
@@ -81,6 +208,7 @@ def lambda_handler(event, context):
         if not active_document_type or active_document_type not in DOCUMENT_REQUIREMENTS:
             return {
                 "statusCode": 400,
+                "headers": headers,
                 "body": json.dumps({"error": "Invalid or missing active_document"})
             }
 
@@ -149,11 +277,13 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": 200,
+            "headers": headers,
             "body": json.dumps(result)
         }
 
     except Exception as e:
         return {
             "statusCode": 500,
+            "headers": headers,
             "body": json.dumps({"error": str(e)})
         }

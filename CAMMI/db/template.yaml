@@ -441,6 +441,18 @@ Resources:
           Projection:
             ProjectionType: ALL          
 
+  ProjectStateNewTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: project-state-new-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+
 
 Outputs:
 
@@ -575,3 +587,9 @@ Outputs:
     Value: !Ref PostsTable
     Export:
       Name: CAMMI-PostsTableName
+
+  ProjectStateNewTableName:
+    Description: user campaigns ProjectStateNew table
+    Value: !Ref ProjectStateNewTable
+    Export:
+      Name: CAMMI-ProjectStateNewTableName      

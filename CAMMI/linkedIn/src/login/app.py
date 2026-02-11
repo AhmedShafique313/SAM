@@ -100,7 +100,7 @@ def lambda_handler(event, context):
         """
 
         # redirect_url = f"http://localhost:3000/dashboard/scheduler?sub={userinfo.get('sub')}"
-        redirect_url = f"https://dev.d58o9xmomxg8r.amplifyapp.com/dashboard/scheduler/linkedin?sub={userinfo.get('sub')}"
+        redirect_url = f"https://dev.d58o9xmomxg8r.amplifyapp.com/dashboard/scheduler?sub={userinfo.get('sub')}"
         return {
             "statusCode": 302,
             "headers": {

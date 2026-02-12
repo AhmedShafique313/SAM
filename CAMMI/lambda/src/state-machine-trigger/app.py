@@ -261,7 +261,7 @@ def lambda_handler(event, context):
                 "token": session_id,
                 "project_id": project_id,
                 "user_id": user_id,
-                "document_type": active_document_type
+                "document_type": document_type
             }
         )
 
@@ -270,7 +270,7 @@ def lambda_handler(event, context):
             "message": "File uploaded successfully to S3",
             "user_id": user_id,
             "project_id": project_id,
-            "document_type": active_document_type,
+            "document_type": document_type,
             "document_name": facts_config["name"],
             "facts": facts_data
         }

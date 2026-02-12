@@ -254,7 +254,7 @@ def lambda_handler(event, context):
         # -----------------------------------
         s3.put_object(
             Bucket=BUCKET_NAME,
-            Key="latestbusinessidea.txt",
+            Key=f"{document_type}/{project_id}/prompt/businessidea/businessidea/businessidea.txt",
             Body=formatted_text.encode("utf-8"),
             ContentType="text/plain",
             Metadata={

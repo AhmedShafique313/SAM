@@ -191,9 +191,16 @@ def lambda_handler(event, context):
         else parsed_profile
     )
 
+    common_metadata = {
+    "user_id": user_id,
+    "project_id": project_id
+    }
+
+
     s3.put_object(
         Bucket=BUCKET_NAME,
         Key=s3_key,
+        Metadata=common_metadata,
         Body=final_output.encode("utf-8"),
         ContentType="text/plain"
     )
@@ -201,6 +208,7 @@ def lambda_handler(event, context):
     s3.put_object(
         Bucket=BUCKET_NAME,
         Key=knowledgebase_output,
+        Metadata=common_metadata,
         Body=final_output.encode("utf-8"),
         ContentType="text/plain"
     )    

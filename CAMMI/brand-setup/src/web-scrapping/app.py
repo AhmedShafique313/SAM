@@ -207,11 +207,18 @@ Please return the response in plain text format. Do not use markdown.
  
         # Concatenate existing + new content
         combined_content = existing_content + "\n\n" + finalize_info
+
+        common_metadata = {
+        "user_id": user_id,
+        "project_id": project_id
+        }
+
  
         # Save back to S3
         s3.put_object(
             Bucket=BUCKET_NAME,
             Key=s3_key,
+            Metadata=common_metadata,
             Body=combined_content.encode("utf-8"),
             ContentType="text/plain"
         )
@@ -220,6 +227,7 @@ Please return the response in plain text format. Do not use markdown.
         s3.put_object(
             Bucket=BUCKET_NAME,
             Key=knowledgebase_output,
+            Metadata=common_metadata,
             Body=combined_content.encode("utf-8"),
             ContentType="text/plain"
         )        

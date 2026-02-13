@@ -456,7 +456,7 @@ Resources:
   FactsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: factss-new-table
+      TableName: facts-new-table
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: project_id

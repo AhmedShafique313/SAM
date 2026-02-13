@@ -453,6 +453,22 @@ Resources:
         - AttributeName: project_id
           KeyType: HASH
 
+  FactsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: facts-new-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+        - AttributeName: fact_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+        - AttributeName: fact_id
+          KeyType: RANGE
+
 
 Outputs:
 
@@ -592,4 +608,10 @@ Outputs:
     Description: user campaigns ProjectStateNew table
     Value: !Ref ProjectStateNewTable
     Export:
-      Name: CAMMI-ProjectStateNewTableName      
+      Name: CAMMI-ProjectStateNewTableName     
+
+  FactsTableName:
+    Description: user campaigns Facts table
+    Value: !Ref FactsTable
+    Export:
+      Name: CAMMI-FactsTableName         

@@ -94,14 +94,14 @@ def lambda_handler(event, context):
                 })
             }
 
-        document_type = project_state_resp["Item"].get("active_document")
+        document_type = project_state_resp["Item"].get("generating_document").lower()
 
         if not document_type:
             return {
                 "statusCode": 400,
                 "headers": CORS_HEADERS,
                 "body": json.dumps({
-                    "error": "active_document not set for this project"
+                    "error": "generating_document not set for this project"
                 })
             }
 

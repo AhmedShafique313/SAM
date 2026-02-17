@@ -349,8 +349,8 @@ Resources:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub
-          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CentralizedChatbotArn}/invocations
-          - CentralizedChatbotArn: !ImportValue CentralizedChatbotArn
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CentralizedChatbotFunctionArn}/invocations
+          - CentralizedChatbotFunctionArn: !ImportValue CentralizedChatbotFunctionArn
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 

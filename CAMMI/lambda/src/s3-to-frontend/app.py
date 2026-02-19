@@ -44,6 +44,7 @@ def lambda_handler(event, context):
 
         session_id = body.get("session_id") if body else None
         project_id = body.get("project_id") if body else None
+        input_document_type = body.get("document_type") if body else None
 
         if not session_id:
             return {
@@ -79,31 +80,39 @@ def lambda_handler(event, context):
         user_id = user_resp["Items"][0]["id"]
 
         # ---------------------------------
-        # Get active_document from project-state-table
+        # Determine document_type
         # ---------------------------------
-        project_state_resp = project_state_table.get_item(
-            Key={"project_id": project_id}
-        )
+        if input_document_type and isinstance(input_document_type, str):
+            document_type = input_document_type.lower()
+        else:
+            # Fallback to project-state-table
+            project_state_resp = project_state_table.get_item(
+                Key={"project_id": project_id}
+            )
 
-        if "Item" not in project_state_resp:
-            return {
-                "statusCode": 404,
-                "headers": CORS_HEADERS,
-                "body": json.dumps({
-                    "error": "Project state not found for given project_id"
-                })
-            }
+            item = project_state_resp.get("Item")
 
-        document_type = project_state_resp["Item"].get("generating_document").lower()
+            if not item:
+                return {
+                    "statusCode": 404,
+                    "headers": CORS_HEADERS,
+                    "body": json.dumps({
+                        "error": "Project state not found for given project_id"
+                    })
+                }
 
-        if not document_type:
-            return {
-                "statusCode": 400,
-                "headers": CORS_HEADERS,
-                "body": json.dumps({
-                    "error": "generating_document not set for this project"
-                })
-            }
+            generating_document = item.get("generating_document")
+
+            if not generating_document or not isinstance(generating_document, str):
+                return {
+                    "statusCode": 400,
+                    "headers": CORS_HEADERS,
+                    "body": json.dumps({
+                        "error": "generating_document not set for this project"
+                    })
+                }
+
+            document_type = generating_document.lower()
 
         # ---------------------------------
         # Construct S3 folder path
@@ -173,3 +182,6 @@ def lambda_handler(event, context):
                 "error": str(e)
             })
         }
+
+
+

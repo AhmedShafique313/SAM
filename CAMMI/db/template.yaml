@@ -61,15 +61,7 @@ Resources:
           KeyType: HASH
         - AttributeName: question
           KeyType: RANGE
-      GlobalSecondaryIndexes:
-        - IndexName: GSI1
-          KeySchema:
-            - AttributeName: user_id
-              KeyType: HASH
-            - AttributeName: question
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
+
   ###################################################
   # Organizations Table
   ###################################################

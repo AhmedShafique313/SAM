@@ -8,12 +8,13 @@ s3 = boto3.client("s3")
 dynamodb = boto3.resource("dynamodb")
 http = urllib3.PoolManager()
 
-# Hardcoded config (⚠️ not recommended for production)
+# Hardcoded config
 USERS_TABLE = "users-table"
+PROJECT_STATE_TABLE = "project-state-table"
 BUCKET_NAME = "cammi-devprod"
-CONVERTAPI_KEY = os.environ["CONVERTAPI_KEY"]
 
-# API URL
+CONVERTAPI_KEY = "XmRpqHvNAy6NmDm0UPYgbPtVeCfXvkhe"
+
 CONVERTAPI_URL = "https://v2.convertapi.com/convert/docx/to/pdf?Secret=" + CONVERTAPI_KEY
 
 # CORS headers
@@ -23,36 +24,62 @@ CORS_HEADERS = {
     "Access-Control-Allow-Methods": "GET, OPTIONS",
 }
 
-# DynamoDB table reference
+# DynamoDB tables
 users_table = dynamodb.Table(USERS_TABLE)
+project_state_table = dynamodb.Table(PROJECT_STATE_TABLE)
+
 
 def lambda_handler(event, context):
-    # Parse the JSON body (event["body"] is a string in API Gateway POST)
+
     body_str = event.get("body", "{}")
     body = json.loads(body_str)
 
     session_id = body.get("session_id")
     project_id = body.get("project_id")
-    document_type = body.get("document_type")
 
-    if not session_id or not project_id or not document_type:
+    if not session_id or not project_id:
         return {
             "statusCode": 400,
-            "body": json.dumps({"error": "Missing session_id, project_id, or document_type"}),
+            "body": json.dumps({"error": "Missing session_id or project_id"}),
             "headers": CORS_HEADERS,
         }
 
-    # Validate session_id in DynamoDB
+    # Validate session_id
     user_resp = users_table.scan(
         FilterExpression=Attr("session_id").eq(session_id),
         ProjectionExpression="id"
     )
+
     if "Items" not in user_resp or len(user_resp["Items"]) == 0:
         return {
             "statusCode": 404,
             "body": json.dumps({"error": "Invalid session_id"}),
             "headers": CORS_HEADERS,
         }
+
+    # 🔥 NEW LOGIC: Fetch generating_document from project-state-table
+    project_resp = project_state_table.get_item(
+        Key={"project_id": project_id}
+    )
+
+    if "Item" not in project_resp or "generating_document" not in project_resp["Item"]:
+        return {
+            "statusCode": 404,
+            "body": json.dumps({"error": "generating_document not found for project"}),
+            "headers": CORS_HEADERS,
+        }
+
+    document_type = project_resp["Item"]["generating_document"]
+
+    if not document_type:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"error": "generating_document is empty"}),
+            "headers": CORS_HEADERS,
+        }
+
+    # ✔ Convert to lowercase
+    document_type = document_type.lower()
 
     # Build S3 folder prefix
     folder_prefix = f"project/{project_id}/{document_type}/marketing_strategy_document/"
@@ -68,7 +95,7 @@ def lambda_handler(event, context):
             "headers": CORS_HEADERS,
         }
 
-    # Pick the latest file
+    # Pick latest file
     latest_file = max(docx_files, key=lambda x: x["LastModified"])
     docx_key = latest_file["Key"]
 
@@ -76,7 +103,7 @@ def lambda_handler(event, context):
     s3_object = s3.get_object(Bucket=BUCKET_NAME, Key=docx_key)
     file_bytes = s3_object["Body"].read()
 
-    # Build multipart/form-data for ConvertAPI
+    # Multipart form build
     boundary = "----LambdaBoundary"
     body_multipart = (
         f"--{boundary}\r\n"
@@ -90,7 +117,6 @@ def lambda_handler(event, context):
     response = http.request("POST", CONVERTAPI_URL, body=body_multipart, headers=headers_req)
     result = json.loads(response.data.decode("utf-8"))
 
-    # Return PDF as base64
     if "Files" in result and "FileData" in result["Files"][0]:
         base64_pdf = result["Files"][0]["FileData"]
         pdf_file_name = docx_key.replace(".docx", ".pdf").split("/")[-1]

@@ -3,19 +3,20 @@ import boto3
 import base64
 import uuid
 import datetime
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource("dynamodb")
 s3 = boto3.client("s3")
 
 # Tables
 users_table = dynamodb.Table("users-table")
-org_table = dynamodb.Table("organizations-table")
 projects_table = dynamodb.Table("projects-table")
 review_table = dynamodb.Table("review-documents-table")
+project_state_table = dynamodb.Table("project-state-table")  # ✅ NEW
 
 BUCKET_NAME = "cammi-devprod"
 FOLDER_NAME = "ReviewDocuments"
+
 
 def build_response(status_code, body):
     return {
@@ -28,6 +29,7 @@ def build_response(status_code, body):
         "body": json.dumps(body)
     }
 
+
 def lambda_handler(event, context):
     try:
         if event.get("httpMethod") == "OPTIONS":
@@ -37,7 +39,6 @@ def lambda_handler(event, context):
 
         session_id = body["session_id"]
         project_id = body["project_id"]
-        document_type = body["document_type"]
         document_text_base64 = body["document_text"]
 
         # 1️⃣ Fetch user info using session_id
@@ -63,18 +64,22 @@ def lambda_handler(event, context):
 
         project_item = project_resp["Items"][0]
         project_name = project_item.get("project_name")
-        organization_id = project_item.get("organization_id")
 
-        # 3️⃣ Fetch organization info using organization_id
-        org_resp = org_table.query(
-            KeyConditionExpression=Key("id").eq(organization_id)
+        # ✅ 3️⃣ Fetch generating_document from project-state-table
+        state_resp = project_state_table.get_item(
+            Key={"project_id": project_id}
         )
 
-        if not org_resp["Items"]:
-            return build_response(404, {"error": "Organization not found"})
+        if "Item" not in state_resp or "generating_document" not in state_resp["Item"]:
+            return build_response(404, {"error": "generating_document not found for project"})
 
-        org_item = org_resp["Items"][0]
-        organization_name = org_item.get("organization_name")
+        document_type = state_resp["Item"]["generating_document"]
+
+        if not document_type:
+            return build_response(400, {"error": "generating_document is empty"})
+
+        # ✅ Convert to lowercase
+        document_type = document_type.lower()
 
         # ✅ 4️⃣ Check if this project_id + document_type already has a pending record
         existing_docs = review_table.query(
@@ -112,7 +117,6 @@ def lambda_handler(event, context):
             "document_type_uuid": document_type_uuid,
             "user_id": user_id,
             "email": email,
-            "organization_name": organization_name,
             "project_name": project_name,
             "document_type": document_type,
             "s3_url": s3_url,

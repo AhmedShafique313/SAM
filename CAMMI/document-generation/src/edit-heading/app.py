@@ -108,12 +108,12 @@ def lambda_handler(event, context):
                     "body": json.dumps({"error": "Project state not found"})
                 }
 
-            active_document = project_state_resp["Item"].get("active_document")
+            active_document = project_state_resp["Item"].get("generating_document")
 
             if not active_document or not isinstance(active_document, str):
                 return {
                     "statusCode": 400,
-                    "body": json.dumps({"error": "active_document not set or invalid in project-state-table"})
+                    "body": json.dumps({"error": "generating_document not set or invalid in project-state-table"})
                 }
 
             document_type = active_document.lower()

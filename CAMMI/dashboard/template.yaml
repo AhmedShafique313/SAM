@@ -152,6 +152,26 @@ Resources:
           S3_BUCKET_NAME: !Ref S3BucketName
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName                              
 
+  ###################################################
+  # View All Documents against Project ID Lambda
+  ###################################################
+  ViewallDocumentsProjectidFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: view-all-documents-projectid
+      Handler: app.lambda_handler
+      CodeUri: src/view-all-documents-projectid/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Handles get all documents against user
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+
 Outputs:
   CreditsStatusFunctionArn:
     Description: ARN of CreditsStatusFunction Lambda
@@ -194,3 +214,9 @@ Outputs:
     Value: !GetAtt EditDocumentNameFunction.Arn
     Export:
       Name: EditDocumentNameFunctionArn              
+
+  ViewallDocumentsProjectidFunctionArn:
+    Description: ARN of ViewallDocumentsProjectidFunction Lambda
+    Value: !GetAtt ViewallDocumentsProjectidFunction.Arn
+    Export:
+      Name: ViewallDocumentsProjectidFunctionArn  

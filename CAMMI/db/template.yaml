@@ -200,7 +200,7 @@ Resources:
         - AttributeName: document_type_uuid
           KeyType: RANGE
       GlobalSecondaryIndexes:
-        - IndexName: project_id-index
+        - IndexName: project_id-docs-index
           KeySchema:
             - AttributeName: project_id
               KeyType: HASH

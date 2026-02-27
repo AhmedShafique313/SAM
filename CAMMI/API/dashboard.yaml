@@ -397,6 +397,7 @@ Resources:
             method.response.header.Access-Control-Allow-Origin: true
 
 
+  # /dashboard/edit-document-name
   ViewallDocumentsProjectidFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -404,13 +405,13 @@ Resources:
       PathPart: view-all-docs-against-projectid
       RestApiId: !Ref RestApiId
 
-  # DELETE /dashboard/delete-document
-  ViewallDocumentsProjectidFunctionResourceDELETEMethod:
+  # PUT /dashboard/edit-document-name
+  ViewallDocumentsProjectidFunctionResourcePUTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref ViewallDocumentsProjectidFunctionResource
-      HttpMethod: DELETE
+      HttpMethod: PUT
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
@@ -423,7 +424,7 @@ Resources:
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  # OPTIONS /dashboard/delete-document
+  # OPTIONS /dashboard/edit-document-name
   ViewallDocumentsProjectidFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -439,7 +440,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,DELETE'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,PUT'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: "{}"

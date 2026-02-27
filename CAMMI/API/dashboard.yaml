@@ -397,21 +397,21 @@ Resources:
             method.response.header.Access-Control-Allow-Origin: true
 
 
-  # /dashboard/edit-document-name
+  # /project/get-project
   ViewallDocumentsProjectidFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt DashboardResource.ResourceId
+      ParentId: !GetAtt ProjectParentResource.ResourceId
       PathPart: view-all-docs-against-projectid
-      RestApiId: !Ref RestApiId
+      RestApiId: !Ref RestApiId      
 
-  # PUT /dashboard/edit-document-name
-  ViewallDocumentsProjectidFunctionResourcePUTMethod:
+  # POST /project/get-project
+  ViewallDocumentsProjectidFunctionResourcePOSTMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
       ResourceId: !Ref ViewallDocumentsProjectidFunctionResource
-      HttpMethod: PUT
+      HttpMethod: POST
       AuthorizationType: NONE
       ApiKeyRequired: false
       Integration:
@@ -424,7 +424,7 @@ Resources:
         PassthroughBehavior: WHEN_NO_TEMPLATES
         TimeoutInMillis: 29000
 
-  # OPTIONS /dashboard/edit-document-name
+  # OPTIONS //project/get-project
   ViewallDocumentsProjectidFunctionResourceOPTIONSMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -440,7 +440,7 @@ Resources:
           - StatusCode: 200
             ResponseParameters:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,PUT'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
             ResponseTemplates:
               application/json: "{}"
@@ -449,5 +449,4 @@ Resources:
           ResponseParameters:
             method.response.header.Access-Control-Allow-Headers: true
             method.response.header.Access-Control-Allow-Methods: true
-            method.response.header.Access-Control-Allow-Origin: true
-
+            method.response.header.Access-Control-Allow-Origin: true            

@@ -73,9 +73,13 @@ Resources:
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
+        - AttributeName: user_id
+          AttributeType: S          
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+        - AttributeName: user_id
+          KeyType: RANGE          
 
   ###################################################
   # Projects Table
@@ -92,11 +96,15 @@ Resources:
         - AttributeName: project_name
           AttributeType: S
         - AttributeName: user_id
-          AttributeType: S          
+          AttributeType: S   
+        - AttributeName: organization_id
+          AttributeType: S                   
 
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+        - AttributeName: organization_id
+          KeyType: RANGE           
 
       GlobalSecondaryIndexes:
         - IndexName: project_name-index

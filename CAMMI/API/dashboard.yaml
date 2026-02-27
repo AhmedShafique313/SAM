@@ -401,7 +401,7 @@ Resources:
   ViewallDocumentsProjectidFunctionResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt ProjectParentResource.ResourceId
+      ParentId: !GetAtt DashboardResource.ResourceId
       PathPart: view-all-docs-against-projectid
       RestApiId: !Ref RestApiId      
 

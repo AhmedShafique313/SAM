@@ -401,7 +401,7 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt DashboardResource.ResourceId
-      PathPart: delete-document
+      PathPart: view-all-docs-against-projectid
       RestApiId: !Ref RestApiId
 
   # DELETE /dashboard/delete-document

@@ -184,12 +184,20 @@ Resources:
           AttributeType: S
         - AttributeName: document_type_uuid
           AttributeType: S
+        - AttributeName: project_id     
+          AttributeType: S        
       KeySchema:
         - AttributeName: user_id
           KeyType: HASH
         - AttributeName: document_type_uuid
           KeyType: RANGE
-
+      GlobalSecondaryIndexes:
+        - IndexName: project-id-doc-index         # Name of GSI
+          KeySchema:
+            - AttributeName: project_id      # Partition key of GSI
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL              # Return all attributes
 
 
   ###################################################

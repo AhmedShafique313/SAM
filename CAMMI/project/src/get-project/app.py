@@ -7,9 +7,11 @@ dynamodb = boto3.resource("dynamodb")
 
 USERS_TABLE = dynamodb.Table("users-table")
 PROJECTS_TABLE = dynamodb.Table("projects-table")
+DOCUMENTS_TABLE = dynamodb.Table("documents-history-table")
 
 USERS_SESSION_INDEX = "session_id-index"
 PROJECTS_USER_INDEX = "user_id-index"
+PROJECT_DOCUMENTS_INDEX = "project-id-doc-index"  # Your GSI
 
 
 def lambda_handler(event, context):
@@ -69,16 +71,34 @@ def lambda_handler(event, context):
             if not last_evaluated_key:
                 break
 
-        filtered_projects = [
-        {
-        "projectId": project.get("id"),
-        "projectName": project.get("project_name")
-        }
-        for project in projects
-        ]        
+        # ----------------------------------
+        # 4. Add document count for each project
+        # ----------------------------------
+        filtered_projects = []
+        for project in projects:
+            project_id = project.get("id")
+            project_name = project.get("project_name")
+
+            # Query documents-history-table GSI for count
+            doc_count = 0
+            try:
+                response_doc = DOCUMENTS_TABLE.query(
+                    IndexName=PROJECT_DOCUMENTS_INDEX,
+                    KeyConditionExpression=Key("project_id").eq(project_id),
+                    Select="COUNT"
+                )
+                doc_count = response_doc.get("Count", 0)
+            except ClientError as e:
+                print(f"Error counting documents for project {project_id}: {e}")
+
+            filtered_projects.append({
+                "projectId": project_id,
+                "projectName": project_name,
+                "documentCount": doc_count
+            })
 
         # ----------------------------------
-        # 4. Success response
+        # 5. Success response
         # ----------------------------------
         return response(200, {
             "session_id": session_id,

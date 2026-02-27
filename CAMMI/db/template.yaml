@@ -197,6 +197,16 @@ Resources:
           KeyType: HASH
         - AttributeName: document_type_uuid
           KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: project_id-index
+          KeySchema:
+            - AttributeName: project_id
+              KeyType: HASH
+            - AttributeName: user_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
 
 
 

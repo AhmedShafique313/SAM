@@ -155,10 +155,10 @@ def lambda_handler(event, context):
 
         session_id = body.get("session_id")
         project_name = body.get("project_name")
-        answer_text = body.get("answer_text")  # OPTIONAL
+        answer_text = body.get("answer_text")
 
         if not session_id or not project_name:
-            return response(400, "session_id and project_name required")
+            return response(400, "session_id and company_name required")
 
         project_name = project_name.strip()
 
@@ -177,7 +177,21 @@ def lambda_handler(event, context):
         user_id = user_lookup["Items"][0]["id"]
 
         # ------------------------------------------------
-        # 2. CREATE PROJECT
+        # 2. VALIDATION: COMPANY NAME UNIQUE PER USER
+        # ------------------------------------------------
+        existing_projects = projects_table.query(
+            IndexName="user_id-index",
+            KeyConditionExpression=Key("user_id").eq(user_id)
+        )
+
+        for item in existing_projects.get("Items", []):
+            if item.get("project_name", "").strip().lower() == project_name.lower():
+                return response(409, {
+                    "message": "Company name already exists for this user"
+                })
+
+        # ------------------------------------------------
+        # 3. CREATE PROJECT
         # ------------------------------------------------
         project_id = str(uuid.uuid4())
 
@@ -196,9 +210,9 @@ def lambda_handler(event, context):
 
         facts_saved = []
 
-        # =================================================
-        # OPTIONAL EXTENSION (NEW FUNCTIONALITY)
-        # =================================================
+        # ------------------------------------------------
+        # OPTIONAL FACT EXTRACTION
+        # ------------------------------------------------
         if answer_text:
 
             extracted_facts = extract_facts(answer_text)
@@ -213,18 +227,18 @@ def lambda_handler(event, context):
             facts_saved = extracted_facts
 
         # ------------------------------------------------
-        # RESPONSE
+        # RESPONSE (PROJECT → COMPANY)
         # ------------------------------------------------
         return response(201, {
-            "project_id": project_id,
-            "project_name": project_name,
+            "company_id": project_id,
+            "company_name": project_name,
             "user_id": user_id,
             "facts_saved": facts_saved,
             "count": len(facts_saved)
         })
 
     except projects_table.meta.client.exceptions.ConditionalCheckFailedException:
-        return response(409, "Project already exists")
+        return response(409, "Company already exists")
 
     except Exception as e:
         print("ERROR:", str(e))

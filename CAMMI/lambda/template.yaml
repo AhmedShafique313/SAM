@@ -248,6 +248,26 @@ Resources:
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
           S3_BUCKET_NAME: !Ref S3BucketName          
 
+  CentralizedChatbotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: centralized-chatbot
+      Handler: app.lambda_handler
+      CodeUri: src/centralized-chatbot/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles doc_edit_complete with multiple small docs
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue DocLibrariesLayer1Arn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+          S3_BUCKET_NAME: !Ref S3BucketName        
+
 ###################################################
 # Outputs
 ###################################################
@@ -305,3 +325,9 @@ Outputs:
     Value: !GetAtt StateMachineTriggerFunction.Arn
     Export:
       Name: StateMachineTriggerFunctionArn   
+
+  CentralizedChatbotFunctionArn:
+    Description: ARN of CentralizedChatbotFunction lambda
+    Value: !GetAtt CentralizedChatbotFunction.Arn
+    Export:
+      Name: CentralizedChatbotFunctionArn       

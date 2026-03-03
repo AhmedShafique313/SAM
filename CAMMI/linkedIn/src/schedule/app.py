@@ -1,6 +1,7 @@
 import json
 import boto3
 import base64
+import uuid
 from datetime import datetime, timezone, timedelta
 
 scheduler = boto3.client("scheduler")
@@ -51,6 +52,8 @@ def lambda_handler(event, context):
 
             image_bytes = base64.b64decode(image_b64)
             key = f"{sub}/{filename}"
+            unique_name = f"{uuid.uuid4()}_{filename}"
+            key = f"{sub}/{unique_name}"
 
             s3.put_object(
                 Bucket=S3_BUCKET,

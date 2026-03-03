@@ -3,101 +3,185 @@ import base64
 import boto3
 import os
 from boto3.dynamodb.conditions import Attr
- 
+
 s3 = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
+
 USERS_TABLE = os.environ.get('USERS_TABLE', 'users-table')
+PROJECT_STATE_TABLE = "project-state-table"
+
 users_table = dynamodb.Table(USERS_TABLE)
+project_state_table = dynamodb.Table(PROJECT_STATE_TABLE)
+
 BUCKET_NAME = "cammi-devprod"
- 
+
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type,session_id,document_type,project_id",
-    "Access-Control-Allow-Methods": "GET, OPTIONS"
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS"
 }
- 
+
+
 def lambda_handler(event, context):
     try:
-        # Handle preflight OPTIONS request
+        # ---------------------------------
+        # Handle CORS preflight
+        # ---------------------------------
         if event.get("httpMethod") == "OPTIONS":
             return {
                 "statusCode": 200,
                 "headers": CORS_HEADERS,
                 "body": ""
             }
- 
-        # Get headers
-        headers = event.get('headers', {})
- 
-        # Get session_id from header
-        session_id = headers.get('session_id')
-        # Get document_type from header
-        document_type = headers.get('document_type')
-        # Get project_id from header
-        project_id = headers.get('project_id')
+
+        # ---------------------------------
+        # Extract body (POST request)
+        # ---------------------------------
+        body = event.get("body")
+
+        if body and isinstance(body, str):
+            body = json.loads(body)
+
+        session_id = body.get("session_id") if body else None
+        project_id = body.get("project_id") if body else None
+        input_document_type = body.get("document_type") if body else None
+
         if not session_id:
             return {
                 "statusCode": 400,
-                "body": json.dumps({"error": "session_id is required"}),
-                "headers": CORS_HEADERS
+                "headers": CORS_HEADERS,
+                "body": json.dumps({"error": "session_id is required"})
             }
- 
-        # Find user by session_id
+
+        if not project_id:
+            return {
+                "statusCode": 400,
+                "headers": CORS_HEADERS,
+                "body": json.dumps({"error": "project_id is required"})
+            }
+
+        # ---------------------------------
+        # Find user using session_id
+        # ---------------------------------
         user_resp = users_table.scan(
             FilterExpression=Attr('session_id').eq(session_id),
             ProjectionExpression="id"
         )
- 
-        if 'Items' not in user_resp or len(user_resp['Items']) == 0:
+
+        if not user_resp.get("Items"):
             return {
                 "statusCode": 404,
-                "body": json.dumps({"error": "User not found for the given session_id"}),
-                "headers": CORS_HEADERS
+                "headers": CORS_HEADERS,
+                "body": json.dumps({
+                    "error": "User not found for the given session_id"
+                })
             }
- 
-        user_id = user_resp['Items'][0]['id']
- 
-        # Folder path for the user
-        FOLDER_PREFIX = f"project/{project_id}/{document_type}/marketing_strategy_document/"
-        
- 
-        # List objects in S3 folder
-        response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=FOLDER_PREFIX)
- 
-        # Filter only .docx files
+
+        user_id = user_resp["Items"][0]["id"]
+
+        # ---------------------------------
+        # Determine document_type
+        # ---------------------------------
+        if input_document_type and isinstance(input_document_type, str):
+            document_type = input_document_type.lower()
+        else:
+            # Fallback to project-state-table
+            project_state_resp = project_state_table.get_item(
+                Key={"project_id": project_id}
+            )
+
+            item = project_state_resp.get("Item")
+
+            if not item:
+                return {
+                    "statusCode": 404,
+                    "headers": CORS_HEADERS,
+                    "body": json.dumps({
+                        "error": "Project state not found for given project_id"
+                    })
+                }
+
+            generating_document = item.get("generating_document")
+
+            if not generating_document or not isinstance(generating_document, str):
+                return {
+                    "statusCode": 400,
+                    "headers": CORS_HEADERS,
+                    "body": json.dumps({
+                        "error": "generating_document not set for this project"
+                    })
+                }
+
+            document_type = generating_document.lower()
+
+        # ---------------------------------
+        # Construct S3 folder path
+        # ---------------------------------
+        folder_prefix = f"project/{project_id}/{document_type}/marketing_strategy_document/"
+
+        # ---------------------------------
+        # List S3 objects
+        # ---------------------------------
+        response = s3.list_objects_v2(
+            Bucket=BUCKET_NAME,
+            Prefix=folder_prefix
+        )
+
         docx_files = [
             obj for obj in response.get("Contents", [])
-            if obj["Key"].endswith(".docx")
+            if obj["Key"].lower().endswith(".docx")
         ]
+
         if not docx_files:
             return {
                 "statusCode": 404,
-                "body": json.dumps({"error": "No .docx files found in the folder"}),
-                "headers": CORS_HEADERS
+                "headers": CORS_HEADERS,
+                "body": json.dumps({
+                    "error": "No .docx files found in the folder"
+                })
             }
- 
+
+        # ---------------------------------
         # Get latest file
+        # ---------------------------------
         latest_file = max(docx_files, key=lambda x: x["LastModified"])
         latest_key = latest_file["Key"]
- 
+
+        # ---------------------------------
         # Read and encode file
-        s3_response = s3.get_object(Bucket=BUCKET_NAME, Key=latest_key)
+        # ---------------------------------
+        s3_response = s3.get_object(
+            Bucket=BUCKET_NAME,
+            Key=latest_key
+        )
+
         file_data = s3_response["Body"].read()
         encoded_data = base64.b64encode(file_data).decode("utf-8")
- 
+
+        # ---------------------------------
+        # Success Response
+        # ---------------------------------
         return {
             "statusCode": 200,
+            "headers": CORS_HEADERS,
             "body": json.dumps({
                 "message": "Latest .docx file fetched successfully",
+                "user_id": user_id,
+                "project_id": project_id,
+                "document_type": document_type,
                 "fileName": latest_key.split("/")[-1],
                 "docxBase64": encoded_data
-            }),
-            "headers": CORS_HEADERS
+            })
         }
- 
+
     except Exception as e:
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": str(e)}),
-            "headers": CORS_HEADERS
+            "headers": CORS_HEADERS,
+            "body": json.dumps({
+                "error": str(e)
+            })
         }
+
+
+

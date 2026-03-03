@@ -19,6 +19,23 @@ def normalize_number(value):
         return int(value)
     return value
 
+def calculate_credit(total_posts):
+    """
+    Credit calculation based on total_posts tiers
+    """
+    if total_posts is None:
+        return None
+
+    if total_posts < 5:
+        return 5
+    elif total_posts <= 10:
+        return 8
+    elif total_posts <= 20:
+        return 15
+    elif total_posts <= 30:
+        return 20
+    else:
+        return total_posts  # fallback (1:1 for large campaigns)
 
 def lambda_handler(event, context):
     # Parse body
@@ -79,6 +96,9 @@ def lambda_handler(event, context):
         posts_per_week = math.ceil(total_posts / weeks)
         campaign_duration_days = weeks * 7
 
+    # -------- Credit Calculation Logic --------
+    credit = calculate_credit(total_posts)
+
     # Optional fields to update
     optional_fields = {
         "campaign_name": body.get("campaign_name"),
@@ -87,6 +107,7 @@ def lambda_handler(event, context):
         "total_posts": total_posts,
         "posts_per_week": posts_per_week,
         "campaign_duration_days": campaign_duration_days,
+        "credit": credit,
     }
 
     # Build DynamoDB UpdateExpression
@@ -118,7 +139,7 @@ def lambda_handler(event, context):
     updated_values = {}
     for k, v in optional_fields.items():
         if v is not None:
-            if k in ["total_posts", "posts_per_week", "campaign_duration_days"]:
+            if k in ["total_posts", "posts_per_week", "campaign_duration_days", "credit"]:
                 updated_values[k] = normalize_number(v)
             else:
                 updated_values[k] = v
@@ -134,7 +155,6 @@ def lambda_handler(event, context):
             "updated_values": updated_values
         }
     )
-
 
 def build_response(status: int, body: dict):
     return {

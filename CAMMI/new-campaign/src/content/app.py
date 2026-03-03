@@ -5,6 +5,7 @@ import math
 from boto3.dynamodb.conditions import Key
 from datetime import datetime, timedelta, timezone
 from botocore.config import Config
+from botocore.exceptions import ClientError
 # ---------- AWS clients ----------
 bedrock_runtime = boto3.client(
     "bedrock-runtime",
@@ -74,6 +75,7 @@ def lambda_handler(event, context):
     session_id = body.get("session_id")
     project_id = body.get("project_id")
     campaign_id = body.get("campaign_id")
+    input_credits = int(body.get("input_credits", 0))
     if not all([session_id, project_id, campaign_id]):
         return build_response(400, {"error": "Missing required fields"})
     # ---------- Get user ----------
@@ -84,7 +86,22 @@ def lambda_handler(event, context):
     )
     if not user_resp.get("Items"):
         return build_response(404, {"error": "User not found"})
+    user=user_resp["Items"][0]
     user_id = user_resp["Items"][0]["id"]
+
+    try:
+        users_table.update_item(
+            Key={"email": user['email']},  # primary key
+            UpdateExpression="SET total_credits = total_credits - :d",
+            ConditionExpression="total_credits >= :d",
+            ExpressionAttributeValues={":d": input_credits},
+        )
+        print(f"Deducted {input_credits} credits successfully")
+    except ClientError as e:
+        if e.response['Error']['Code'] == "ConditionalCheckFailedException":
+            print(f"Insufficient credits")
+        else:
+            raise
     # ---------- Get campaign ----------
     campaign_resp = campaigns_table.get_item(
         Key={"campaign_id": campaign_id, "project_id": project_id}

@@ -480,7 +480,7 @@ Resources:
   ConversationHistoryTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: conversion-history-table
+      TableName: conversation-history-table
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: project_id

@@ -477,6 +477,22 @@ Resources:
         - AttributeName: fact_id
           KeyType: RANGE
 
+  ConversationHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: conversion-history-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+
 
 Outputs:
 
@@ -623,3 +639,9 @@ Outputs:
     Value: !Ref FactsTable
     Export:
       Name: CAMMI-FactsTableName         
+
+  ConversationHistoryTableName:
+    Description: user campaigns ConversationHistory table
+    Value: !Ref ConversationHistoryTable
+    Export:
+      Name: CAMMI-ConversationHistoryTableName  

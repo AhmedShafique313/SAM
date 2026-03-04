@@ -230,8 +230,8 @@ def lambda_handler(event, context):
         # RESPONSE (PROJECT → COMPANY)
         # ------------------------------------------------
         return response(201, {
-            "company_id": project_id,
-            "company_name": project_name,
+            "project_id": project_id,
+            "project_name": project_name,
             "user_id": user_id,
             "facts_saved": facts_saved,
             "count": len(facts_saved)

@@ -131,9 +131,23 @@ def lambda_handler(event, context):
                     "createdAt": datetime.utcnow().isoformat(),
                     "total_credits": 250,
                     "dashboard_status": False,
-                    "user_input_status": False,
-                    "final_preview_status": False,
-                    "document_preview_status": False
+                    "chat_status": False,
+                    "chatfact_status": False,
+                    "breakdown_status": False,
+                    "generation_status": False,
+                    "generation_completed_status": False,
+                    "submit_for_review_status": False,
+                    "connector_status": False,
+                    "add_profile_status": False,
+                    "campaign_start_status": False,
+                    "campaign_goal_status": False,
+                    "campaign_recommend_status": False,
+                    "campaign_posts_status": False,
+                    "posts_history_status": False,
+                    "campaign_dashboard_status": False,
+                    "quick_posts_status": False,
+                    "cammi_assistant_status": False,
+                    "image_generation_status": False
                 }
                 table.put_item(Item=user)
  
@@ -191,9 +205,23 @@ def lambda_handler(event, context):
                     "firstName": user.get("firstName", ""),
                     "lastName": user.get("lastName", ""),
                     "dashboard_status": False,
-                    "user_input_status": False,
-                    "final_preview_status": False,
-                    "document_preview_status": False
+                    "chat_status": False,
+                    "chatfact_status": False,
+                    "breakdown_status": False,
+                    "generation_status": False,
+                    "generation_completed_status": False,
+                    "submit_for_review_status": False,
+                    "connector_status": False,
+                    "add_profile_status": False,
+                    "campaign_start_status": False,
+                    "campaign_goal_status": False,
+                    "campaign_recommend_status": False,
+                    "campaign_posts_status": False,
+                    "posts_history_status": False,
+                    "campaign_dashboard_status": False,
+                    "quick_posts_status": False,
+                    "cammi_assistant_status": False,
+                    "image_generation_status": False
                 }
             })
  

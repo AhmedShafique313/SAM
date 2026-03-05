@@ -37,11 +37,72 @@ BEDROCK_MODEL_ID = os.environ.get(
 # ======================================================
 FACT_UNIVERSE = {
     "business.name": "Legal or common name of the business",
+    "business.description_short": "Brief one-line description",
     "business.description_long": "Detailed business description",
-    "product.core_offering": "Main product or service",
-    "customer.primary_customer": "Primary target customer",
+    "business.industry": "Primary industry or sector",
+    "business.stage": "Stage of business (startup, growth, mature)",
+    "business.business_model": "How the business makes money",
+    "business.pricing_position": "Pricing strategy positioning",
+    "business.geography": "Primary business location or market",
+    "business.start_date": "Business start date or launch date",
+    "business.end_date_or_milestone": "Target end date or major milestone",
+    "product.type": "Type of product or service",
+    "product.core_offering": "Main product or service offering",
+    "product.value_proposition_short": "Brief value proposition",
+    "product.value_proposition_long": "Detailed value proposition",
+    "product.problems_solved": "Problems the product solves",
+    "product.unique_differentiation": "What makes the product unique",
+    "product.strengths": "Product or company strengths",
+    "product.weaknesses": "Product or company weaknesses",
+    "customer.primary_customer": "Primary target customer description",
+    "customer.buyer_roles": "Roles of people who buy",
+    "customer.user_roles": "Roles of people who use the product",
+    "customer.decision_maker": "Who makes the final purchase decision",
+    "customer.buyer_goals": "What buyers are trying to achieve",
+    "customer.buyer_pressures": "Pressures or constraints on buyers",
+    "customer.industries": "Industries of target customers",
+    "customer.company_size": "Size of target customer companies",
+    "customer.geography": "Geographic location of customers",
+    "customer.information_sources": "Where customers find information",
+    "customer.problems": "Key problems customers face",
+    "customer.pains": "Specific pains or frustrations",
+    "customer.current_solutions": "How customers solve problems today",
+    "customer.solution_gaps": "Gaps in current solutions",
     "market.competitors": "Direct competitors",
-    "strategy.short_term_goals": "Goals for next 12 months"
+    "market.alternatives": "Alternative solutions",
+    "market.why_alternatives_fail": "Why alternatives don't work well",
+    "market.market_size_estimate": "Estimated market size",
+    "market.trends_or_shifts": "Market trends or shifts",
+    "market.opportunities": "Market opportunities",
+    "market.threats": "Market threats or risks",
+    "strategy.short_term_goals": "Goals for next 12 months",
+    "strategy.long_term_vision": "3-5 year vision",
+    "strategy.success_definition": "How success is defined",
+    "strategy.priorities": "Top strategic priorities",
+    "strategy.gtm_focus": "Go-to-market focus and strategy",
+    "strategy.marketing_objectives": "Marketing objectives",
+    "strategy.user_growth_priorities": "User growth priorities",
+    "strategy.marketing_tools": "Marketing tools and channels",
+    "strategy.marketing_budget": "Marketing budget",
+    "brand.mission": "Company mission statement",
+    "brand.vision": "Company vision statement",
+    "brand.tone_personality": "Brand tone and personality",
+    "brand.values_themes": "Brand values and themes",
+    "brand.vibes_to_avoid": "Brand vibes to avoid",
+    "brand.key_messages": "Key brand messages",
+    "revenue.pricing_position": "Pricing position in market",
+    "revenue.average_contract_value": "Average contract value",
+    "revenue.market_size": "Total addressable market size",
+    "revenue.marketing_budget": "Marketing budget allocation",
+    "assets.approved_customers": "Approved customer names",
+    "assets.case_studies": "Available case studies",
+    "assets.videos": "Video assets",
+    "assets.logos": "Customer or partner logos",
+    "assets.quotes": "Customer quotes or testimonials",
+    "assets.brag_points": "Notable achievements",
+    "assets.visual_assets": "Visual assets available",
+    "assets.spokesperson_name": "Company spokesperson name",
+    "assets.spokesperson_role": "Spokesperson role or title"
 }
 
 # ======================================================
@@ -89,21 +150,70 @@ def extract_facts(answer_text: str) -> List[Dict]:
         [f"- {fid}: {desc}" for fid, desc in FACT_UNIVERSE.items()]
     )
 
-    prompt = f"""
-Extract structured business facts ONLY from user text.
+    prompt = fprompt = f"""
+You are a strict information extraction engine.
 
-AVAILABLE FACT IDs:
+Your task is to extract structured business facts from a user's description.
+
+RULES:
+1. Extract facts ONLY if they are explicitly stated or clearly implied.
+2. DO NOT invent or assume information.
+3. If the text does not contain a fact, DO NOT include it.
+4. Use ONLY the FACT IDs listed below.
+5. Each fact must appear only once.
+6. Keep the value concise and human readable.
+7. If the text is vague (example: "AI startup"), extract only what is certain.
+
+FACT IDS AND DEFINITIONS:
 {fact_list}
 
-USER MESSAGE:
+USER TEXT:
+\"\"\"
 {answer_text}
+\"\"\"
 
-Return STRICT JSON:
+OUTPUT FORMAT:
+Return ONLY valid JSON. No explanation. No markdown.
+
 {{
-  "extracted_facts":[
-    {{"fact_id":"business.name","value":"text"}}
+  "extracted_facts": [
+    {{
+      "fact_id": "fact.id.from.list",
+      "value": "extracted value"
+    }}
   ]
 }}
+
+EXAMPLES
+
+Example 1
+User text:
+"We are an AI startup helping e-commerce companies automate marketing campaigns."
+
+Output:
+{{
+  "extracted_facts": [
+    {{"fact_id":"business.stage","value":"startup"}},
+    {{"fact_id":"business.industry","value":"AI / marketing technology"}},
+    {{"fact_id":"product.core_offering","value":"AI marketing automation platform"}},
+    {{"fact_id":"customer.industries","value":"e-commerce companies"}}
+  ]
+}}
+
+Example 2
+User text:
+"Mature SaaS company launching a new analytics product for fintech firms."
+
+Output:
+{{
+  "extracted_facts":[
+    {{"fact_id":"business.stage","value":"mature"}},
+    {{"fact_id":"product.type","value":"analytics software"}},
+    {{"fact_id":"customer.industries","value":"fintech"}}
+  ]
+}}
+
+Now extract facts from the USER TEXT.
 """
 
     raw = invoke_claude(

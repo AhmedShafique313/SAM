@@ -144,9 +144,23 @@ def callback_lambda(event, context):
             "id": id,
             "total_credits": 250,
             "dashboard_status": False,
-            "user_input_status": False,
-            "final_preview_status": False,
-            "document_preview_status": False
+            "chat_status": False,
+            "chatfact_status": False,
+            "breakdown_status": False,
+            "generation_status": False,
+            "generation_completed_status": False,
+            "submit_for_review_status": False,
+            "connector_status": False,
+            "add_profile_status": False,
+            "campaign_start_status": False,
+            "campaign_goal_status": False,
+            "campaign_recommend_status": False,
+            "campaign_posts_status": False,
+            "posts_history_status": False,
+            "campaign_dashboard_status": False,
+            "quick_posts_status": False,
+            "cammi_assistant_status": False,
+            "image_generation_status": False
         }
 
         frontend_onboarding_status = "true"
@@ -162,9 +176,23 @@ def callback_lambda(event, context):
 
             # ✅ FETCH STATUS FLAGS FROM DB
             dashboard_status = existing_user.get("dashboard_status", False)
-            user_input_status = existing_user.get("user_input_status", False)
-            final_preview_status = existing_user.get("final_preview_status", False)
-            document_preview_status = existing_user.get("document_preview_status", False)
+            chat_status = existing_user.get("chat_status", False)
+            chatfact_status = existing_user.get("chatfact_status", False)
+            breakdown_status = existing_user.get("breakdown_status", False)
+            generation_status = existing_user.get("generation_status", False)
+            generation_completed_status = existing_user.get("generation_completed_status", False)
+            submit_for_review_status = existing_user.get("submit_for_review_status", False)
+            connector_status = existing_user.get("connector_status", False)
+            add_profile_status = existing_user.get("add_profile_status", False)
+            campaign_start_status = existing_user.get("campaign_start_status", False)
+            campaign_goal_status = existing_user.get("campaign_goal_status", False)
+            campaign_recommend_status = existing_user.get("campaign_recommend_status", False)
+            campaign_posts_status = existing_user.get("campaign_posts_status", False)
+            posts_history_status = existing_user.get("posts_history_status", False)
+            campaign_dashboard_status = existing_user.get("campaign_dashboard_status", False)
+            quick_posts_status = existing_user.get("quick_posts_status", False)
+            cammi_assistant_status = existing_user.get("cammi_assistant_status", False)
+            image_generation_status = existing_user.get("image_generation_status", False)
 
             users_table.update_item(
                 Key={"email": user_info["email"]},
@@ -186,9 +214,23 @@ def callback_lambda(event, context):
 
             final_name = user_info["name"]
             dashboard_status = False
-            user_input_status = False
-            final_preview_status = False
-            document_preview_status = False
+            chat_status = False
+            chatfact_status = False
+            breakdown_status = False
+            generation_status = False
+            generation_completed_status = False
+            submit_for_review_status = False
+            connector_status = False
+            add_profile_status = False
+            campaign_start_status = False
+            campaign_goal_status = False
+            campaign_recommend_status = False
+            campaign_posts_status = False
+            posts_history_status = False
+            campaign_dashboard_status = False
+            quick_posts_status = False
+            cammi_assistant_status = False
+            image_generation_status = False
 
         dashboard_url = "https://dev.d58o9xmomxg8r.amplifyapp.com/callback"
 
@@ -205,9 +247,23 @@ def callback_lambda(event, context):
             "expiry": str(credentials.expiry),
             "id": id,
             "dashboard_status": dashboard_status,
-            "user_input_status": user_input_status,
-            "final_preview_status": final_preview_status,
-            "document_preview_status": document_preview_status
+            "chat_status": chat_status,
+            "chatfact_status": chatfact_status,
+            "breakdown_status": breakdown_status,
+            "generation_status": generation_status,
+            "generation_completed_status": generation_completed_status,
+            "submit_for_review_status": submit_for_review_status,
+            "connector_status": connector_status,
+            "add_profile_status": add_profile_status,
+            "campaign_start_status": campaign_start_status,
+            "campaign_goal_status": campaign_goal_status,
+            "campaign_recommend_status": campaign_recommend_status,
+            "campaign_posts_status": campaign_posts_status,
+            "posts_history_status": posts_history_status,
+            "campaign_dashboard_status": campaign_dashboard_status,
+            "quick_posts_status": quick_posts_status,
+            "cammi_assistant_status": cammi_assistant_status,
+            "image_generation_status": image_generation_status
         }
 
         redirect_url = dashboard_url + "?" + urlencode(redirect_query_params)

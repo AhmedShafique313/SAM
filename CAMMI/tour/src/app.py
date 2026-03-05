@@ -34,9 +34,23 @@ def lambda_handler(event, context):
     # Allowed status fields from frontend
     allowed_statuses = [
         "dashboard_status",
-        "user_input_status",
-        "final_preview_status",
-        "document_preview_status"
+        "chat_status",
+        "chatfact_status",
+        "breakdown_status",
+        "generation_status",
+        "generation_completed_status",
+        "submit_for_review_status",
+        "connector_status",
+        "add_profile_status",
+        "campaign_start_status",
+        "campaign_goal_status",
+        "campaign_recommend_status",
+        "campaign_posts_status",
+        "posts_history_status",
+        "campaign_dashboard_status",
+        "quick_posts_status",
+        "cammi_assistant_status",
+        "image_generation_status"
     ]
 
     # Identify which status is sent

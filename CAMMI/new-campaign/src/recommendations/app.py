@@ -136,6 +136,7 @@ def lambda_handler(event, context):
 
         campaign_item = campaign_resp.get("Item", {})
         campaign_name = campaign_item.get("campaign_name", "")
+        execution_ready_recommendations = campaign_item.get("execution_ready_recommendations", "")
 
         # Get campaign context from S3
         s3_key = f"knowledgebase/{user_id}/{user_id}_campaign_data.txt"
@@ -146,6 +147,15 @@ def lambda_handler(event, context):
             print(f"Error reading from S3: {str(e)}")
             campaign_context = "No context provided."
 
+        recommendations_block = ""
+        if execution_ready_recommendations:
+            recommendations_block = f"""
+
+        Execution Ready Recommendations:
+        Use the following strategic recommendations to guide the campaign planning if relevant.
+
+        {execution_ready_recommendations}
+        """
         # Enhanced prompt with stronger JSON instructions
         prompt = f"""
 You are a senior execution-ready social media strategist with deep expertise in LinkedIn campaigns.
@@ -164,6 +174,7 @@ Use ONLY the last paragraph as the authoritative input and parse it carefully.
 
 CONTEXT:
 {campaign_context}
+{recommendations_block}
 
 TASK:
 Generate a complete campaign execution plan for a LinkedIn social media campaign focused on promoting the given product or company.

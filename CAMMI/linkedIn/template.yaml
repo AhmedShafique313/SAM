@@ -79,6 +79,24 @@ Resources:
           LINKEDIN_POSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
           S3_BUCKET_NAME: !Ref S3BucketName
 
+  LinkedInLogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: linkedin-logout
+      Handler: app.lambda_handler
+      CodeUri: src/linkedin-logout/
+      Runtime: python3.13
+      Tracing: Active
+      Timeout: 900
+      MemorySize: 128
+      Description: Deletes sub from LinkedIn Users table.
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          LINKEDIN_USER_TABLE: !ImportValue CAMMI-LinkedInUserTableName
+          LINKEDIN_POSTS_TABLE: !ImportValue CAMMI-LinkedInPostsTableName
+          S3_BUCKET_NAME: !Ref S3BucketName          
+
 Outputs:
   LoginFunctionArn:
     Description: "Arn of linkedin OAuth Login Function"
@@ -103,3 +121,9 @@ Outputs:
     Value: !GetAtt StatusFunction.Arn
     Export:
       Name: StatusFunctionArn
+
+  LinkedInLogoutFunctionArn:
+    Description: "Arn of LinkedInLogout function lambda"
+    Value: !GetAtt LinkedInLogoutFunction.Arn
+    Export:
+      Name: LinkedInLogoutFunctionArn

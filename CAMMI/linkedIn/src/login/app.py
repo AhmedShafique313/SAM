@@ -6,7 +6,7 @@ http = urllib3.PoolManager()
  
 CLIENT_ID = os.environ["L_CLIENT_ID"]
 CLIENT_SECRET = os.environ["L_CLIENT_SECRET"]
-REDIRECT_URI = "https://3gd0sb22ah.execute-api.us-east-1.amazonaws.com/dev/LinkedIn/Callback"
+REDIRECT_URI = "https://hobv2e2dna.execute-api.us-east-1.amazonaws.com/dev/LinkedIn/Callback"
  
 AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
@@ -99,7 +99,7 @@ def lambda_handler(event, context):
             <p><b>Access Token:</b> {access_token}</p>
         """
 
-        # redirect_url = f"http://localhost:3000/dashboard/scheduler?sub={userinfo.get('sub')}"
+        #redirect_url = f"http://localhost:3000/dashboard/scheduler?sub={userinfo.get('sub')}"
         redirect_url = f"https://dev.d58o9xmomxg8r.amplifyapp.com/dashboard/scheduler?sub={userinfo.get('sub')}"
         return {
             "statusCode": 302,

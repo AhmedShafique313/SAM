@@ -11,6 +11,7 @@ table = dynamodb.Table('linkedin-user-table')
 CLIENT_ID = os.environ.get("L_CLIENT_ID", "")
 CLIENT_SECRET = os.environ.get("L_CLIENT_SECRET", "")
 REVOKE_URL = "https://www.linkedin.com/oauth/v2/revoke"
+LINKEDIN_LOGOUT_URL = "https://www.linkedin.com/m/logout"
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -57,6 +58,8 @@ def lambda_handler(event, context):
 
         access_token = user_item.get('access_token')
 
+        revocation_success = False
+
         # Revoke the token on LinkedIn's side if access token exists
         if access_token:
             try:
@@ -75,12 +78,14 @@ def lambda_handler(event, context):
                 )
 
                 # LinkedIn revocation endpoint returns 200 on success
-                # Continue with DB deletion even if revocation fails
+                revocation_success = (revoke_response.status == 200)
                 print(f"Token revocation status: {revoke_response.status}")
+                print(f"Revocation response: {revoke_response.data.decode('utf-8') if revoke_response.data else 'No response body'}")
 
             except Exception as revoke_error:
                 # Log the error but continue with logout
                 print(f"Token revocation error: {str(revoke_error)}")
+                revocation_success = False
 
         # Delete item from DynamoDB
         table.delete_item(
@@ -93,7 +98,11 @@ def lambda_handler(event, context):
             "statusCode": 200,
             "headers": CORS_HEADERS,
             "body": json.dumps({
-                "message": "Logout successful - user fully logged out from LinkedIn"
+                "message": "Logout successful - user fully logged out from LinkedIn",
+                "token_revoked": revocation_success,
+                "db_record_deleted": True,
+                "linkedin_logout_url": LINKEDIN_LOGOUT_URL,
+                "instructions": "To complete logout and see login screen again, redirect user to linkedin_logout_url or they must manually logout from LinkedIn"
             })
         }
 

@@ -268,6 +268,42 @@ Resources:
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
           S3_BUCKET_NAME: !Ref S3BucketName        
 
+
+  JourneyDetailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: journey-detail
+      Handler: app.lambda_handler
+      CodeUri: src/journey-detail/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles Journey Details
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+          S3_BUCKET_NAME: !Ref S3BucketName        
+
+  SidebarProgressFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: sidebar-progress
+      Handler: app.lambda_handler
+      CodeUri: src/sidebar-progress/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles Sidebar Progress
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
+          S3_BUCKET_NAME: !Ref S3BucketName 
 ###################################################
 # Outputs
 ###################################################
@@ -330,4 +366,16 @@ Outputs:
     Description: ARN of CentralizedChatbotFunction lambda
     Value: !GetAtt CentralizedChatbotFunction.Arn
     Export:
-      Name: CentralizedChatbotFunctionArn       
+      Name: CentralizedChatbotFunctionArn     
+
+  JourneyDetailFunctionArn:
+    Description: ARN of JourneyDetailFunction lambda
+    Value: !GetAtt JourneyDetailFunction.Arn
+    Export:
+      Name: JourneyDetailFunctionArn  
+
+  SidebarProgressFunctionArn:
+    Description: ARN of SidebarProgressFunction lambda
+    Value: !GetAtt SidebarProgressFunction.Arn
+    Export:
+      Name: SidebarProgressFunctionArn                 

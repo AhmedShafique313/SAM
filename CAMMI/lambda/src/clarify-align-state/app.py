@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 # Environment Variables
 # -------------------------------------------------
 REGION = os.environ.get("AWS_REGION", "us-east-1")
-CLARIFY_ALIGN_STATE_TABLE = os.environ.get("CLARIFY_ALIGN_STATE_TABLE", "clarify-align-state-table")
+CLARIFY_ALIGN_STATE_TABLE =  "clarify-align-state-table"
 
 # -------------------------------------------------
 # AWS Clients

@@ -303,7 +303,23 @@ Resources:
         Variables:
           USERS_TABLE: !ImportValue CAMMI-UsersTableName
           DOCUMENTS_HISTORY_TABLE: !ImportValue CAMMI-DocumentsHistoryTableName
-          S3_BUCKET_NAME: !Ref S3BucketName 
+          S3_BUCKET_NAME: !Ref S3BucketName
+
+  ClarifyAlignStateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: clarify-align-state
+      Handler: app.lambda_handler
+      CodeUri: src/clarify-align-state/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 1024
+      Tracing: Active
+      Description: Handles Clarify Align State
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          CLARIFY_ALIGN_STATE_TABLE: !ImportValue CAMMI-ClarifyAlignStateTableName
 ###################################################
 # Outputs
 ###################################################
@@ -378,4 +394,10 @@ Outputs:
     Description: ARN of SidebarProgressFunction lambda
     Value: !GetAtt SidebarProgressFunction.Arn
     Export:
-      Name: SidebarProgressFunctionArn                 
+      Name: SidebarProgressFunctionArn
+
+  ClarifyAlignStateFunctionArn:
+    Description: ARN of ClarifyAlignStateFunction lambda
+    Value: !GetAtt ClarifyAlignStateFunction.Arn
+    Export:
+      Name: ClarifyAlignStateFunctionArn

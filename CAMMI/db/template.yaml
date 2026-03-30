@@ -493,6 +493,18 @@ Resources:
         - AttributeName: timestamp
           KeyType: RANGE
 
+  ClarifyAlignStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: clarify-align-state-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+
 
 Outputs:
 
@@ -644,4 +656,10 @@ Outputs:
     Description: user campaigns ConversationHistory table
     Value: !Ref ConversationHistoryTable
     Export:
-      Name: CAMMI-ConversationHistoryTableName  
+      Name: CAMMI-ConversationHistoryTableName
+
+  ClarifyAlignStateTableName:
+    Description: Clarify Align State table
+    Value: !Ref ClarifyAlignStateTable
+    Export:
+      Name: CAMMI-ClarifyAlignStateTableName

@@ -108,8 +108,13 @@ def calculate_category_progress(document_types: set) -> dict:
         # Calculate percentage
         percentage = round((completed_docs / total_docs) * 100, 2) if total_docs > 0 else 0
 
-        # Determine lock status - unlocked if at least 2 document types exist
-        is_unlocked = completed_docs >= 2
+        # Determine lock status
+        # Clarify category is always unlocked (starting point for users)
+        # Other categories are unlocked if at least 2 document types exist
+        if category_name == "Clarify":
+            is_unlocked = True
+        else:
+            is_unlocked = completed_docs >= 2
 
         category_progress[category_name] = {
             "total_documents": total_docs,

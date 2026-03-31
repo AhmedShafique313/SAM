@@ -29,7 +29,7 @@ facts_table = dynamodb.Table(FACTS_TABLE)
 # Categories and Document Types
 # -------------------------------------------------
 CATEGORIES = {
-    "Clarify": ["icp", "icp2", "messaging", "brand", "mr", "kmf", "sr", "smp", "gtm", "bs"],
+    "Clarify": ["gtm", "icp", "messaging", "brand", "mr", "kmf", "sr", "smp", "bs", "icp2"],
     "Align": ["cc", "qmp", "cb", "seo"],
     "Mobilize": ["website-landing-page", "blog", "social-media-post", "email-templates", "case-studies", "sales-deck", "one-pager"],
     "Monitor": ["dashboard"],

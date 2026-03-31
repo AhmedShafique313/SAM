@@ -41,7 +41,7 @@ CATEGORIES = {
 # -------------------------------------------------
 DOCUMENT_REQUIREMENTS = {
         "gtm": {
-        "name": "All-in-One GTM",
+        "name": "Go-to-Market Plan",
         "required_facts": [
             "business.description_long", "product.core_offering",
             "product.unique_differentiation", "customer.primary_customer",

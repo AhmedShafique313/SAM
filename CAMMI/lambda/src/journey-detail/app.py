@@ -40,6 +40,22 @@ CATEGORIES = {
 # Document Requirements (Facts)
 # -------------------------------------------------
 DOCUMENT_REQUIREMENTS = {
+        "gtm": {
+        "name": "Go-to-Market Plan",
+        "required_facts": [
+            "business.description_long", "product.core_offering",
+            "product.unique_differentiation", "customer.primary_customer",
+            "customer.industries", "customer.geography",
+            "strategy.short_term_goals", "strategy.gtm_focus",
+            "market.competitors"
+        ],
+        "supporting_facts": [
+            "strategy.marketing_objectives", "strategy.marketing_tools",
+            "market.opportunities", "market.threats",
+            "market.market_size_estimate",
+            "revenue.pricing_position"
+        ]
+    },
     "icp": {
         "name": "Ideal Customer Profile",
         "required_facts": [
@@ -51,18 +67,6 @@ DOCUMENT_REQUIREMENTS = {
         "supporting_facts": [
             "customer.information_sources", "customer.current_solutions",
             "market.alternatives"
-        ]
-    },
-    "icp2": {
-        "name": "Persona Deep Dive",
-        "required_facts": [
-            "customer.decision_maker", "customer.buyer_roles",
-            "customer.buyer_goals", "customer.buyer_pressures",
-            "customer.industries", "customer.company_size",
-            "customer.geography"
-        ],
-        "supporting_facts": [
-            "customer.information_sources", "customer.current_solutions"
         ]
     },
     "messaging": {
@@ -132,22 +136,6 @@ DOCUMENT_REQUIREMENTS = {
             "strategy.success_definition", "strategy.marketing_objectives"
         ]
     },
-    "gtm": {
-        "name": "Go-to-Market Plan",
-        "required_facts": [
-            "business.description_long", "product.core_offering",
-            "product.unique_differentiation", "customer.primary_customer",
-            "customer.industries", "customer.geography",
-            "strategy.short_term_goals", "strategy.gtm_focus",
-            "market.competitors"
-        ],
-        "supporting_facts": [
-            "strategy.marketing_objectives", "strategy.marketing_tools",
-            "market.opportunities", "market.threats",
-            "market.market_size_estimate",
-            "revenue.pricing_position"
-        ]
-    },
     "bs": {
         "name": "Brand Strategy",
         "required_facts": [
@@ -162,6 +150,18 @@ DOCUMENT_REQUIREMENTS = {
             "assets.visual_assets"
         ]
     },
+    "icp2": {
+        "name": "Persona Deep Dive",
+        "required_facts": [
+            "customer.decision_maker", "customer.buyer_roles",
+            "customer.buyer_goals", "customer.buyer_pressures",
+            "customer.industries", "customer.company_size",
+            "customer.geography"
+        ],
+        "supporting_facts": [
+            "customer.information_sources", "customer.current_solutions"
+        ]
+    },    
     "cc": {
         "name": "Content Calendar",
         "required_facts": [

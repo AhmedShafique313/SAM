@@ -34,6 +34,9 @@ CATEGORIES = {
     "Iterate": ["recommendation", "updated-assets", "advice"]
 }
 
+# Category sequence for sequential unlocking
+CATEGORY_SEQUENCE = ["Clarify", "Align", "Mobilize", "Monitor", "Iterate"]
+
 # -------------------------------------------------
 # API Gateway Response Helper
 # -------------------------------------------------
@@ -90,10 +93,12 @@ def extract_document_types(documents: list) -> set:
 def calculate_category_progress(document_types: set) -> dict:
     """
     Calculate progress percentage and lock status for each category
+    Sequential unlocking: each category unlocks when previous category has >= 2 documents
     Returns dict with category name as key and progress info as value
     """
     category_progress = {}
 
+    # First pass: calculate completed documents and percentage for all categories
     for category_name, category_docs in CATEGORIES.items():
         total_docs = len(category_docs)
         completed_docs = 0
@@ -108,20 +113,27 @@ def calculate_category_progress(document_types: set) -> dict:
         # Calculate percentage
         percentage = round((completed_docs / total_docs) * 100, 2) if total_docs > 0 else 0
 
-        # Determine lock status
-        # Clarify category is always unlocked (starting point for users)
-        # Other categories are unlocked if at least 2 document types exist
-        if category_name == "Clarify":
-            is_unlocked = True
-        else:
-            is_unlocked = completed_docs >= 2
-
         category_progress[category_name] = {
             "total_documents": total_docs,
             "completed_documents": completed_docs,
             "percentage": percentage,
-            "status": "unlocked" if is_unlocked else "locked"
+            "status": "locked"  # Will be updated in next pass
         }
+
+    # Second pass: determine lock status based on sequential unlocking
+    for i, category_name in enumerate(CATEGORY_SEQUENCE):
+        if i == 0:
+            # First category (Clarify) is always unlocked
+            category_progress[category_name]["status"] = "unlocked"
+        else:
+            # Unlock if previous category has >= 2 completed documents
+            previous_category = CATEGORY_SEQUENCE[i - 1]
+            previous_completed = category_progress[previous_category]["completed_documents"]
+
+            if previous_completed >= 2:
+                category_progress[category_name]["status"] = "unlocked"
+            else:
+                category_progress[category_name]["status"] = "locked"
 
     return category_progress
 

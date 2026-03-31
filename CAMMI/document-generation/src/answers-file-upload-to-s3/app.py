@@ -27,7 +27,9 @@ DOCUMENT_CREDITS = {
     "mr": 5,         # Market Research
     "messaging": 5,  # Messaging Document
     "brand": 5,      # Brand Document
-    "icp2": 5        # ICP v2
+    "icp2": 5,        # ICP v2
+    "qmp": 5,        # Quaterly Marketing Plan
+    "cc": 5         #Content Calendar
 }
 
 

@@ -77,7 +77,7 @@ Resources:
               - !Ref S3BucketName
           object:
             key:
-              - wildcard: 'pdf_files/'
+              - wildcard: 'pdf_files/*'
       Targets:
         - Id: "PdfExtractionTrigger"
           RoleArn: !GetAtt PdfExtractionEventRole.Arn

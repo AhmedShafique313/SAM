@@ -77,19 +77,11 @@ Resources:
               - !Ref S3BucketName
           object:
             key:
-              - wildcard: 'pdf_files/*'
+              - wildcard: 'pdf_files/'
       Targets:
         - Id: "PdfExtractionTrigger"
           RoleArn: !GetAtt PdfExtractionEventRole.Arn
           Arn: !GetAtt PdfExtractionFunction.Arn
-
-  PdfExtractionLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref PdfExtractionFunction
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt PdfExtractionEventRule.Arn
 
   UploadFunction:
     Type: AWS::Serverless::Function

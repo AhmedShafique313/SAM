@@ -101,6 +101,8 @@ Resources:
     DependsOn:
       - IAMStack
       - S3Stack
+      - LayersStack
+      - DynamoDBStack
     Properties:
       Location: brand-setup/template.yaml
       Parameters:

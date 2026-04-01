@@ -42,6 +42,47 @@ Resources:
       Layers:
         - !ImportValue PdfLibrariesLayerArn
 
+  PdfExtractionEventRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: PdfExtractionEventRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: PdfExtractionEventPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+
+  PdfExtractionEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: PdfExtractionEventRule
+      EventPattern:
+        source:
+          - aws.s3
+        detail-type:
+          - Object Created
+        detail:
+          bucket:
+            name:
+              - !Ref S3BucketName
+          object:
+            key:
+              - prefix: 'pdf_files/'
+      Targets:
+        - Id: "PdfExtractionTrigger"
+          RoleArn: !GetAtt PdfExtractionEventRole.Arn
+          Arn: !GetAtt PdfExtractionFunction.Arn
+
   UploadFunction:
     Type: AWS::Serverless::Function
     Properties:

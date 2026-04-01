@@ -79,7 +79,12 @@ def lambda_handler(event, context):
         Params={
             "Bucket": BUCKET_NAME,
             "Key": object_key,
-            "ContentType": "application/pdf"
+            "ContentType": "application/pdf",
+            "Metadata": {
+                "session-id": session_id,
+                "project-id": project_id,
+                "filename": file_name
+            }
         },
         ExpiresIn=300,
         HttpMethod="PUT"

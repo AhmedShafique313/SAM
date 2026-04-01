@@ -38,7 +38,9 @@ Resources:
       MemorySize: 128
       Tracing: Active
       Description: Handles PDF extraction for brand setup
-      Role: !ImportValue CAMMI-LambdaRoleArn  
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue PdfLibrariesLayerArn
 
   UploadFunction:
     Type: AWS::Serverless::Function
@@ -48,10 +50,12 @@ Resources:
       CodeUri: src/upload/
       Runtime: python3.13
       Timeout: 900
-      MemorySize: 128
+      MemorySize: 512
       Tracing: Active
-      Description: Handles frontend_to_s3
+      Description: Handles PDF upload and processing with fact extraction
       Role: !ImportValue CAMMI-LambdaRoleArn
+      Layers:
+        - !ImportValue PdfLibrariesLayerArn
       Environment:
         Variables:
           S3_BUCKET_NAME: !Ref S3BucketName

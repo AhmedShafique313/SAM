@@ -26,11 +26,32 @@ STATE_TABLE_NAME = os.environ.get('STATE_TABLE_NAME', 'project-state-table')
 USERS_TABLE_NAME = os.environ.get('USERS_TABLE', 'users-table')
 S3_BUCKET = os.environ.get('S3_BUCKET', 'cammi-devprod')
 CONVERSATION_TABLE_NAME = os.environ.get('CONVERSATION_TABLE_NAME', 'conversation-history-table')
-BEDROCK_MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0'
+SECTION_STATE_TABLE_NAME = os.environ.get('SECTION_STATE_TABLE_NAME', 'clarify-align-state-table')
+BEDROCK_MODEL_ID = 'us.anthropic.claude-sonnet-4-20250514-v1:0'
 facts_table = dynamodb.Table(FACTS_TABLE_NAME)
 state_table = dynamodb.Table(STATE_TABLE_NAME)
 users_table = dynamodb.Table(USERS_TABLE_NAME)
 conversation_table = dynamodb.Table(CONVERSATION_TABLE_NAME)
+section_state_table = dynamodb.Table(SECTION_STATE_TABLE_NAME)
+
+# Section definitions
+CLARIFY_DOCUMENTS = ["GTM", "SMP", "MR", "BRAND", "MESSAGING", "ICP", "SR", "KMF", "BS", "ICP2"]
+ALIGN_DOCUMENTS = ["CC", "QMP"]
+SECTION_CLARIFY = "clarify"
+SECTION_ALIGN = "align"
+MIN_CLARIFY_DOCS_FOR_ALIGN = 2
+
+ALIGN_INTRO_ONCE_TEXT = (
+    "Welcome to **Align**! 🎉\n\n"
+    "You've put in the work in Clarify — now this is where your strategy turns into a plan you can actually execute.\n\n"
+    "The Align section has two documents: your **Content Calendar** and your **Quarterly Marketing Plan**. "
+    "Both are built directly from everything you've already shared with me — your audience, your messaging, your goals — "
+    "so you're not starting from scratch, you're building on what's already there.\n\n"
+    "Your **Content Calendar** maps out what content you're putting out, when, and across which channels — "
+    "organized by funnel stage so nothing falls through the cracks. "
+    "Your **Quarterly Marketing Plan** takes your strategy and breaks it into a focused 90-day execution plan "
+    "with clear priorities and actions."
+)
 
 # ============================================================================
 # FACT UNIVERSE (UNCHANGED)
@@ -103,114 +124,150 @@ FACT_UNIVERSE = {
     "assets.brag_points": "Notable achievements",
     "assets.visual_assets": "Visual assets available",
     "assets.spokesperson_name": "Company spokesperson name",
-    "assets.spokesperson_role": "Spokesperson role or title"
+    "assets.spokesperson_role": "Spokesperson role or title",
+    "content.calendar_timeframe": "Time period the content calendar covers",
+    "content.special_activities": "Special events, launches, or activities to include in content calendar",
+    "content.pillars": "Key content themes or pillars",
+    "content.channels": "Content distribution channels (LinkedIn, blog, email, etc.)",
+    "content.formats": "Content formats to be used (articles, infographics, videos, etc.)",
+    "content.funnel_stages_priority": "Which funnel stages to prioritize (Top, Middle, Bottom)",
+    "strategy.quarter_timeframe": "Specific quarter being planned (e.g., Q4 2024)",
+    "strategy.quarterly_special_activities": "Major activities or launches planned for the quarter",
+    "strategy.quarterly_goals": "Five specific measurable goals for the quarter",
+    "strategy.kpi_targets": "Key performance indicator targets for quarterly goals",
+    "strategy.marketing_team_structure": "Marketing team roles and owners for tactical execution"
 }
 
-
+    
 # ============================================================================
 # GLOBAL HARVESTERS (UNCHANGED)
 # ============================================================================
 
 GLOBAL_HARVESTERS = {
     "Q01_BUSINESS_OVERVIEW": {
-        "question": "Tell me the basics - what is your company called (the official name), and what does it do? Please include the business name and give me both a quick summary and the full picture.",
+        "question": "Let's start with the basics — what's your company called and what does it do? I'd love to hear both the quick elevator pitch and the bigger picture of what you're building.",
         "primary_facts": ["business.name", "business.description_short", "business.description_long", "business.industry"],
         "secondary_facts": ["business.business_model", "product.type"]
     },
     "Q02_CORE_OFFERING": {
-        "question": "What's your main product or service, and what's the key value it delivers to customers?",
+        "question": "Tell me about what you actually sell or offer — and more importantly, why should someone care? Like, what's the thing that makes a customer go \"yes, I need this\"?",
         "primary_facts": ["product.core_offering", "product.value_proposition_short", "product.value_proposition_long"],
         "secondary_facts": ["product.type"]
     },
     "Q03_PROBLEM_SOLUTION": {
-        "question": "What problem do you solve, and why do customers choose you over alternatives?",
+        "question": "Every great business solves a real problem. What's the one you're tackling, and when someone picks you over the other options out there — what's the reason? What makes you the one they go with?",
         "primary_facts": ["product.problems_solved", "product.unique_differentiation"],
         "secondary_facts": ["market.why_alternatives_fail"]
     },
     "Q04_BUSINESS_STAGE": {
-        "question": "What stage is your business at (startup, growth, mature)? When did you start, and what's your next major milestone?",
+        "question": "I'd love to know where you are in your journey — are you just getting off the ground, in full growth mode, or more established at this point? When did things kick off, and what's the next big milestone you're pushing toward?",
         "primary_facts": ["business.stage", "business.start_date", "business.end_date_or_milestone"],
         "secondary_facts": []
     },
     "Q05_PRICING": {
-        "question": "How do you position your pricing in the market? What's your typical deal size or contract value?",
+        "question": "Let's talk pricing — do you position yourself as the affordable option, somewhere in the middle, or more on the premium side? And roughly, what does a typical deal or contract look like in terms of value?",
         "primary_facts": ["business.pricing_position", "revenue.pricing_position", "revenue.average_contract_value"],
         "secondary_facts": []
     },
     "Q06_TARGET_CUSTOMER": {
-        "question": "Who is your ideal customer? Describe them in terms of industry, company size, and geography.",
+        "question": "Now let's talk about who you're really going after. If you could describe your dream customer — what industry are they in, how big is their company, and where in the world are they?",
         "primary_facts": ["customer.primary_customer", "customer.industries", "customer.company_size", "customer.geography"],
         "secondary_facts": ["business.geography"]
     },
     "Q07_BUYER_ROLES": {
-        "question": "Who's involved in buying your product? Who's the decision maker, and who actually uses it?",
+        "question": "When a deal actually happens, walk me through how it works — who's the one making the final call to buy, who else is involved in that decision, and who's the person that actually ends up using your product day-to-day?",
         "primary_facts": ["customer.buyer_roles", "customer.decision_maker", "customer.user_roles"],
         "secondary_facts": []
     },
     "Q08_BUYER_MOTIVATIONS": {
-        "question": "What are your buyers trying to achieve, and what pressures or constraints do they face?",
+        "question": "Think about the people who buy from you — what are they really trying to accomplish? And on the flip side, what pressures or frustrations are they dealing with that push them to look for something like what you offer?",
         "primary_facts": ["customer.buyer_goals", "customer.buyer_pressures"],
         "secondary_facts": []
     },
     "Q09_CUSTOMER_PROBLEMS": {
-        "question": "What's the biggest problem or pain point your customers face? What gaps exist in their current solutions?",
+        "question": "What's the single biggest headache your customers are dealing with before they find you? And when you look at the solutions they've tried before — what's missing? What are those solutions getting wrong?",
         "primary_facts": ["customer.problems", "customer.pains", "customer.solution_gaps"],
         "secondary_facts": []
     },
     "Q10_CURRENT_SOLUTIONS": {
-        "question": "How do your customers solve this problem today? Where do they look for information when researching solutions?",
+        "question": "Before your customers find you, how are they dealing with this problem on their own? Are they using some other tool, doing it manually, or just living with it? And when they start looking for something better, where do they actually go — Google, LinkedIn, asking peers, something else?",
         "primary_facts": ["customer.current_solutions", "customer.information_sources"],
         "secondary_facts": []
     },
     "Q11_COMPETITORS": {
-        "question": "Who are your direct competitors, and what alternatives do customers consider?",
+        "question": "Let's talk about the competitive landscape. Who are the names that come up most when your customers are comparing options? Both the direct competitors and the alternatives people consider instead of going with you.",
         "primary_facts": ["market.competitors", "market.alternatives"],
         "secondary_facts": []
     },
     "Q12_COMPETITIVE_ADVANTAGE": {
-        "question": "What are your key strengths and weaknesses? Why do alternatives fail your customers?",
+        "question": "Be honest with me here — what are you genuinely great at, and where do you know you could be stronger? And when customers go with one of those alternatives instead, what usually goes wrong for them — why do those options fall short?",
         "primary_facts": ["product.strengths", "product.weaknesses", "market.why_alternatives_fail"],
         "secondary_facts": []
     },
     "Q13_MARKET_LANDSCAPE": {
-        "question": "What's the size of your market? What trends, opportunities, or threats do you see?",
+        "question": "Zooming out a bit — do you have a sense of how big your market is? And what's shifting in your space right now — any trends that excite you, new opportunities opening up, or things that keep you up at night?",
         "primary_facts": ["market.market_size_estimate", "market.trends_or_shifts", "market.opportunities", "market.threats"],
         "secondary_facts": ["revenue.market_size"]
     },
     "Q14_SHORT_TERM_GOALS": {
-        "question": "What are your top priorities and goals for the next 12 months?",
+        "question": "Looking at the next 12 months — what are the big things you're trying to make happen? If you had to pick your top priorities and goals for the year ahead, what would they be?",
         "primary_facts": ["strategy.short_term_goals", "strategy.priorities"],
         "secondary_facts": ["strategy.marketing_objectives", "strategy.user_growth_priorities"]
     },
     "Q15_LONG_TERM_VISION": {
-        "question": "Where do you want the business to be in 3-5 years? How do you define success?",
+        "question": "Now let's think bigger — where do you want this business to be in 3 to 5 years? And when you picture \"we made it\" — what does that actually look like for you? What's your definition of success?",
         "primary_facts": ["strategy.long_term_vision", "strategy.success_definition"],
         "secondary_facts": []
     },
     "Q16_GTM_STRATEGY": {
-        "question": "How are you acquiring customers today or planning to? What channels and tools do you use?",
+        "question": "How are you actually getting customers through the door right now? Whether it's outbound, content, ads, referrals, partnerships — whatever it is. And are there specific tools or platforms you're relying on to make that happen?",
         "primary_facts": ["strategy.gtm_focus", "strategy.marketing_tools"],
         "secondary_facts": ["strategy.marketing_budget", "revenue.marketing_budget"]
     },
     "Q17_BRAND_MISSION": {
-        "question": "What's your company's mission? What's your vision for the future?",
+        "question": "This one's a bit deeper — why does your company exist beyond making money? What's the mission that drives you? And if you zoom out to the big picture, what's the vision for what you want this to become?",
         "primary_facts": ["brand.mission", "brand.vision"],
         "secondary_facts": []
     },
     "Q18_BRAND_PERSONALITY": {
-        "question": "How should your brand sound and feel? What tone, values, and personality do you want to convey?",
+        "question": "Imagine your brand is a person at a dinner party — how do they talk, what do they stand for, what's their energy like? Are you more playful or serious, bold or understated? And is there a vibe you definitely want to stay away from?",
         "primary_facts": ["brand.tone_personality", "brand.values_themes"],
         "secondary_facts": ["brand.vibes_to_avoid"]
     },
     "Q19_KEY_MESSAGES": {
-        "question": "What are the key messages you want customers to remember about your brand?",
+        "question": "If someone walks away from your website or a conversation with your team and they can only remember one or two things — what do you want those things to be? What's the core message that should stick?",
         "primary_facts": ["brand.key_messages"],
         "secondary_facts": []
     },
     "Q20_ASSETS": {
-        "question": "What marketing assets do you have? (customer logos, case studies, testimonials, videos, spokesperson info)",
+        "question": "Let's take stock of what you've already got to work with. Do you have any customer stories, testimonials, case studies, logos you can show off, videos, or maybe a go-to spokesperson? Even rough stuff counts — I just want to know what's in the toolkit.",
         "primary_facts": ["assets.approved_customers", "assets.case_studies", "assets.quotes", "assets.brag_points"],
         "secondary_facts": ["assets.videos", "assets.logos", "assets.visual_assets", "assets.spokesperson_name", "assets.spokesperson_role"]
+    },
+    "Q21_CONTENT_CALENDAR_TIMEFRAME": {
+        "question": "For your content calendar — what timeframe are we planning for? Like the next month, quarter, or longer? And is there anything specific we should build around — a product launch, an event, a seasonal push, anything like that?",
+        "primary_facts": ["content.calendar_timeframe", "content.special_activities"],
+        "secondary_facts": []
+    },
+    "Q22_CONTENT_STRATEGY": {
+        "question": "Let's shape your content plan. What are the main topics or themes you want to be known for? Where are you going to publish — LinkedIn, your blog, email, somewhere else? And what's the main goal — getting new eyeballs on your brand, warming up people who already know you, or pushing them to actually buy?",
+        "primary_facts": ["content.pillars", "content.channels", "content.formats", "content.funnel_stages_priority"],
+        "secondary_facts": ["strategy.marketing_tools"]
+    },
+    "Q23_QUARTERLY_TIMEFRAME": {
+        "question": "Which quarter are we planning for — like Q1 2025, Q2, etc.? And what's happening during that quarter — any big launches, campaigns, events, or milestones that the plan should be built around?",
+        "primary_facts": ["strategy.quarter_timeframe", "strategy.quarterly_special_activities"],
+        "secondary_facts": ["business.start_date"]
+    },
+    "Q24_QUARTERLY_GOALS_KPIS": {
+        "question": "For this quarter, what are the 3 to 5 things you really want to accomplish? Be as specific as you can. And how will you actually know if it's working — what numbers or metrics are you going to keep an eye on?",
+        "primary_facts": ["strategy.quarterly_goals", "strategy.kpi_targets"],
+        "secondary_facts": ["strategy.short_term_goals", "strategy.success_definition"]
+    },
+    "Q25_MARKETING_TEAM": {
+        "question": "Tell me about your marketing team — who's on it and what does each person own? Even if it's just you wearing all the hats, that's totally fine — I just want to know who's doing what so the plan is realistic.",
+        "primary_facts": ["strategy.marketing_team_structure"],
+        "secondary_facts": []
     }
 }
 
@@ -340,6 +397,32 @@ DOCUMENT_REQUIREMENTS = {
             "assets.spokesperson_name", "assets.spokesperson_role",
             "assets.visual_assets"
         ]
+    },
+    "CC": {
+        "name": "Content Calendar",
+        "required_facts": [
+            "content.calendar_timeframe", "customer.primary_customer",
+            "content.channels", "content.funnel_stages_priority",
+            "strategy.marketing_objectives"
+        ],
+        "supporting_facts": [
+            "content.special_activities", "content.pillars",
+            "content.formats", "strategy.marketing_tools",
+            "brand.tone_personality"
+        ]
+    },
+    "QMP": {
+        "name": "Quarterly Marketing Plan",
+        "required_facts": [
+            "strategy.quarter_timeframe", "strategy.quarterly_goals",
+            "strategy.kpi_targets", "strategy.marketing_team_structure",
+            "business.name"
+        ],
+        "supporting_facts": [
+            "strategy.quarterly_special_activities", "strategy.short_term_goals",
+            "strategy.priorities", "strategy.marketing_objectives",
+            "strategy.marketing_budget"
+        ]
     }
 }
 
@@ -393,6 +476,16 @@ DOCUMENT_DESCRIPTIONS = {
         "name": "Brand Strategy",
         "short": "Define why your brand exists and how it wins",
         "description": "Explains why the brand exists and how it wins in the market."
+    },
+    "CC": {
+        "name": "Content Calendar",
+        "short": "Plan and schedule content across channels and funnel stages",
+        "description": "A structured calendar that organizes content publishing across channels, funnel stages, and time periods. It aligns content themes with marketing goals and ensures consistent, strategic content distribution."
+    },
+    "QMP": {
+        "name": "Quarterly Marketing Plan",
+        "short": "Set quarterly goals, KPIs, and tactical execution plans",
+        "description": "A comprehensive quarterly execution plan that defines 5 specific marketing goals, assigns KPIs to measure success, and breaks down tactics with owners and timelines for systematic implementation."
     }
 }
 
@@ -403,10 +496,12 @@ DOCUMENT_PROGRESSION = {
     "BRAND": {"natural_next": ["BS", "KMF"], "reasoning": {"BS": "Build strategic positioning behind your brand", "KMF": "Structure brand messaging into a framework"}},
     "MR": {"natural_next": ["GTM", "ICP", "SR"], "reasoning": {"GTM": "Use market insights for go-to-market planning", "ICP": "Define your ideal customer from market research", "SR": "Create a roadmap informed by market trends"}},
     "KMF": {"natural_next": ["SMP", "GTM"], "reasoning": {"SMP": "Turn messaging framework into marketing execution", "GTM": "Build go-to-market strategy using structured messaging"}},
-    "SR": {"natural_next": ["SMP", "GTM"], "reasoning": {"SMP": "Create marketing plan aligned with your roadmap", "GTM": "Execute strategy with a go-to-market plan"}},
-    "SMP": {"natural_next": ["GTM"], "reasoning": {"GTM": "Bring everything together in a comprehensive GTM document"}},
-    "GTM": {"natural_next": ["SR", "SMP"], "reasoning": {"SR": "Plan strategic milestones for GTM execution", "SMP": "Detail marketing execution from GTM strategy"}},
-    "BS": {"natural_next": ["BRAND", "SMP"], "reasoning": {"BRAND": "Create visual/verbal identity for brand strategy", "SMP": "Build marketing plan for brand strategy"}}
+    "SR": {"natural_next": ["SMP", "GTM", "QMP"], "reasoning": {"SMP": "Create marketing plan aligned with your roadmap", "GTM": "Execute strategy with a go-to-market plan", "QMP": "Break down your strategy into quarterly execution plans"}},
+    "SMP": {"natural_next": ["GTM", "QMP", "CC"], "reasoning": {"GTM": "Bring everything together in a comprehensive GTM document", "QMP": "Create quarterly execution plans from your strategic marketing plan", "CC": "Schedule and organize content to execute your marketing strategy"}},
+    "GTM": {"natural_next": ["SR", "SMP", "QMP", "CC"], "reasoning": {"SR": "Plan strategic milestones for GTM execution", "SMP": "Detail marketing execution from GTM strategy", "QMP": "Break GTM into quarterly tactical plans", "CC": "Plan content calendar to support GTM execution"}},
+    "BS": {"natural_next": ["BRAND", "SMP"], "reasoning": {"BRAND": "Create visual/verbal identity for brand strategy", "SMP": "Build marketing plan for brand strategy"}},
+    "CC": {"natural_next": ["QMP", "SMP"], "reasoning": {"QMP": "Turn content plans into quarterly execution with KPIs and tactics", "SMP": "Align content calendar with broader strategic marketing initiatives"}},
+    "QMP": {"natural_next": ["CC", "SR"], "reasoning": {"CC": "Schedule content to support quarterly goals and tactics", "SR": "Plan long-term roadmap after completing quarterly execution"}}
 }
 
 # ============================================================================
@@ -449,6 +544,9 @@ LAYER_REVIEW = "REVIEW"
 LAYER_GENERATION = "GENERATION"
 LAYER_POST_GENERATION = "POST_GENERATION"
 
+# Exact frontend trigger for the Improve Now button
+IMPROVE_QUALITY_TRIGGER = "The user wants to improve the quality of the selected document"
+
 # ============================================================================
 # STATE SCHEMA
 # ============================================================================
@@ -466,6 +564,7 @@ class ConversationState(TypedDict):
     generating_document: Optional[str]
     interrupted_document: Optional[str]
     completed_documents: List[str]
+    current_tab: str
     current_question_id: Optional[str]
     asked_questions: List[str]
     pending_questions: List[str]
@@ -768,7 +867,7 @@ def invoke_bedrock(system_prompt: str, user_message: str, temperature: float = 0
         response_body = json.loads(response['body'].read())
         return response_body['content'][0]['text']
     except Exception as e:
-        print(f"Error invoking Bedrock: {e}")
+        print(f"BEDROCK INVOKE ERROR [{type(e).__name__}] Model: {BEDROCK_MODEL_ID} | Error: {e}")
         return ""
 
 
@@ -802,11 +901,83 @@ def invoke_bedrock_json(system_prompt: str, user_message: str, temperature: floa
         parsed = json.loads(text)
         return parsed
     except json.JSONDecodeError as e:
-        print(f"JSON PARSE ERROR: {e}")
+        print(f"BEDROCK JSON PARSE ERROR | Model: {BEDROCK_MODEL_ID} | Error: {e} | Raw response preview: {text[:200] if 'text' in locals() else 'N/A'}")
         return {}
     except Exception as e:
-        print(f"BEDROCK ERROR: {e}")
+        print(f"BEDROCK INVOKE ERROR [{type(e).__name__}] Model: {BEDROCK_MODEL_ID} | Error: {e}")
         return {}
+
+
+# ============================================================================
+# SECTION STATE MANAGEMENT (Clarify/Align)
+# ============================================================================
+
+def get_current_section_state(project_id: str) -> Dict[str, Any]:
+    """
+    Retrieves the current section state for a project.
+    Returns a dict with 'current_tab' and 'completed_documents' list.
+    """
+    try:
+        response = section_state_table.get_item(Key={'project_id': project_id})
+        if 'Item' in response:
+            item = response['Item']
+            print(f"🔍 SECTION STATE RAW DB ITEM: {dict(item)}")
+            result = {
+                'current_tab': item.get('current_tab', SECTION_CLARIFY),
+                'completed_documents': item.get('completed_documents', []),
+                'align_intro_shown': item.get('align_intro_shown', False)
+            }
+            print(f"🔍 SECTION STATE PARSED: current_tab={repr(result['current_tab'])}, align_intro_shown={repr(result['align_intro_shown'])}, type={type(result['align_intro_shown'])}")
+            return result
+        else:
+            # Default: start in Clarify section with no completed docs
+            return {
+                'current_tab': SECTION_CLARIFY,
+                'completed_documents': [],
+                'align_intro_shown': False
+            }
+    except Exception as e:
+        print(f"Error loading section state: {e}")
+        return {
+            'current_tab': SECTION_CLARIFY,
+            'completed_documents': [],
+            'align_intro_shown': False
+        }
+
+
+def update_section_state(project_id: str, current_tab: str, completed_documents: List[str], align_intro_shown: bool = False) -> bool:
+    """
+    Updates the section state for a project.
+    """
+    try:
+        section_state_table.put_item(Item={
+            'project_id': project_id,
+            'current_tab': current_tab,
+            'completed_documents': completed_documents,
+            'align_intro_shown': align_intro_shown,
+            'updated_at': datetime.utcnow().isoformat()
+        })
+        return True
+    except Exception as e:
+        print(f"Error updating section state: {e}")
+        return False
+
+
+def check_align_eligibility(completed_documents: List[str]) -> Dict[str, Any]:
+    """
+    Checks if the user is eligible to access Align section.
+    Returns dict with 'is_eligible', 'clarify_count', 'min_required'.
+    """
+    clarify_completed = [doc for doc in completed_documents if doc in CLARIFY_DOCUMENTS]
+    clarify_count = len(clarify_completed)
+    is_eligible = clarify_count >= MIN_CLARIFY_DOCS_FOR_ALIGN
+
+    return {
+        'is_eligible': is_eligible,
+        'clarify_count': clarify_count,
+        'min_required': MIN_CLARIFY_DOCS_FOR_ALIGN,
+        'clarify_completed': clarify_completed
+    }
 
 
 # ============================================================================
@@ -1050,15 +1221,17 @@ Respond with JSON:
 def build_initial_state(
     project_id: str, user_id: str, session_id: str, user_message: str
 ) -> ConversationState:
-    # Parallelize all three independent DB reads
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    # Parallelize all four independent DB reads
+    with ThreadPoolExecutor(max_workers=4) as executor:
         future_state = executor.submit(load_project_state, project_id)
         future_facts = executor.submit(load_facts, project_id)
         future_history = executor.submit(load_conversation_history, project_id)
+        future_section = executor.submit(get_current_section_state, project_id)
 
         db_state = future_state.result()
         facts = future_facts.result()
         conversation_history = future_history.result()
+        section_state = future_section.result()
 
     if not db_state:
         db_state = initialize_project_state(project_id, user_id, session_id)
@@ -1075,6 +1248,8 @@ def build_initial_state(
         'generating_document': db_state.get('generating_document'),
         'interrupted_document': db_state.get('interrupted_document'),
         'completed_documents': db_state.get('completed_documents', []),
+        'current_tab': section_state.get('current_tab', SECTION_CLARIFY),
+        'align_intro_shown': section_state.get('align_intro_shown', False),
         'current_question_id': db_state.get('current_question_id'),
         'asked_questions': db_state.get('asked_questions', []),
         'pending_questions': db_state.get('pending_questions', []),
@@ -1191,6 +1366,36 @@ def _build_state_summary(state: ConversationState) -> str:
         )
 
     return "\n".join(summary_parts)
+
+
+def _is_affirmative_message(message: str) -> bool:
+    msg = (message or "").strip().lower().rstrip('.!,?')
+    affirmative = {
+        'yes', 'y', 'yeah', 'yep', 'sure', 'ok', 'okay', 'go ahead',
+        'proceed', 'generate', 'create it', 'do it', 'sounds good',
+        'looks good', 'approved', 'confirm'
+    }
+    return msg in affirmative or any(
+        phrase in msg for phrase in ['go ahead', 'sounds good', 'looks good', 'create it', 'generate it']
+    )
+
+
+def _is_negative_message(message: str) -> bool:
+    msg = (message or "").strip().lower().rstrip('.!,?')
+    negative = {
+        'no', 'n', 'nope', 'nah', 'not now', 'cancel', 'skip',
+        'i will type', "i'll type", 'type myself', 'let me edit'
+    }
+    return msg in negative or any(
+        phrase in msg for phrase in ['type myself', 'i will type', "i'll type", 'let me edit', 'not now']
+    )
+
+
+def _truncate_preview_value(value: str, max_len: int = 1400) -> str:
+    text = str(value or '').strip().replace('\n', ' ')
+    text = re.sub(r'\s+', ' ', text)
+    # Improve preview must preserve full values; do not truncate with ellipsis.
+    return text
 
 
 
@@ -1633,11 +1838,11 @@ EXTRACTABLE FACTS (if user shares business info):
 YOUR BEHAVIOUR:
 
 FIRST MESSAGE (no conversation history):
-- If new user: Give a punchy 4-part intro (no more than 5 sentences total):
+- If new user: Give a punchy intro (no more than 5 sentences total):
   1. One-line intro: you're Cammi's document assistant.
   2. A quick teaser of what you create (mention 4-5 specific document types by name, e.g. Ideal Customer Profile, Messaging Framework, Brand Strategy, GTM Plan, Market Research).
   3. One line on how it works: you ask targeted questions, gather info, generate a tailored document — no templates, no generic filler.
-  4. End with one direct question: "First up — what does your company do?"
+  4. End with one direct question: Check the 'Facts collected' array. If you already have business info (like business description or model), incorporate what you know into the sentence and ask "To help us pick the best document to start with, what is your biggest marketing focus right now? (e.g. finding buyers, refining your brand, launching a new service, etc.)". If you DO NOT have business info, ask "To help us pick the right place to start, I just need a little bit of context. First up — what does your company do?".
   Do NOT offer passive choices. Do NOT dump the full list. Be confident and energetic, not corporate.
 - If returning user: Welcome them back. Mention what you know about their business and what documents they have completed. Ask what they would like to work on next.
 
@@ -1656,7 +1861,7 @@ Read the conversation history and the user's message. Determine what they want:
 
 6. ASKING TO SEE ALL DOCUMENTS: If user asks to see all options / what documents are available, include the document list in your response in a clean format.
 
-7. POST-GENERATION GUIDANCE: If we just completed a document, proactively celebrate and suggest the recommended next steps. If user wants to chat for a bit, that is fine — be conversational for 2-3 messages but gently guide back to document selection.
+7. POST-GENERATION GUIDANCE: If we just completed a document, proactively celebrate and suggest the recommended next steps to create a NEW document. IMPORTANT: The user can already view the completed document in their dashboard or chat. DO NOT offer to review, discuss, summarize, or output the generated document in the chat. Provide ONLY options to create the next logical document or ask what new strategy they'd like to work on.
 
 8. GENERAL/OFF-TOPIC: If the user says something casual or off-topic, be friendly and brief (1 sentence), then gently steer back. After 2-3 general messages, be more direct about guiding them toward picking a document.
 
@@ -1719,27 +1924,87 @@ Respond with valid JSON only:
         result = invoke_bedrock_json(formatted_prompt, json.dumps(context, default=str))
     except Exception as e:
         print(f"❌ Discovery sticky LLM error: {e}")
-        state['response'] = (
-            "Hey! 👋 I'm Cammi's document assistant.\n\n"
-            "I help businesses build things like Ideal Customer Profiles, Messaging Frameworks, Brand Strategy, GTM Plans, Market Research, and more — all through a quick conversation.\n\n"
-            "How it works: I ask you a few targeted questions, gather the right info, and generate a tailored document. No templates, no generic filler.\n\n"
-            "**First up — what does your company do?**"
+        # Build dynamic fallback greeting
+        has_business_desc = any(
+            state.get('facts', {}).get(f, {}).get('value') 
+            for f in ['business.description_short', 'business.description_long', 'business.business_model']
         )
+        if has_business_desc:
+            business_name = state.get('facts', {}).get('business.name', {}).get('value', '').strip()
+            desc = state.get('facts', {}).get('business.description_short', {}).get('value') or \
+                   state.get('facts', {}).get('business.business_model', {}).get('value') or \
+                   state.get('facts', {}).get('business.description_long', {}).get('value') or ''
+            
+            if business_name and desc:
+                phrase = f"**{business_name}** — **{desc}**"
+            elif business_name:
+                phrase = f"**{business_name}**"
+            elif desc:
+                phrase = f"a **{desc}**"
+            else:
+                phrase = "**your business**"
+
+            fallback_msg = (
+                "Hey! 👋 I'm Cammi's document assistant.\n\n"
+                "I help businesses build things like Ideal Customer Profiles, Messaging Frameworks, Brand Strategy, GTM Plans, Market Research, and more.\n\n"
+                f"I see you're building {phrase}!\n\n"
+                "**To help us pick the best document to start with, what is your biggest marketing focus right now?** (e.g. finding buyers, refining your brand, launching a new service, etc.)"
+            )
+        else:
+            fallback_msg = (
+                "Hey! 👋 I'm Cammi's document assistant.\n\n"
+                "I help businesses build things like Ideal Customer Profiles, Messaging Frameworks, Brand Strategy, GTM Plans, Market Research, and more.\n\n"
+                "How it works: I ask you a few targeted questions, gather the right info, and generate a tailored document.\n\n"
+                "To help us pick the right place to start, I just need a little bit of context.\n\n"
+                "**First up — what does your company do?**"
+            )
+            
+        state['response'] = fallback_msg
         state['layer_context'] = {'last_action': 'greeted_new'}
         state['last_agent'] = 'discovery_sticky'
         return state
 
     if not result or not result.get('response'):
-        state['response'] = (
-            "Hey! 👋 I'm Cammi's document assistant.\n\n"
-            "I help businesses build things like Ideal Customer Profiles, Messaging Frameworks, Brand Strategy, GTM Plans, Market Research, and more — all through a quick conversation.\n\n"
-            "How it works: I ask you a few targeted questions, gather the right info, and generate a tailored document. No templates, no generic filler.\n\n"
-            "**First up — what does your company do?**"
+        # Build dynamic fallback greeting
+        has_business_desc = any(
+            state.get('facts', {}).get(f, {}).get('value') 
+            for f in ['business.description_short', 'business.description_long', 'business.business_model']
         )
+        if has_business_desc:
+            business_name = state.get('facts', {}).get('business.name', {}).get('value', '').strip()
+            desc = state.get('facts', {}).get('business.description_short', {}).get('value') or \
+                   state.get('facts', {}).get('business.business_model', {}).get('value') or \
+                   state.get('facts', {}).get('business.description_long', {}).get('value') or ''
+            
+            if business_name and desc:
+                phrase = f"**{business_name}** — **{desc}**"
+            elif business_name:
+                phrase = f"**{business_name}**"
+            elif desc:
+                phrase = f"a **{desc}**"
+            else:
+                phrase = "**your business**"
+
+            fallback_msg = (
+                "Hey! 👋 I'm Cammi's document assistant.\n\n"
+                "I help businesses build things like Ideal Customer Profiles, Messaging Frameworks, Brand Strategy, GTM Plans, Market Research, and more.\n\n"
+                f"I see you're building {phrase}!\n\n"
+                "**To help us pick the best document to start with, what is your biggest marketing focus right now?** (e.g. finding buyers, refining your brand, launching a new service, etc.)"
+            )
+        else:
+            fallback_msg = (
+                "Hey! 👋 I'm Cammi's document assistant.\n\n"
+                "I help businesses build things like Ideal Customer Profiles, Messaging Frameworks, Brand Strategy, GTM Plans, Market Research, and more.\n\n"
+                "How it works: I ask you a few targeted questions, gather the right info, and generate a tailored document.\n\n"
+                "To help us pick the right place to start, I just need a little bit of context.\n\n"
+                "**First up — what does your company do?**"
+            )
+            
+        state['response'] = fallback_msg
         state['layer_context'] = {'last_action': 'greeted_new'}
         state['last_agent'] = 'discovery_sticky'
         return state
-
+   
     response_text = result.get('response', '')
     next_action = result.get('next_action', 'stay')
     document = result.get('document')
@@ -1829,16 +2094,50 @@ def handle_greet(state: ConversationState, action: Dict) -> ConversationState:
         )
         state['layer_context'] = {'last_action': 'greeted_returning'}
     else:
-        state['response'] = (
-            "Hey! 👋\n\n"
-            "I'm **Cammi** — your AI marketing document builder.\n\n"
-            "Share a bit about your business and I'll create tailored documents like:\n"
-            "→ Ideal Customer Profile\n"
-            "→ Go-To-Market Plan\n"
-            "→ Brand Strategy & Messaging\n"
-            "→ Market Research & more\n\n"
-            "**What does your company do?**"
+        # Check if we already have facts that describe what the company does
+        has_business_desc = any(
+            facts.get(f, {}).get('value') for f in ['business.description_short', 'business.description_long', 'business.business_model']
         )
+
+        if has_business_desc:
+            # User has pre-filled info from webapp onboarding — skip the basics, jump into the journey
+            business_name = facts.get('business.name', {}).get('value', '').strip()
+            desc = facts.get('business.description_short', {}).get('value') or \
+                   facts.get('business.business_model', {}).get('value') or \
+                   facts.get('business.description_long', {}).get('value') or ''
+
+            if business_name and desc:
+                name_phrase = f"**{business_name}** ({desc})"
+            elif business_name:
+                name_phrase = f"**{business_name}**"
+            elif desc:
+                name_phrase = f"your business ({desc})"
+            else:
+                name_phrase = "your business"
+
+            intro_text = (
+                "Hey! 👋 Welcome to your **Clarify Journey**.\n\n"
+                f"I already have some details about {name_phrase} from your profile, so we can hit the ground running.\n\n"
+                "This is where we build your marketing foundation together — up to 10 strategy documents covering your Ideal Customer Profile, "
+                "Go-To-Market Plan, Brand Strategy, Market Research, and more. "
+                "I'll use what I already know about your business and ask follow-up questions as we go, "
+                "so every document ends up tailored specifically to you.\n\n"
+                " Complete any 2 Clarify documents to unlock the **Align** section and keep moving forward.\n\n"
+                "You don't have to do it all at once — come back anytime and we'll pick up right where you left off.\n\n"
+                "**What's your biggest marketing focus right now?** (e.g. finding the right customers, nailing your messaging, planning your launch, etc.)"
+            )
+        else:
+            # Completely new user — no info at all
+            intro_text = (
+                "Hey! 👋\n\n"
+                "I'm **Cammi** — your AI marketing agent.\n\n"
+                "Welcome to the **Clarify** Section. This is where we turn your business ideas into a clear marketing foundation through key strategy documents like your **Ideal Customer Profile**, **Go-to-Market Plan**, and **Market Research** \n\n"
+                "At the top, you’ll see all the documents in this section. Click any name or tell me in chat to start. Not sure what to pick? We’ll figure it out together.\n\n Complete any 2 Clarify documents to unlock the **Align** section and keep moving forward.\n\n"
+                "You don't have to do it all at once — come back anytime, and we'll pick up right where you left off.\n\n"
+                "Let's start from the beginning — **what does your company do?**"
+            )
+
+        state['response'] = intro_text
         state['layer_context'] = {'last_action': 'greeted_new'}
 
     state['active_layer'] = LAYER_DISCOVERY
@@ -1929,6 +2228,33 @@ def handle_select_document(state: ConversationState, action: Dict) -> Conversati
         state['layer_context'] = {'last_action': 'asked_which_document'}
         state['active_layer'] = LAYER_DISCOVERY
         return state
+
+    # Check section and update current_tab accordingly
+    if doc_code in ALIGN_DOCUMENTS:
+        eligibility = check_align_eligibility(state['completed_documents'])
+        if not eligibility['is_eligible']:
+            doc_name = get_document_display_name(doc_code)
+            clarify_count = eligibility['clarify_count']
+            min_required = eligibility['min_required']
+            state['response'] = (
+                f"I'd love to help you with the **{doc_name}**, but you'll need to complete "
+                f"at least {min_required} Clarify documents first. "
+                f"You've completed {clarify_count} so far.\n\n"
+                f"Once you hit {min_required}, you'll unlock the Align section!"
+            )
+            state['layer_context'] = {'last_action': 'blocked_align_access'}
+            state['active_layer'] = LAYER_DISCOVERY
+            return state
+        else:
+            # User is eligible - switch to Align section via specific document selection
+            # Mark align_intro_shown=True since the user is entering Align with a specific doc
+            state['current_tab'] = SECTION_ALIGN
+            state['align_intro_shown'] = True
+            update_section_state(state['project_id'], SECTION_ALIGN, state['completed_documents'], align_intro_shown=True)
+    elif doc_code in CLARIFY_DOCUMENTS and state.get('current_tab') != SECTION_CLARIFY:
+        # User is in Align but selected a Clarify document — switch back to Clarify
+        state['current_tab'] = SECTION_CLARIFY
+        update_section_state(state['project_id'], SECTION_CLARIFY, state['completed_documents'], align_intro_shown=state.get('align_intro_shown', False))
 
     facts = state['facts']
     state['active_document'] = doc_code
@@ -2021,6 +2347,45 @@ def handle_inquire_document(state: ConversationState, action: Dict) -> Conversat
     profile = build_business_profile_summary(facts)
     readiness = calculate_document_readiness(doc_code, facts)
     active_doc = state.get('active_document')
+
+    # Check if this is an Align document and handle eligibility
+    if doc_code in ALIGN_DOCUMENTS:
+        eligibility = check_align_eligibility(state['completed_documents'])
+        doc_name = get_document_display_name(doc_code)
+
+        if not eligibility['is_eligible']:
+            # Not eligible - explain requirement
+            clarify_count = eligibility['clarify_count']
+            min_required = eligibility['min_required']
+            state['response'] = (
+                f"The **{doc_name}** is part of the Align section, which helps you coordinate your team "
+                f"and align everyone around your strategy.\n\n"
+                f"To access Align documents, you'll need to complete at least {min_required} Clarify documents first. "
+                f"You've completed {clarify_count} so far — just {min_required - clarify_count} more to go!"
+            )
+            state['layer_context'] = {'last_action': 'explained_align_requirement', 'inquired_doc': doc_code}
+            state['active_layer'] = LAYER_DISCOVERY
+            return state
+        else:
+            # Eligible - offer to switch to Align and create the document
+            current_tab = state.get('current_tab', SECTION_CLARIFY)
+            if current_tab == SECTION_CLARIFY:
+                # User is in Clarify but eligible for Align - explain and offer switch
+                if readiness['is_ready']:
+                    readiness_note = "I already have all the info needed to create it."
+                elif readiness['required_percentage'] > 0:
+                    readiness_note = f"I have {readiness['required_percentage']:.0f}% of the info — we'd just need to answer a few questions."
+                else:
+                    readiness_note = "We'd need to gather some information first."
+
+                state['response'] = (
+                    f"The **{doc_name}** is one of the Align documents — it helps {desc['description'].lower()}\n\n"
+                    f"{readiness_note}\n\n"
+                    f"Would you like to switch to the Align section and create your {doc_name}?"
+                )
+                state['layer_context'] = {'last_action': 'offered_align_switch', 'inquired_doc': doc_code}
+                state['active_layer'] = LAYER_DISCOVERY
+                return state
 
     # Build readiness context for the LLM
     if readiness['is_ready']:
@@ -2337,7 +2702,7 @@ CURRENT STATE:
 - Business profile: {business_profile}
 - Completed documents (already generated): {completed_docs}
 - Interrupted document (user left this doc to chat; mention lightly if relevant): {interrupted_doc}
-- Post-generation: we just generated a document: {is_post_gen}. If true, celebrate and suggest next steps; viewing info or creating another is primary.
+- Post-generation: we just generated a document: {is_post_gen}. If true, celebrate and suggest creating another document as the primary next step.
 - Conversation messages so far: {msg_count}
 
 ALL AVAILABLE DOCUMENTS:
@@ -2363,7 +2728,7 @@ YOUR BEHAVIOUR (same 11 rules as discovery):
 
 6. ASKING TO SEE ALL DOCUMENTS: Include the document list in your response in a clean format. Stay.
 
-7. POST-GENERATION: If we just completed a document, proactively celebrate and suggest next (e.g. view info, create another). If user chats for a bit, be conversational then gently guide back. Stay unless they commit to select_document or done.
+7. POST-GENERATION: If we just completed a document, proactively celebrate and suggest next steps to create a NEW document. IMPORTANT: The user can already view the completed document in their dashboard. DO NOT offer to review, discuss, summarize, or output the generated document in the chat. Provide ONLY options to create the next logical document or ask what new strategy they'd like to work on.
 
 8. GENERAL/OFF-TOPIC: Be friendly and brief, then gently steer back. Stay.
 
@@ -2568,19 +2933,19 @@ def handle_questioning_sticky(state: ConversationState) -> ConversationState:
     doc_name = get_document_display_name(doc_code)
     readiness = calculate_document_readiness(doc_code, state['facts'])
 
-    system_prompt = """You are helping a user complete a business document questionnaire. Use the context below to understand the situation and the user's intent.
+    system_prompt = """You are a friendly, sharp business advisor having a real conversation — not running a questionnaire. You're helping the user build a {current_document} by learning about their business one topic at a time. Your job: understand what they just said, extract business facts, and react like a real person who's genuinely interested in their business.
 
 CONTEXT:
-- Current document being created: {current_document} ({current_document_code})
-- Document progress: {readiness_pct}% complete
-- Current question we are asking: {current_question}
-- Facts to extract from this question (fact_id → description): {fact_descriptions}
-- Existing facts already collected: {existing_facts}
+- Document: {current_document} ({current_document_code}) — {readiness_pct}% complete
+- Current topic: {current_question}
+- Facts to extract: {fact_descriptions}
+- What we already know: {existing_facts}
+- Progress: {questions_asked} questions covered, {questions_remaining} to go
 
-ALL AVAILABLE DOCUMENTS (use these codes when user mentions switching/selecting a document):
+ALL AVAILABLE DOCUMENTS:
 {document_list}
 
-RECENT CONVERSATION (read this to understand flow, frustration, or what the user is responding to):
+RECENT CONVERSATION:
 {conversation_history}
 
 {affirmation_section}
@@ -2588,7 +2953,14 @@ RECENT CONVERSATION (read this to understand flow, frustration, or what the user
 YOUR TASK:
 Read the user's message in light of the conversation. Determine their intent:
 
-1. ANSWER: If they are providing business information that answers the current question — extract the relevant facts. Use the fact list. Set has_business_info=true and fill extracted_facts with values and confidence (0.0-1.0) for each.
+1. ANSWER: They're sharing business info that responds to the current topic.
+   - Extract facts: set has_business_info=true, fill extracted_facts with values and confidence 0.0-1.0.
+   - Generate an "acknowledgment" (1-2 sentences max) that reacts to what they SPECIFICALLY said. Reference their actual words, ideas, or decisions — show you were listening and that you care about their business.
+     GOOD: "A subscription model for small studios — that's a smart angle." / "So the real bottleneck is getting past the IT gatekeepers, interesting." / "Premium pricing with proof to back it up — strong position."
+     BAD: "Got it, thanks!" / "Great answer!" / "Thank you for sharing." (these are generic and robotic — NEVER use these)
+   - The acknowledgment should feel like a real person reacting: validate their thinking, show curiosity, connect dots to what you already know, or highlight what makes their answer interesting.
+   - If nearing the end ({questions_remaining} <= 2), you can naturally weave in "Almost there!" or "Just a couple more."
+   - Do NOT ask the next question in the acknowledgment — the system appends it automatically.
 
 2. ROUTE: If they want to do something else:
    - Skip this question → intent="skip"
@@ -2603,16 +2975,16 @@ Read the user's message in light of the conversation. Determine their intent:
 3. NEEDS CLARIFICATION: If the user message is ambiguous between generating the document now vs. exiting to chat (e.g. "I'm done", "that's it", "finish up", "done with this") — use intent="needs_clarification" and set "clarification_response" to ONE short disambiguating question in the same turn (e.g. "Want to generate what we have so far, or take a break and chat?"). Do not assume generate or exit.
 
 4. GENERAL: If they said something off-topic, casual, or that doesn't fit above:
-- Provide a brief, friendly acknowledgement of what they said (1 sentence) and gently redirect back.
+- Provide a brief, friendly reply in "brief_response" (1 sentence) and gently redirect back.
 - IMPORTANT: Do NOT restate or repeat the current question text inside brief_response (the system will re-ask it separately).
-- Set intent="general" and provide brief_response. Do NOT route to general chat; handle it here.
+- Set intent="general". Do NOT route to general chat; handle it here.
 
 5. AFFIRM: If we offered A/B/C options and they are affirming without typing their own answer (yes, sounds good, go with B) → intent="affirm_suggestion", picked_option="a"|"b"|"c"|"suggested". If they typed their own answer, use intent="answer".
 
 When the user mentions a document by name, code, or phrase (e.g. "gtm", "go to market", "market research", "ICP"), use the document list to map to the correct CODE. "Let's go with GTM" = switch to GTM.
 
 Respond with valid JSON only:
-{{"has_business_info": true/false, "extracted_facts": {{"fact.id": "value"}}, "confidence": {{"fact.id": 0.0-1.0}}, "intent": "answer"|"skip"|"help"|"show_facts"|"generate"|"switch"|"done"|"exit_to_general_chat"|"needs_clarification"|"general"|"affirm_suggestion", "document": "CODE or null", "brief_response": "short reply for general intent", "response": "handoff message for exit_to_general_chat only", "clarification_response": "one short disambiguating question for needs_clarification only", "picked_option": "a"|"b"|"c"|"suggested" or null}}"""
+{{"has_business_info": true/false, "extracted_facts": {{"fact.id": "value"}}, "confidence": {{"fact.id": 0.0-1.0}}, "acknowledgment": "1-2 sentence natural reaction to their answer (only when intent is answer/affirm_suggestion, otherwise empty string)", "intent": "answer"|"skip"|"help"|"show_facts"|"generate"|"switch"|"done"|"exit_to_general_chat"|"needs_clarification"|"general"|"affirm_suggestion", "document": "CODE or null", "brief_response": "short reply for general intent", "response": "handoff message for exit_to_general_chat only", "clarification_response": "one short disambiguating question for needs_clarification only", "picked_option": "a"|"b"|"c"|"suggested" or null}}"""
 
     affirmation_section = ""
     if affirm_context:
@@ -2628,6 +3000,9 @@ If user affirms without typing their own answer, use intent="affirm_suggestion".
             affirm_context.get('suggested_answer', ''),
         )
 
+    questions_asked_count = len(state.get('asked_questions', []))
+    questions_remaining_count = len(state.get('pending_questions', []))
+
     formatted_prompt = system_prompt.format(
         doc_name=doc_name,
         current_document=doc_name,
@@ -2639,6 +3014,8 @@ If user affirms without typing their own answer, use intent="affirm_suggestion".
         document_list=document_list_str,
         conversation_history=conversation_history if conversation_history else "(no prior messages)",
         affirmation_section=affirmation_section,
+        questions_asked=questions_asked_count,
+        questions_remaining=questions_remaining_count,
     )
 
     context = {
@@ -2661,8 +3038,9 @@ If user affirms without typing their own answer, use intent="affirm_suggestion".
     document = result.get('document')
     brief_response = result.get('brief_response', '')
     picked_option = result.get('picked_option')
+    acknowledgment = result.get('acknowledgment', '').strip()
 
-    print(f"🔄 QUESTIONING STICKY: intent={intent}, has_business_info={has_business_info}, extracted={len(extracted)}")
+    print(f"🔄 QUESTIONING STICKY: intent={intent}, has_business_info={has_business_info}, extracted={len(extracted)}, ack={acknowledgment[:60] if acknowledgment else 'none'}")
 
     # Route to specific handlers
     if intent == 'affirm_suggestion' and lc.get('last_action') == 'offered_suggestions':
@@ -2816,7 +3194,8 @@ If user affirms without typing their own answer, use intent="affirm_suggestion".
         if missing_primary and not is_followup:
             # First partial answer — rephrase for missing facts only
             followup_q = _rephrase_for_missing_facts(current_q_id, missing_primary, state['facts'])
-            state['response'] = f"Got it, thanks! {followup_q}"
+            ack = acknowledgment if acknowledgment else "Got it!"
+            state['response'] = f"{ack} {followup_q}"
             state['active_layer'] = LAYER_QUESTIONING
             state['layer_context'] = {
                 'last_action': 'asked_followup',
@@ -2847,10 +3226,18 @@ If user affirms without typing their own answer, use intent="affirm_suggestion".
     )
     readiness = calculate_document_readiness(doc_code, state['facts'])
 
+    # Build conversational transition from LLM acknowledgment (falls back to simple ack)
+    if acknowledgment:
+        ack_line = acknowledgment
+    elif extracted_count > 0:
+        ack_line = "Got it!"
+    else:
+        ack_line = ""
+
     if readiness['is_ready']:
         doc_name = get_document_display_name(doc_code)
-        ack = "Got it, thanks! " if extracted_count > 0 else ""
-        state['response'] = f"{ack}Wonderful! I have all the required info for your **{doc_name}**! 🎉\n\nWould you like me to generate it now?"
+        ready_msg = f"I have all the required info for your **{doc_name}**! 🎉\n\nWould you like me to generate it now?"
+        state['response'] = f"{ack_line}\n\n{ready_msg}" if ack_line else ready_msg
         state['active_layer'] = LAYER_GENERATION
         state['current_question_id'] = None
         state['layer_context'] = {'last_action': 'ready_to_generate'}
@@ -2862,16 +3249,16 @@ If user affirms without typing their own answer, use intent="affirm_suggestion".
             attempts[next_q_id] = 1
         state['question_attempts'] = attempts
         state['current_question_id'] = next_q_id
-        ack = "Got it, thanks! " if extracted_count > 0 else "Thanks! "
-        state['response'] = f"{ack}Next question:\n\n**{next_q_text}**"
+        state['response'] = f"{ack_line}\n\n**{next_q_text}**" if ack_line else f"**{next_q_text}**"
         state['active_layer'] = LAYER_QUESTIONING
         state['layer_context'] = {'last_action': 'asked_question', 'question_id': next_q_id}
     else:
         doc_name = get_document_display_name(doc_code)
-        state['response'] = (
+        all_done_msg = (
             f"That's all my questions! Your **{doc_name}** is {readiness['required_percentage']:.0f}% complete.\n\n"
             f"I can generate it now — missing parts will be inferred. Ready?"
         )
+        state['response'] = f"{ack_line}\n\n{all_done_msg}" if ack_line else all_done_msg
         state['current_question_id'] = None
         state['active_layer'] = LAYER_GENERATION
         state['layer_context'] = {'last_action': 'ready_to_generate'}
@@ -3379,6 +3766,7 @@ def handle_show_facts(state: ConversationState, action: Dict) -> ConversationSta
 def handle_edit_fact(state: ConversationState, action: Dict) -> ConversationState:
     facts = state['facts']
     lc = state.get('layer_context', {})
+    improve_row_map = lc.get('improve_row_map', {}) if isinstance(lc.get('improve_row_map', {}), dict) else {}
 
     # Preserve pre-edit context if not already set
     if 'pre_edit_layer' not in lc:
@@ -3400,6 +3788,20 @@ def handle_edit_fact(state: ConversationState, action: Dict) -> ConversationStat
         }
         
         fact_name = FACT_UNIVERSE.get(editing_fact, editing_fact)
+        improve_active = bool(lc.get('improve_active'))
+        doc_code_local = state.get('active_document')
+        readiness = calculate_document_readiness(doc_code_local, state['facts']) if doc_code_local else None
+
+        if improve_active and readiness and readiness['is_ready']:
+            doc_name = get_document_display_name(doc_code_local)
+            state['response'] = (
+                f"✅ Your **{fact_name}** has been updated to: {new_value}\n\n"
+                f"Your **{doc_name}** now has all required information. Would you like me to generate it now?"
+            )
+            state['active_layer'] = LAYER_GENERATION
+            state['layer_context'] = {'last_action': 'ready_to_generate', 'improve_active': True}
+            return state
+
         state['response'] = (
             f"✅ Your **{fact_name}** has been updated to: {new_value}\n\n"
             f"Would you like to edit anything else?"
@@ -3408,6 +3810,8 @@ def handle_edit_fact(state: ConversationState, action: Dict) -> ConversationStat
         state['layer_context'] = {
             'last_action': 'edit_completed',
             'last_edited_fact': editing_fact,
+            'improve_active': improve_active,
+            'improve_row_map': improve_row_map,
             'pre_edit_layer': lc.get('pre_edit_layer', LAYER_DISCOVERY),
             'pre_edit_document': lc.get('pre_edit_document'),
             'pre_edit_question_id': lc.get('pre_edit_question_id')
@@ -3435,6 +3839,97 @@ def handle_edit_fact(state: ConversationState, action: Dict) -> ConversationStat
     edit_target = action.get('edit_target', '')
     edit_value = action.get('edit_value', '')
 
+    improve_map_text = ""
+    if improve_row_map:
+        improve_map_text = (
+            "\nIMPROVE ROW NUMBER MAP (user may refer to these numbers):\n"
+            + "\n".join([f"- {num} -> {fid}" for num, fid in improve_row_map.items()])
+        )
+
+    multi_edit_prompt = f"""Extract ALL fact edits from the user message.
+
+USER MESSAGE: "{state['user_message']}"
+
+AVAILABLE FACTS (format: #NUMBER (fact_id): description = current_value):
+{chr(10).join(fact_list_parts)}
+{improve_map_text}
+
+RULES:
+1. Return every clear edit instruction in the message.
+2. Map each edit to a fact_id from the available list.
+3. Include only edits where both fact_id and new_value are clear.
+4. If no clear edits, return an empty list.
+5. If user says "change 1"/"change 2" and improve row map exists, use that map first.
+
+Respond ONLY as JSON:
+{{"edits": [{{"fact_id": "exact.fact.id", "new_value": "new value"}}]}}"""
+
+    multi_result = invoke_bedrock_json(multi_edit_prompt, json.dumps({"user_message": state['user_message']}, default=str))
+    candidate_edits = (multi_result or {}).get('edits', [])
+    if isinstance(candidate_edits, list):
+        normalized_multi = []
+        for edit in candidate_edits:
+            if not isinstance(edit, dict):
+                continue
+            fid = edit.get('fact_id')
+            val = edit.get('new_value')
+            if not fid or not val:
+                continue
+            if fid not in FACT_UNIVERSE:
+                cleaned = str(fid).strip().lstrip('#').strip()
+                if cleaned in improve_row_map:
+                    fid = improve_row_map[cleaned]
+                if cleaned in fact_mapping:
+                    fid = fact_mapping[cleaned]
+            if fid in FACT_UNIVERSE and str(val).strip():
+                normalized_multi.append((fid, str(val).strip()))
+
+        if len(normalized_multi) >= 2:
+            dedup = {}
+            for fid, val in normalized_multi:
+                dedup[fid] = val
+
+            updated_lines = []
+            for fid, val in dedup.items():
+                save_fact(state['project_id'], fid, val, 'chat')
+                state['facts'][fid] = {
+                    'value': val,
+                    'source': 'chat',
+                    'updated_at': datetime.utcnow().isoformat()
+                }
+                updated_lines.append(f"- **{FACT_UNIVERSE.get(fid, fid)}**: {val}")
+
+            improve_active = bool(lc.get('improve_active'))
+            if doc_code:
+                readiness = calculate_document_readiness(doc_code, state['facts'])
+                if improve_active and readiness['is_ready']:
+                    doc_name = get_document_display_name(doc_code)
+                    state['response'] = (
+                        "✅ I updated those fields:\n\n"
+                        + "\n".join(updated_lines)
+                        + f"\n\nYour **{doc_name}** now has all required information. Would you like me to generate it now?"
+                    )
+                    state['active_layer'] = LAYER_GENERATION
+                    state['layer_context'] = {'last_action': 'ready_to_generate', 'improve_active': True}
+                    return state
+
+            state['response'] = (
+                "✅ I updated those fields:\n\n"
+                + "\n".join(updated_lines)
+                + "\n\nWould you like to edit anything else?"
+            )
+            state['active_layer'] = LAYER_REVIEW
+            state['layer_context'] = {
+                'last_action': 'edit_completed',
+                'last_edited_fact': list(dedup.keys())[-1],
+                'improve_active': improve_active,
+                'improve_row_map': improve_row_map,
+                'pre_edit_layer': lc.get('pre_edit_layer', LAYER_DISCOVERY),
+                'pre_edit_document': lc.get('pre_edit_document'),
+                'pre_edit_question_id': lc.get('pre_edit_question_id')
+            }
+            return state
+
     system_prompt = f"""You must identify which fact the user wants to edit and what the new value should be.
 
 USER MESSAGE: "{state['user_message']}"
@@ -3443,6 +3938,7 @@ EDIT HINT value: "{edit_value}"
 
 HERE ARE ALL THE AVAILABLE FACTS (format: #NUMBER (fact_id): description = current_value):
 {chr(10).join(fact_list_parts)}
+{improve_map_text}
 
 STRICT RULES:
 1. The user may refer to a fact by its NUMBER (e.g., "change 4", "edit #2", "update number 1") or by its NAME/DESCRIPTION (e.g., "change the value proposition", "edit customer problems").
@@ -3451,6 +3947,7 @@ STRICT RULES:
 4. If the user provides a new value (e.g., "change 4 to XYZ"), extract "XYZ" as the new_value.
 5. If the user only identifies a fact but doesn't give a new value (e.g., "edit 4" or "change the value proposition"), set new_value to null.
 6. If you cannot determine which fact the user means, set needs_clarification to true.
+7. If user uses improve-table numbering (e.g., "change 1 to ...") and a row map is provided, map using that row number.
 
 EXAMPLES:
 - User says "change 4 to From idea to impact" → {{"fact_id": "product.value_proposition_short", "new_value": "From idea to impact", "needs_clarification": false}}
@@ -3471,6 +3968,8 @@ Respond with ONLY this JSON format:
         if fact_id and fact_id not in FACT_UNIVERSE:
             # Strip common prefixes like "#", "number", etc.
             cleaned = str(fact_id).strip().lstrip('#').strip()
+            if cleaned in improve_row_map:
+                fact_id = improve_row_map[cleaned]
             if cleaned in fact_mapping:
                 fact_id = fact_mapping[cleaned]
 
@@ -3484,6 +3983,19 @@ Respond with ONLY this JSON format:
             }
             
             fact_name = FACT_UNIVERSE.get(fact_id, fact_id)
+            improve_active = bool(lc.get('improve_active'))
+            readiness = calculate_document_readiness(doc_code, state['facts']) if doc_code else None
+
+            if improve_active and readiness and readiness['is_ready']:
+                doc_name = get_document_display_name(doc_code)
+                state['response'] = (
+                    f"✅ Your **{fact_name}** has been updated to: {new_value}\n\n"
+                    f"Your **{doc_name}** now has all required information. Would you like me to generate it now?"
+                )
+                state['active_layer'] = LAYER_GENERATION
+                state['layer_context'] = {'last_action': 'ready_to_generate', 'improve_active': True}
+                return state
+
             state['response'] = (
                 f"✅ Your **{fact_name}** has been updated to: {new_value}\n\n"
                 f"Would you like to edit anything else?"
@@ -3492,6 +4004,8 @@ Respond with ONLY this JSON format:
             state['layer_context'] = {
                 'last_action': 'edit_completed',
                 'last_edited_fact': fact_id,
+                'improve_active': improve_active,
+                'improve_row_map': improve_row_map,
                 'pre_edit_layer': lc.get('pre_edit_layer', LAYER_DISCOVERY),
                 'pre_edit_document': lc.get('pre_edit_document'),
                 'pre_edit_question_id': lc.get('pre_edit_question_id')
@@ -3506,6 +4020,8 @@ Respond with ONLY this JSON format:
             state['layer_context'] = {
                 'last_action': 'asked_new_value',
                 'editing_fact': fact_id,
+                'improve_active': bool(lc.get('improve_active')),
+                'improve_row_map': improve_row_map,
                 'pre_edit_layer': lc.get('pre_edit_layer', LAYER_DISCOVERY),
                 'pre_edit_document': lc.get('pre_edit_document'),
                 'pre_edit_question_id': lc.get('pre_edit_question_id')
@@ -3521,7 +4037,12 @@ Respond with ONLY this JSON format:
         state['response'] = f"Which fact would you like to edit?\n{formatted}\n\nJust say the number or name!"
 
     state['active_layer'] = LAYER_REVIEW
-    state['layer_context'] = {'last_action': 'showed_facts_for_editing', 'fact_mapping': fact_mapping}
+    state['layer_context'] = {
+        'last_action': 'showed_facts_for_editing',
+        'fact_mapping': fact_mapping,
+        'improve_active': bool(lc.get('improve_active')),
+        'improve_row_map': improve_row_map
+    }
     return state
 
 
@@ -3644,6 +4165,189 @@ def handle_correct_edit(state: ConversationState, action: Dict) -> ConversationS
     return state
 
 
+def handle_improve_document_quality(state: ConversationState, action: Dict) -> ConversationState:
+    """Infer missing required facts, auto-save them, and present editable suggestions."""
+    doc_code = state.get('active_document')
+    if not doc_code or doc_code not in DOCUMENT_REQUIREMENTS:
+        state['response'] = (
+            "I can improve document quality once a document is selected. "
+            "Please choose a document first, then click Improve Now."
+        )
+        state['active_layer'] = LAYER_DISCOVERY
+        state['layer_context'] = {'last_action': 'improve_requires_document'}
+        return state
+
+    doc_name = get_document_display_name(doc_code)
+    required_facts = get_required_facts_for_document(doc_code)
+
+    existing = state.get('facts', {})
+    missing_required = [fid for fid in required_facts if fid not in existing or not existing[fid].get('value')]
+
+    if not missing_required:
+        state['response'] = (
+            f"Your **{doc_name}** already has all required information collected. "
+            f"Would you like me to generate it now?"
+        )
+        state['active_layer'] = LAYER_GENERATION
+        state['layer_context'] = {'last_action': 'ready_to_generate'}
+        return state
+
+    known_facts = {k: v['value'] for k, v in existing.items() if v.get('value')}
+    missing_descriptions = {fid: FACT_UNIVERSE.get(fid, fid) for fid in missing_required}
+
+    infer_prompt = """You are inferring missing business facts for a document-generation assistant.
+
+DOCUMENT:
+- code: {doc_code}
+- name: {doc_name}
+
+RULES:
+1. Infer ONLY for the missing facts listed.
+2. Do NOT overwrite already known facts.
+3. Use all known business context to maximize plausibility and specificity.
+4. Keep each inferred value concise and professional.
+5. If a fact truly cannot be inferred, set it to null.
+
+Return ONLY valid JSON:
+{{"inferred_facts": {{"fact.id": "value or null"}}}}"""
+
+    result = invoke_bedrock_json(
+        infer_prompt.format(doc_code=doc_code, doc_name=doc_name),
+        json.dumps({
+            "known_facts": known_facts,
+            "missing_facts": missing_descriptions,
+            "required_facts": required_facts
+        }, default=str)
+    )
+
+    inferred_raw = (result or {}).get('inferred_facts', {}) or {}
+
+    inferred_facts = {}
+    for fid, value in inferred_raw.items():
+        if fid in missing_required and value and str(value).strip():
+            inferred_facts[fid] = str(value).strip()
+
+    if not inferred_facts:
+        state['response'] = (
+            f"I tried to improve your **{doc_name}** quality using everything available, "
+            f"but I still need a bit more direct input from you. "
+            f"You can continue answering questions, or say **show facts** to edit manually."
+        )
+        state['layer_context'] = {'last_action': 'improve_no_inference'}
+        return state
+
+    confirmed_required_count = len([fid for fid in required_facts if fid in existing and existing[fid].get('value')])
+    suggested_required_count = len(inferred_facts)
+
+    table_rows = []
+    improve_row_map = {}
+    row_idx = 1
+    for fid in required_facts:
+        if fid in inferred_facts:
+            field_name = FACT_UNIVERSE.get(fid, fid)
+            display_value = _truncate_preview_value(inferred_facts[fid])
+            table_rows.append({
+                'number': row_idx,
+                'field': field_name,
+                'suggested_value': display_value
+            })
+            improve_row_map[str(row_idx)] = fid
+            row_idx += 1
+    suggested_dict_text = json.dumps({
+        'suggested_fields': table_rows
+    }, indent=2)
+
+    intro_line = (
+        f"Using what you've already shared, I've taken care of the remaining details needed to create the **{doc_name}**."
+    )
+
+    state['response'] = (
+        f"{intro_line}\n\n"
+        f"I’ve created a table summarizing the information I worked out for your document to improve quality.\n\n"
+        f"**Suggested Required Fields**\n"
+        f"{suggested_dict_text}\n\n"
+        f"I have already applied these suggested values to your document draft. "
+        f"If anything needs changes, type your edits. "
+        f"You can reference either field names or row numbers (for example: change 1 to ... or change description to ...).\n\n"
+        f"If this looks good, say **generate** and I will create your **{doc_name}** now."
+    )
+
+    saved_count = save_multiple_facts(state['project_id'], inferred_facts, source='chat')
+    print(f"💾 Improve flow auto-saved {saved_count} inferred facts for {doc_code}")
+    for fid, value in inferred_facts.items():
+        state['facts'][fid] = {
+            'value': value,
+            'source': 'chat',
+            'updated_at': datetime.utcnow().isoformat()
+        }
+
+    prior_layer = state.get('active_layer', LAYER_DISCOVERY)
+    state['layer_context'] = {
+        'last_action': 'improve_applied',
+        'improve_active': True,
+        'improve_doc': doc_code,
+        'improve_row_map': improve_row_map,
+        'pre_infer_layer': prior_layer,
+        'pre_infer_question_id': state.get('current_question_id')
+    }
+    state['active_layer'] = LAYER_REVIEW
+    return state
+
+
+def handle_confirm_inferred_facts_and_generate(state: ConversationState, action: Dict) -> ConversationState:
+    """Persist pending inferred facts and generate the current document."""
+    lc = state.get('layer_context', {})
+    doc_code = lc.get('pending_inferred_doc') or state.get('active_document')
+    pending = lc.get('pending_inferred_facts', {}) or {}
+
+    if not doc_code or doc_code not in DOCUMENT_REQUIREMENTS:
+        state['response'] = "I couldn't determine which document to generate. Please select a document first."
+        state['active_layer'] = LAYER_DISCOVERY
+        state['layer_context'] = {'last_action': 'improve_confirm_missing_doc'}
+        return state
+
+    if pending:
+        saved_count = save_multiple_facts(state['project_id'], pending, source='inferred')
+        print(f"💾 Saved {saved_count} inferred facts on improve-confirm for {doc_code}")
+        for fid, value in pending.items():
+            state['facts'][fid] = {
+                'value': value,
+                'source': 'inferred',
+                'updated_at': datetime.utcnow().isoformat()
+            }
+
+    state['active_document'] = doc_code
+    state['generating_document'] = None
+    state['current_question_id'] = None
+    return _execute_generation(state)
+
+
+def handle_decline_inferred_facts(state: ConversationState, action: Dict) -> ConversationState:
+    """User rejected suggested inferred facts; keep conversation safe and editable."""
+    lc = state.get('layer_context', {})
+    doc_code = lc.get('pending_inferred_doc') or state.get('active_document')
+    pre_layer = lc.get('pre_infer_layer', LAYER_DISCOVERY)
+
+    state['response'] = (
+        "No problem — I will not use those suggestions. "
+        "You can continue with your own inputs, or say **show facts** to edit what I have."
+    )
+
+    state['active_document'] = doc_code
+    state['current_question_id'] = lc.get('pre_infer_question_id')
+
+    if pre_layer == LAYER_QUESTIONING and doc_code:
+        state['active_layer'] = LAYER_QUESTIONING
+        state['pending_questions'] = determine_pending_questions(
+            doc_code, state['facts'], state['asked_questions'], state.get('skipped_questions', [])
+        )
+    else:
+        state['active_layer'] = LAYER_REVIEW
+
+    state['layer_context'] = {'last_action': 'declined_inferred_facts'}
+    return state
+
+
 def handle_generate_document(state: ConversationState, action: Dict) -> ConversationState:
     doc_code = action.get('document') or state.get('active_document')
 
@@ -3652,6 +4356,11 @@ def handle_generate_document(state: ConversationState, action: Dict) -> Conversa
         state['active_layer'] = LAYER_DISCOVERY
         state['layer_context'] = {'last_action': 'asked_which_document'}
         return state
+
+    # Force-generate path from questioning: infer missing required + supporting facts
+    # for the selected document before generation.
+    if state.get('active_layer') == LAYER_QUESTIONING:
+        _infer_missing_document_facts_for_force_generate(state, doc_code)
 
     state['active_document'] = doc_code
     return _execute_generation(state)
@@ -3720,6 +4429,32 @@ def handle_switch_document(state: ConversationState, action: Dict) -> Conversati
             doc_code = inquired
 
     if doc_code and doc_code in DOCUMENT_REQUIREMENTS:
+        # Section eligibility check
+        if doc_code in ALIGN_DOCUMENTS:
+            eligibility = check_align_eligibility(state['completed_documents'])
+            if not eligibility['is_eligible']:
+                doc_name = get_document_display_name(doc_code)
+                clarify_count = eligibility['clarify_count']
+                min_required = eligibility['min_required']
+                state['response'] = (
+                    f"I'd love to help you with the **{doc_name}**, but you'll need to complete "
+                    f"at least {min_required} Clarify documents first. "
+                    f"You've completed {clarify_count} so far.\n\n"
+                    f"Once you hit {min_required}, you'll unlock the Align section!"
+                )
+                state['layer_context'] = {'last_action': 'blocked_align_access'}
+                state['active_layer'] = LAYER_DISCOVERY
+                return state
+
+        # Update current_tab based on target document's section
+        new_tab = SECTION_ALIGN if doc_code in ALIGN_DOCUMENTS else SECTION_CLARIFY
+        if new_tab != state.get('current_tab'):
+            state['current_tab'] = new_tab
+            # If switching to Align via specific document, mark intro as shown
+            new_align_intro = True if new_tab == SECTION_ALIGN else state.get('align_intro_shown', False)
+            state['align_intro_shown'] = new_align_intro
+            update_section_state(state['project_id'], new_tab, state['completed_documents'], align_intro_shown=new_align_intro)
+
         old_name = get_document_display_name(state.get('active_document')) if state.get('active_document') else 'previous document'
         new_name = get_document_display_name(doc_code)
 
@@ -3818,8 +4553,8 @@ def handle_redirect_to_scheduler(state: ConversationState, action: Dict) -> Conv
     )
 
     response_parts.append(
-        f"🔔Just click **Scheduler** in the left sidebar in the **Tools** section\n\n "
-        # " ** or** you can head there directly:\nhttps://dev.d58o9xmomxg8r.amplifyapp.com/dashboard/scheduler"
+        f"👉 **Head there directly:**\n{SCHEDULER_URL}\n\n"
+        "Or just click **Scheduler** in the left sidebar in the **Tools** section."
     )
 
     if doc_name:
@@ -4011,6 +4746,92 @@ Respond with JSON: {{"inferred_facts": {{"fact.id": "inferred value or null"}}}}
     return inferred_count
 
 
+def _infer_missing_document_facts_for_force_generate(state: ConversationState, doc_code: str) -> int:
+    """Infer and save missing required + supporting facts for a selected document.
+
+    This is used by force generation from the questioning flow.
+    Low-confidence facts are still saved by design.
+    """
+    all_doc_facts = get_all_facts_for_document(doc_code)
+    facts = state.get('facts', {})
+
+    missing_facts = [
+        fid for fid in all_doc_facts
+        if fid not in facts or not facts[fid].get('value')
+    ]
+
+    if not missing_facts:
+        return 0
+
+    known_facts = {k: v.get('value') for k, v in facts.items() if v.get('value')}
+    missing_descriptions = {fid: FACT_UNIVERSE.get(fid, fid) for fid in missing_facts}
+
+    system_prompt = """Infer missing document facts from known business context.
+
+DOCUMENT CONTEXT:
+- code: {doc_code}
+- name: {doc_name}
+
+RULES:
+1. Infer values for all missing facts listed when reasonably possible.
+2. Return confidence for each inferred fact.
+3. If a fact truly cannot be inferred, set it to null.
+4. Keep outputs concise and business-relevant.
+
+Respond ONLY with valid JSON:
+{{
+  "inferred_facts": {{"fact.id": "value or null"}},
+  "confidence": {{"fact.id": 0.0 to 1.0}}
+}}"""
+
+    result = invoke_bedrock_json(
+        system_prompt.format(
+            doc_code=doc_code,
+            doc_name=get_document_display_name(doc_code)
+        ),
+        json.dumps({
+            "known_facts": known_facts,
+            "missing_facts": missing_descriptions,
+            "required_facts": get_required_facts_for_document(doc_code),
+            "supporting_facts": get_supporting_facts_for_document(doc_code)
+        }, default=str)
+    )
+
+    if not result:
+        return 0
+
+    inferred_raw = result.get('inferred_facts', {}) or {}
+    confidence_raw = result.get('confidence', {}) or {}
+
+    # Save all non-empty inferred values regardless of confidence threshold.
+    facts_to_save = {}
+    for fid, value in inferred_raw.items():
+        if fid in missing_facts and value and str(value).strip():
+            facts_to_save[fid] = str(value).strip()
+
+    if not facts_to_save:
+        return 0
+
+    saved_count = save_multiple_facts(state['project_id'], facts_to_save, source='inferred')
+    for fid, value in facts_to_save.items():
+        state['facts'][fid] = {
+            'value': value,
+            'source': 'inferred',
+            'updated_at': datetime.utcnow().isoformat()
+        }
+
+    low_conf_count = sum(
+        1 for fid in facts_to_save
+        if isinstance(confidence_raw.get(fid), (int, float)) and confidence_raw.get(fid) < 0.6
+    )
+    print(
+        f"🧠 FORCE GENERATE INFERENCE: doc={doc_code}, saved={saved_count}, "
+        f"low_conf_saved={low_conf_count}, total_missing={len(missing_facts)}"
+    )
+
+    return saved_count
+
+
 # ============================================================================
 # DOCUMENT EXTRACTION HELPER (UNCHANGED)
 # ============================================================================
@@ -4065,21 +4886,23 @@ def _execute_generation(state: ConversationState) -> ConversationState:
         doc_code_lower = doc_code.lower()
         s3_key = f"{doc_code_lower}/{state['project_id']}/prompt/businessidea/businessidea/businessidea.txt"
 
-        s3_client.put_object(
-            Bucket=S3_BUCKET,
-            Key=s3_key,
-            Body=qa_content.encode('utf-8'),
-            ContentType='text/plain',
-            Metadata={
-                'token': state['session_id'],
-                'project_id': state['project_id'],
-                'document_type': doc_code_lower
-            }
-        )
+        # s3_client.put_object(
+        #     Bucket=S3_BUCKET,
+        #     Key=s3_key,
+        #     Body=qa_content.encode('utf-8'),
+        #     ContentType='text/plain',
+        #     Metadata={
+        #         'token': state['session_id'],
+        #         'project_id': state['project_id'],
+        #         'document_type': doc_code_lower
+        #     }
+        # )
         print(f"PIPELINE INPUT UPLOADED: s3://{S3_BUCKET}/{s3_key}")
 
         if doc_code not in state['completed_documents']:
             state['completed_documents'].append(doc_code)
+            # Sync completed documents with section state table
+            update_section_state(state['project_id'], state['current_tab'], state['completed_documents'], align_intro_shown=state.get('align_intro_shown', False))
 
         next_suggestion = _build_next_doc_suggestion(doc_code, state['completed_documents'])
 
@@ -4132,6 +4955,13 @@ def _build_document_qa_content(doc_code: str, facts: Dict[str, Dict[str, Any]]) 
 
 
 def _build_next_doc_suggestion(doc_code: str, completed: List[str]) -> str:
+    # Check if user just became eligible for Align (exactly hit the threshold with this document)
+    if doc_code in CLARIFY_DOCUMENTS:
+        eligibility = check_align_eligibility(completed)
+        # Check if they JUST became eligible (exactly at threshold)
+        if eligibility['is_eligible'] and eligibility['clarify_count'] == MIN_CLARIFY_DOCS_FOR_ALIGN:
+            return "🎉 **Milestone unlocked!** You've completed 2 Clarify documents — you can now access the Align section and create documents like the Customer Charter or Quarterly Marketing Plan!"
+
     progression = DOCUMENT_PROGRESSION.get(doc_code, {})
     for next_code in progression.get('natural_next', []):
         if next_code not in completed and next_code in DOCUMENT_DESCRIPTIONS:
@@ -4166,6 +4996,9 @@ ACTION_HANDLERS = {
     "confirm_edit": handle_confirm_edit,
     "cancel_edit": handle_cancel_edit,
     "correct_edit": handle_correct_edit,
+    "improve_document_quality": handle_improve_document_quality,
+    "confirm_inferred_facts_and_generate": handle_confirm_inferred_facts_and_generate,
+    "decline_inferred_facts": handle_decline_inferred_facts,
     "generate_document": handle_generate_document,
     "cancel_generation": handle_cancel_generation,
     "decline_generation": handle_decline_generation,
@@ -4292,6 +5125,26 @@ def dispatch(state: ConversationState) -> ConversationState:
     # if detect_loop(state):
     #     return break_loop(state)
 
+    # ── ALIGN INTRO PREPEND FLAG (zero LLM) ───────────────────
+    # For the first user message in Align, mark intro as shown and set a one-time
+    # prepend flag. The normal flow continues and generates the actual reply in the
+    # same turn; finalizer prepends this intro once per project.
+    _current_tab = (state.get('current_tab') or '').strip().lower()
+    print(f"🔍 ALIGN INTRO DEBUG — current_tab={repr(state.get('current_tab'))}, normalized={repr(_current_tab)}, SECTION_ALIGN={repr(SECTION_ALIGN)}, align_intro_shown={repr(state.get('align_intro_shown'))}, tab_match={_current_tab == SECTION_ALIGN}, intro_not_shown={not state.get('align_intro_shown')}")
+    if _current_tab == SECTION_ALIGN and not state.get('align_intro_shown'):
+        print(f"⚡ ALIGN INTRO FLAG — will prepend intro to first Align reply")
+        state['align_intro_shown'] = True
+        # Store this outside layer_context because many handlers replace layer_context.
+        # Keeping it at top-level ensures we can prepend once in finalize_response.
+        state['pending_align_intro_text'] = ALIGN_INTRO_ONCE_TEXT
+        update_section_state(
+            state['project_id'],
+            state['current_tab'],
+            state.get('completed_documents', []),
+            align_intro_shown=True
+        )
+    # ── END ALIGN INTRO PREPEND FLAG ──────────────────────────
+
     # ── GREETING INTERCEPT (zero LLM) ────────────────────────
     # When there is no prior conversation history AND the message is a greeting/help
     # phrase, skip ALL LLM calls and return the hardcoded intro immediately.
@@ -4341,6 +5194,17 @@ def dispatch(state: ConversationState) -> ConversationState:
         state['last_agent'] = 'keyword_intercept_view'
         return state
     # ── END FACT VIEW / EDIT KEYWORD INTERCEPT ────────────────
+
+    # ── IMPROVE BUTTON EXACT TRIGGER INTERCEPT ─────────────────
+    # Frontend sends this exact message when user clicks Improve Now.
+    if state.get('user_message', '').strip() == IMPROVE_QUALITY_TRIGGER:
+        print("⚡ IMPROVE INTERCEPT: exact frontend trigger received")
+        state = handle_improve_document_quality(state, {})
+        state['last_agent'] = 'improve_intercept'
+        return state
+
+    # Improve flow now auto-applies suggestions; user can directly edit or say generate.
+    # ── END IMPROVE BUTTON INTERCEPT ───────────────────────────
 
     # Campaign / scheduler detection is handled by the LLM prompts
     # (sticky handlers and unified router) — no keyword intercept needed.
@@ -4400,6 +5264,10 @@ def dispatch(state: ConversationState) -> ConversationState:
 def finalize_response(state: ConversationState) -> ConversationState:
     if not state.get('response'):
         state['response'] = "I'm here to help! What would you like to do?"
+
+    pending_align_intro = state.pop('pending_align_intro_text', None)
+    if pending_align_intro:
+        state['response'] = f"{pending_align_intro}\n\n{state['response']}" if state.get('response') else pending_align_intro
 
     # Parallelize all three independent DB writes
     with ThreadPoolExecutor(max_workers=3) as executor:
@@ -4523,9 +5391,10 @@ def create_success_response(response_text: str, state: ConversationState) -> Dic
         'facts_collected': len([f for f in state.get('facts', {}).values() if f.get('value')]),
         'completed_documents': state.get('completed_documents', []),
         'last_agent': state.get('last_agent', 'unknown'),
-        'active_layer': state.get('active_layer', 'DISCOVERY')
+        'active_layer': state.get('active_layer', 'DISCOVERY'),
+        'current_tab': state.get('current_tab', SECTION_CLARIFY)
     }
-    
+
     # Always include readiness percentage + derived status/line at top-level in the response body.
     # When no document is selected, these will be null.
     required_percentage = None

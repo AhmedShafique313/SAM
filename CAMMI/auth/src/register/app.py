@@ -38,6 +38,17 @@ def random_code() -> str:
  
 def hash_code(code: str) -> str:
     return hashlib.sha256(code.encode("utf-8")).hexdigest()
+
+def has_local_password(user: dict) -> bool:
+    return bool((user or {}).get("password"))
+
+def merge_auth_providers(user: dict, provider: str):
+    providers = user.get("auth_providers") if isinstance(user, dict) else None
+    if not isinstance(providers, list):
+        providers = []
+    if provider not in providers:
+        providers.append(provider)
+    return providers
  
 def send_email_code(to_email: str, code: str, purpose: str = "Email Verification"):
     subject = f"{purpose} Code"
@@ -92,7 +103,7 @@ def lambda_handler(event, context):
  
             existing = table.get_item(Key={"email": email}).get("Item")
  
-            if existing and existing.get("status") == "ACTIVE":
+            if existing and existing.get("status") == "ACTIVE" and has_local_password(existing):
                 return resp(409, headers, {"message": "User already exists and is active"})
  
             code = random_code()
@@ -105,7 +116,8 @@ def lambda_handler(event, context):
                     Key={"email": email},
                     UpdateExpression=(
                         "SET #pwd = :p, #status = :s, verification_code_hash = :h, "
-                        "verification_expires_at = :e, firstName = :fn, lastName = :ln"
+                        "verification_expires_at = :e, firstName = :fn, lastName = :ln, "
+                        "auth_providers = :ap, pending_password_link = :pl"
                     ),
                     ExpressionAttributeNames={"#pwd": "password", "#status": "status"},
                     ExpressionAttributeValues={
@@ -114,7 +126,50 @@ def lambda_handler(event, context):
                         ":h": code_hash,
                         ":e": expires_at,
                         ":fn": first_name,
-                        ":ln": last_name
+                        ":ln": last_name,
+                        ":ap": merge_auth_providers(existing, "password"),
+                        ":pl": False
+                    }
+                )
+            elif existing and not has_local_password(existing):
+                # Existing account (for example Google sign-in) with no local password.
+                # Require OTP before linking a new password to this same account.
+                table.update_item(
+                    Key={"email": email},
+                    UpdateExpression=(
+                        "SET pending_password_hash = :p, pending_password_link = :pl, "
+                        "verification_code_hash = :h, verification_expires_at = :e, "
+                        "firstName = if_not_exists(firstName, :fn), "
+                        "lastName = if_not_exists(lastName, :ln)"
+                    ),
+                    ExpressionAttributeValues={
+                        ":p": hashed_password,
+                        ":pl": True,
+                        ":h": code_hash,
+                        ":e": expires_at,
+                        ":fn": first_name,
+                        ":ln": last_name,
+                    }
+                )
+            elif existing:
+                # Existing local account in a non-standard state: refresh verification
+                # data in place instead of creating a new identity.
+                table.update_item(
+                    Key={"email": email},
+                    UpdateExpression=(
+                        "SET #pwd = :p, #status = :s, verification_code_hash = :h, "
+                        "verification_expires_at = :e, firstName = :fn, lastName = :ln, "
+                        "auth_providers = :ap"
+                    ),
+                    ExpressionAttributeNames={"#pwd": "password", "#status": "status"},
+                    ExpressionAttributeValues={
+                        ":p": hashed_password,
+                        ":s": "PENDING",
+                        ":h": code_hash,
+                        ":e": expires_at,
+                        ":fn": first_name,
+                        ":ln": last_name,
+                        ":ap": merge_auth_providers(existing, "password"),
                     }
                 )
             else:
@@ -127,6 +182,9 @@ def lambda_handler(event, context):
                     "status": "PENDING",
                     "verification_code_hash": code_hash,
                     "verification_expires_at": expires_at,
+                    "email_verified": False,
+                    "auth_providers": ["password"],
+                    "pending_password_link": False,
                     "onboarding_status": True,
                     "createdAt": datetime.utcnow().isoformat(),
                     "total_credits": 250,
@@ -172,7 +230,10 @@ def lambda_handler(event, context):
                 return resp(400, headers, {"message": "Email and code are required"})
  
             user = table.get_item(Key={"email": email}).get("Item")
-            if not user or user.get("status") != "PENDING":
+            is_pending_signup = bool(user and user.get("status") == "PENDING")
+            is_password_link = bool(user and user.get("pending_password_link"))
+
+            if not user or (not is_pending_signup and not is_password_link):
                 return resp(400, headers, {"message": "Invalid request or user not pending"})
  
             expected_hash = user.get("verification_code_hash")
@@ -184,21 +245,53 @@ def lambda_handler(event, context):
             if not hmac.compare_digest(expected_hash, hash_code(code)):
                 return resp(401, headers, {"message": "Invalid verification code"})
  
-            table.update_item(
-                Key={"email": email},
-                UpdateExpression=(
-                    "SET #status = :a, session_id = :sid "
-                    "REMOVE verification_code_hash, verification_expires_at"
-                ),
-                ExpressionAttributeNames={"#status": "status"},
-                ExpressionAttributeValues={
-                    ":a": "ACTIVE",
-                    ":sid": "NOT_LOGGED_IN"  # empty until login
-                }
-            )
+            auth_providers = merge_auth_providers(user, "password")
+
+            if is_password_link:
+                pending_password_hash = user.get("pending_password_hash")
+                if not pending_password_hash:
+                    return resp(400, headers, {"message": "No pending password to link. Please register again."})
+
+                table.update_item(
+                    Key={"email": email},
+                    UpdateExpression=(
+                        "SET #status = if_not_exists(#status, :a), "
+                        "session_id = if_not_exists(session_id, :sid), "
+                        "password = :p, auth_providers = :ap, email_verified = :ev "
+                        "REMOVE verification_code_hash, verification_expires_at, "
+                        "pending_password_hash, pending_password_link"
+                    ),
+                    ExpressionAttributeNames={"#status": "status"},
+                    ExpressionAttributeValues={
+                        ":a": "ACTIVE",
+                        ":sid": "NOT_LOGGED_IN",
+                        ":p": pending_password_hash,
+                        ":ap": auth_providers,
+                        ":ev": True,
+                    }
+                )
+                success_message = "Email verified and password linked to your existing account."
+            else:
+                table.update_item(
+                    Key={"email": email},
+                    UpdateExpression=(
+                        "SET #status = :a, "
+                        "session_id = if_not_exists(session_id, :sid), "
+                        "auth_providers = :ap, email_verified = :ev "
+                        "REMOVE verification_code_hash, verification_expires_at"
+                    ),
+                    ExpressionAttributeNames={"#status": "status"},
+                    ExpressionAttributeValues={
+                        ":a": "ACTIVE",
+                        ":sid": "NOT_LOGGED_IN",  # empty until login
+                        ":ap": auth_providers,
+                        ":ev": True,
+                    }
+                )
+                success_message = "Email verified. Your account is active."
  
             return resp(200, headers, {
-                "message": "Email verified. Your account is active.",
+                "message": success_message,
                 "user": {
                     "email": user["email"],
                     "id": user["id"],

@@ -43,6 +43,7 @@ Resources:
       - ExecutionReadyCampaigns
       - ExistingCampaign
       - Project
+      - Blogs
     Properties:
       RestApiId: !Ref cammi
 
@@ -317,7 +318,15 @@ Resources:
       Location: project.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
-        RestApiId: !Ref cammi          
+        RestApiId: !Ref cammi
+
+  Blogs:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: blogs.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi
 
 Outputs:
   CammiApiId:

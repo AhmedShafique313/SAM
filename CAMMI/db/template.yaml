@@ -505,6 +505,25 @@ Resources:
         - AttributeName: project_id
           KeyType: HASH
 
+  ###################################################
+  # Blogs Table
+  ###################################################
+  BlogsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: blogs-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+        - AttributeName: blog_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+        - AttributeName: blog_id
+          KeyType: RANGE
+
 
 Outputs:
 
@@ -663,3 +682,9 @@ Outputs:
     Value: !Ref ClarifyAlignStateTable
     Export:
       Name: CAMMI-ClarifyAlignStateTableName
+
+  BlogsTableName:
+    Description: Blogs table
+    Value: !Ref BlogsTable
+    Export:
+      Name: CAMMI-BlogsTableName

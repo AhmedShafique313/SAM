@@ -93,6 +93,7 @@ Resources:
       - NewCampaignFeature
       - ExistingCampaignFeature
       - ProjectFeature
+      - BlogsFeature
     Properties:
       Location: API/template.yaml
 
@@ -332,7 +333,15 @@ Resources:
       - IAMStack
       - DynamoDBStack
     Properties:
-      Location: project/template.yaml                    
+      Location: project/template.yaml
+
+  BlogsFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - IAMStack
+      - DynamoDBStack
+    Properties:
+      Location: blogs/template.yaml
 
 Outputs:
   IAMStackOutput:
@@ -473,4 +482,8 @@ Outputs:
     
   ProjectFeatureOutput:
     Description: Outputs from Project feature
-    Value: !Ref ProjectFeature    
+    Value: !Ref ProjectFeature
+
+  BlogsFeatureOutput:
+    Description: Outputs from Blogs feature
+    Value: !Ref BlogsFeature

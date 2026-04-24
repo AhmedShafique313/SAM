@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Blogs features for CAMMI
+
+Resources:
+  ###################################################
+  # Create Blog Lambda
+  ###################################################
+  CreateBlogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: create-blog
+      Handler: app.lambda_handler
+      CodeUri: src/create-blog/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Builds blog intake questions based on project facts and company context
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          FACTS_TABLE_NAME: !ImportValue CAMMI-FactsTableName
+
+  ###################################################
+  # New Blog Lambda
+  ###################################################
+  NewBlogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: new-blog
+      Handler: app.lambda_handler
+      CodeUri: src/new-blog/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 512
+      Tracing: Active
+      Description: Generates a full blog post via Bedrock and saves it to DynamoDB
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          FACTS_TABLE_NAME: !ImportValue CAMMI-FactsTableName
+          BLOGS_TABLE_NAME: !ImportValue CAMMI-BlogsTableName
+          BEDROCK_REGION: us-east-1
+          BEDROCK_MODEL_ID: us.anthropic.claude-sonnet-4-20250514-v1:0
+
+  ###################################################
+  # New Blog Function URL
+  ###################################################
+  NewBlogFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      InvokeMode: BUFFERED
+      TargetFunctionArn: !GetAtt NewBlogFunction.Arn
+      Cors:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - POST
+        AllowHeaders:
+          - content-type
+
+  NewBlogFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref NewBlogFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  ###################################################
+  # View All Blogs Lambda
+  ###################################################
+  ViewAllBlogsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: view-all-blogs
+      Handler: app.lambda_handler
+      CodeUri: src/view-all-blogs/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Returns all blogs for a given project_id
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          BLOGS_TABLE_NAME: !ImportValue CAMMI-BlogsTableName
+
+  ###################################################
+  # Update Blog Lambda
+  ###################################################
+  UpdateBlogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: update-blog
+      Handler: app.lambda_handler
+      CodeUri: src/update-blog/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Updates title and/or blog_html of an existing blog record
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          BLOGS_TABLE_NAME: !ImportValue CAMMI-BlogsTableName
+
+  ###################################################
+  # Delete Blog Lambda
+  ###################################################
+  DeleteBlogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: delete-blog
+      Handler: app.lambda_handler
+      CodeUri: src/delete-blog/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Deletes a blog record by project_id and blog_id
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          BLOGS_TABLE_NAME: !ImportValue CAMMI-BlogsTableName
+
+Outputs:
+  CreateBlogFunctionArn:
+    Description: ARN of CreateBlogFunction Lambda
+    Value: !GetAtt CreateBlogFunction.Arn
+    Export:
+      Name: CreateBlogFunctionArn
+
+  NewBlogFunctionArn:
+    Description: ARN of NewBlogFunction Lambda
+    Value: !GetAtt NewBlogFunction.Arn
+    Export:
+      Name: NewBlogFunctionArn
+
+  NewBlogFunctionUrl:
+    Description: Function URL for NewBlogFunction
+    Value: !GetAtt NewBlogFunctionUrl.FunctionUrl
+    Export:
+      Name: NewBlogFunctionUrl
+
+  ViewAllBlogsFunctionArn:
+    Description: ARN of ViewAllBlogsFunction Lambda
+    Value: !GetAtt ViewAllBlogsFunction.Arn
+    Export:
+      Name: ViewAllBlogsFunctionArn
+
+  UpdateBlogFunctionArn:
+    Description: ARN of UpdateBlogFunction Lambda
+    Value: !GetAtt UpdateBlogFunction.Arn
+    Export:
+      Name: UpdateBlogFunctionArn
+
+  DeleteBlogFunctionArn:
+    Description: ARN of DeleteBlogFunction Lambda
+    Value: !GetAtt DeleteBlogFunction.Arn
+    Export:
+      Name: DeleteBlogFunctionArn

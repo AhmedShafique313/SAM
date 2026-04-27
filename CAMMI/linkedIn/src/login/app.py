@@ -6,7 +6,7 @@ http = urllib3.PoolManager()
  
 CLIENT_ID = os.environ["L_CLIENT_ID"]
 CLIENT_SECRET = os.environ["L_CLIENT_SECRET"]
-REDIRECT_URI = "https://hobv2e2dna.execute-api.us-east-1.amazonaws.com/dev/LinkedIn/Callback"
+REDIRECT_URI = "https://0932kd3ns5.execute-api.us-east-1.amazonaws.com/dev/LinkedIn/Callback"
  
 AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"

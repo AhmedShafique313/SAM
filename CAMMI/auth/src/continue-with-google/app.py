@@ -15,7 +15,7 @@ CLIENT_SECRET = os.environ["CLIENT_SECRET"]
 ZOHO_APP_PASSWORD = os.environ["ZOHO_APP_PASSWORD"]
 
 
-REDIRECT_URI = "https://hobv2e2dna.execute-api.us-east-1.amazonaws.com/dev/auth/google-callback"
+REDIRECT_URI = "https://0932kd3ns5.execute-api.us-east-1.amazonaws.com/dev/auth/google-callback"
 ZOHO_EMAIL = "info@cammi.ai"
 USERS_TABLE = os.environ.get("USERS_TABLE", "users-table")
 GOOGLE_AUTH_URI = "https://accounts.google.com/o/oauth2/v2/auth"

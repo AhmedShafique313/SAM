@@ -65,11 +65,7 @@ DEPTH_LABELS = {
     "deep_dive": "Deep dive (1600-2200 words)",
 }
 
-CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-}
+CORS_HEADERS = {}
 
 
 def parse_event(event: Dict[str, Any]) -> Dict[str, Any]:

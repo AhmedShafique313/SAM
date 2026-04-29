@@ -524,6 +524,25 @@ Resources:
         - AttributeName: blog_id
           KeyType: RANGE
 
+  ###################################################
+  # Onepager Table
+  ###################################################
+  OnepagerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: onepager-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: project_id
+          AttributeType: S
+        - AttributeName: onepager_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: project_id
+          KeyType: HASH
+        - AttributeName: onepager_id
+          KeyType: RANGE
+
 
 Outputs:
 
@@ -688,3 +707,9 @@ Outputs:
     Value: !Ref BlogsTable
     Export:
       Name: CAMMI-BlogsTableName
+
+  OnepagerTableName:
+    Description: Onepager table
+    Value: !Ref OnepagerTable
+    Export:
+      Name: CAMMI-OnepagerTableName

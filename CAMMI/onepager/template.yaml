@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: One-pager feature for CAMMI
+
+Resources:
+  ###################################################
+  # Create Onepager Lambda
+  ###################################################
+  CreateOnepagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: create-onepager
+      Handler: app.lambda_handler
+      CodeUri: src/create-onepager/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Builds one-pager intake questions based on project facts and company context
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          FACTS_TABLE_NAME: !ImportValue CAMMI-FactsTableName
+
+  ###################################################
+  # New Onepager Lambda
+  ###################################################
+  NewOnepagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: new-onepager
+      Handler: app.lambda_handler
+      CodeUri: src/new-onepager/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 512
+      Tracing: Active
+      Description: Generates a full one-pager via Bedrock with images and saves it to DynamoDB
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          USERS_TABLE: !ImportValue CAMMI-UsersTableName
+          FACTS_TABLE_NAME: !ImportValue CAMMI-FactsTableName
+          ONEPAGER_TABLE_NAME: !ImportValue CAMMI-OnepagerTableName
+          BEDROCK_REGION: us-east-1
+          BEDROCK_TEXT_MODEL_ID: us.anthropic.claude-sonnet-4-20250514-v1:0
+          ASSETS_BUCKET: cammi-devprod
+          ASSETS_PREFIX: imagesonepager
+
+  ###################################################
+  # New Onepager Function URL
+  ###################################################
+  NewOnepagerFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      InvokeMode: BUFFERED
+      TargetFunctionArn: !GetAtt NewOnepagerFunction.Arn
+      Cors:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - POST
+        AllowHeaders:
+          - content-type
+
+  NewOnepagerFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref NewOnepagerFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  ###################################################
+  # View All Onepagers Lambda
+  ###################################################
+  ViewAllOnepagersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: view-all-onepagers
+      Handler: app.lambda_handler
+      CodeUri: src/view-all-onepagers/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Returns all one-pagers for a given project_id
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          ONEPAGER_TABLE_NAME: !ImportValue CAMMI-OnepagerTableName
+
+  ###################################################
+  # Update Onepager Lambda
+  ###################################################
+  UpdateOnepagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: update-onepager
+      Handler: app.lambda_handler
+      CodeUri: src/update-onepager/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Updates title and/or onepager_output of an existing one-pager record
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          ONEPAGER_TABLE_NAME: !ImportValue CAMMI-OnepagerTableName
+
+  ###################################################
+  # Delete Onepager Lambda
+  ###################################################
+  DeleteOnepagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: delete-onepager
+      Handler: app.lambda_handler
+      CodeUri: src/delete-onepager/
+      Runtime: python3.13
+      Timeout: 900
+      MemorySize: 128
+      Tracing: Active
+      Description: Deletes a one-pager record by project_id and onepager_id
+      Role: !ImportValue CAMMI-LambdaRoleArn
+      Environment:
+        Variables:
+          ONEPAGER_TABLE_NAME: !ImportValue CAMMI-OnepagerTableName
+
+Outputs:
+  CreateOnepagerFunctionArn:
+    Description: ARN of CreateOnepagerFunction Lambda
+    Value: !GetAtt CreateOnepagerFunction.Arn
+    Export:
+      Name: CreateOnepagerFunctionArn
+
+  NewOnepagerFunctionArn:
+    Description: ARN of NewOnepagerFunction Lambda
+    Value: !GetAtt NewOnepagerFunction.Arn
+    Export:
+      Name: NewOnepagerFunctionArn
+
+  NewOnepagerFunctionUrl:
+    Description: Function URL for NewOnepagerFunction
+    Value: !GetAtt NewOnepagerFunctionUrl.FunctionUrl
+    Export:
+      Name: NewOnepagerFunctionUrl
+
+  ViewAllOnepagersFunctionArn:
+    Description: ARN of ViewAllOnepagersFunction Lambda
+    Value: !GetAtt ViewAllOnepagersFunction.Arn
+    Export:
+      Name: ViewAllOnepagersFunctionArn
+
+  UpdateOnepagerFunctionArn:
+    Description: ARN of UpdateOnepagerFunction Lambda
+    Value: !GetAtt UpdateOnepagerFunction.Arn
+    Export:
+      Name: UpdateOnepagerFunctionArn
+
+  DeleteOnepagerFunctionArn:
+    Description: ARN of DeleteOnepagerFunction Lambda
+    Value: !GetAtt DeleteOnepagerFunction.Arn
+    Export:
+      Name: DeleteOnepagerFunctionArn

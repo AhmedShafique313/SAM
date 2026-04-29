@@ -94,6 +94,7 @@ Resources:
       - ExistingCampaignFeature
       - ProjectFeature
       - BlogsFeature
+      - OnepagerFeature
     Properties:
       Location: API/template.yaml
 
@@ -343,6 +344,14 @@ Resources:
     Properties:
       Location: blogs/template.yaml
 
+  OnepagerFeature:
+    Type: AWS::Serverless::Application
+    DependsOn:
+      - IAMStack
+      - DynamoDBStack
+    Properties:
+      Location: onepager/template.yaml
+
 Outputs:
   IAMStackOutput:
     Description: Outputs from IAM stack
@@ -487,3 +496,7 @@ Outputs:
   BlogsFeatureOutput:
     Description: Outputs from Blogs feature
     Value: !Ref BlogsFeature
+
+  OnepagerFeatureOutput:
+    Description: Outputs from Onepager feature
+    Value: !Ref OnepagerFeature

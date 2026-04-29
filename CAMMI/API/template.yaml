@@ -44,6 +44,7 @@ Resources:
       - ExistingCampaign
       - Project
       - Blogs
+      - Onepager
     Properties:
       RestApiId: !Ref cammi
 
@@ -324,6 +325,14 @@ Resources:
     Type: AWS::Serverless::Application
     Properties:
       Location: blogs.yaml
+      Parameters:
+        RootResourceId: !GetAtt cammi.RootResourceId
+        RestApiId: !Ref cammi
+
+  Onepager:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: onepager.yaml
       Parameters:
         RootResourceId: !GetAtt cammi.RootResourceId
         RestApiId: !Ref cammi

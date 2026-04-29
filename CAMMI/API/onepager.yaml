@@ -1,0 +1,235 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: API Template for CAMMI One-Pager
+
+Parameters:
+  RootResourceId:
+    Type: String
+  RestApiId:
+    Type: String
+
+Resources:
+
+  # /onepager parent resource
+  OnepagerParentResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref RootResourceId
+      PathPart: onepager
+      RestApiId: !Ref RestApiId
+
+  # /onepager/create-onepager resource
+  CreateOnepagerFunctionResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt OnepagerParentResource.ResourceId
+      PathPart: create-onepager
+      RestApiId: !Ref RestApiId
+
+  # POST Method for /onepager/create-onepager
+  CreateOnepagerFunctionResourcePOSTMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref CreateOnepagerFunctionResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateOnepagerFunctionArn}/invocations
+          - CreateOnepagerFunctionArn: !ImportValue CreateOnepagerFunctionArn
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        TimeoutInMillis: 29000
+
+  # OPTIONS Method for /onepager/create-onepager
+  CreateOnepagerFunctionResourceOPTIONSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref CreateOnepagerFunctionResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{ "statusCode": 200 }'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # /onepager/view-all-onepagers resource
+  ViewAllOnepagersFunctionResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt OnepagerParentResource.ResourceId
+      PathPart: view-all-onepagers
+      RestApiId: !Ref RestApiId
+
+  # POST Method for /onepager/view-all-onepagers
+  ViewAllOnepagersFunctionResourcePOSTMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref ViewAllOnepagersFunctionResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ViewAllOnepagersFunctionArn}/invocations
+          - ViewAllOnepagersFunctionArn: !ImportValue ViewAllOnepagersFunctionArn
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        TimeoutInMillis: 29000
+
+  # OPTIONS Method for /onepager/view-all-onepagers
+  ViewAllOnepagersFunctionResourceOPTIONSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref ViewAllOnepagersFunctionResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{ "statusCode": 200 }'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # /onepager/update-onepager resource
+  UpdateOnepagerFunctionResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt OnepagerParentResource.ResourceId
+      PathPart: update-onepager
+      RestApiId: !Ref RestApiId
+
+  # POST Method for /onepager/update-onepager
+  UpdateOnepagerFunctionResourcePOSTMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref UpdateOnepagerFunctionResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateOnepagerFunctionArn}/invocations
+          - UpdateOnepagerFunctionArn: !ImportValue UpdateOnepagerFunctionArn
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        TimeoutInMillis: 29000
+
+  # OPTIONS Method for /onepager/update-onepager
+  UpdateOnepagerFunctionResourceOPTIONSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref UpdateOnepagerFunctionResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{ "statusCode": 200 }'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # /onepager/delete-onepager resource
+  DeleteOnepagerFunctionResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt OnepagerParentResource.ResourceId
+      PathPart: delete-onepager
+      RestApiId: !Ref RestApiId
+
+  # POST Method for /onepager/delete-onepager
+  DeleteOnepagerFunctionResourcePOSTMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref DeleteOnepagerFunctionResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      Integration:
+        Credentials: !ImportValue CAMMI-ApiGatewayFunctionRoleArn
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteOnepagerFunctionArn}/invocations
+          - DeleteOnepagerFunctionArn: !ImportValue DeleteOnepagerFunctionArn
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        TimeoutInMillis: 29000
+
+  # OPTIONS Method for /onepager/delete-onepager
+  DeleteOnepagerFunctionResourceOPTIONSMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref DeleteOnepagerFunctionResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{ "statusCode": 200 }'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{}"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
